@@ -1,0 +1,64 @@
+{
+  "name": "@immutabl3/store",
+  "description": "a simple, modern state management library",
+  "version": "0.0.1",
+  "main": "src/index.js",
+  "scripts": {
+    "test:js": "node -r esm test | tap-spec",
+    "test:dom": "node -r esm test/useStore.test | tap-spec",
+    "test": "npm run test:js && npm run test:dom",
+    "debug": "node -r esm --inspect-brk=1234 test",
+    "benchmark": "node -r esm benchmark"
+  },
+  "bugs": {
+    "url": "https://github.com/immutabl3/store/issues"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Immutable, LLC",
+    "email": "joe@weareimmutable.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/immutabl3/store.git"
+  },
+  "keywords": [
+    "state",
+    "store",
+    "management",
+    "library",
+    "node",
+    "react",
+    "reactive",
+    "fast",
+    "clean",
+    "proxy"
+  ],
+  "dependencies": {
+    "deep-object-diff": "^1.1.0",
+    "is-primitive": "^3.0.1",
+    "plain-object-is-empty": "^1.0.0",
+    "proxy-watcher": "^1.2.1",
+    "react-use-mounted": "^1.0.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.6.0"
+  },
+  "devDependencies": {
+    "@fabiospampinato/store": "^1.1.1",
+    "babel-eslint": "^10.0.3",
+    "baobab": "^2.6.0",
+    "benchloop": "^1.3.1",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.2",
+    "eslint": "^6.8.0",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-react": "^7.18.3",
+    "esm": "^3.2.25",
+    "jsdom": "^16.2.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "tap-spec": "^5.0.0",
+    "tape": "^4.9.0"
+  }
+}
