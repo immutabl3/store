@@ -16,7 +16,7 @@ export default function Store(obj, {
   
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
-  const [proxy] = proxyWatcher(obj, paths => {
+  const proxy = proxyWatcher(obj, paths => {
     scheduler.add(paths);
     autoCommit && scheduler.commit();
   });

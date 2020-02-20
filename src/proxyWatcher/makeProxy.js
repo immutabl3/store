@@ -11,30 +11,21 @@ import {
 } from './utils';
 import {
   $TARGET,
-  $STOP,
-  $GET_RECORD_START,
-  $GET_RECORD_STOP,
-  PROXY_CACHE,
 } from './consts';
 
 // TODO: this could benefit from being prototypical
-const makeTraps = function(callback, $PROXY) {
-  let stopped = false;
+const makeTraps = function(callback, cache) {
   let changed = false;
   let changedPaths = [];
-  let getPathsRecording = false;
-  let getPaths = [];
-  let paths = new WeakMap();
+  
+  const paths = new WeakMap();
 
-  const triggerChange = function(result, path) {
+  const triggerChange = function(path) {
     changed = true;
     changedPaths.push(path);
-    return result;
   };
   
-  const getParentPath = function(parent) {
-    return paths.get(parent);
-  };
+  const getParentPath = parent => paths.get(parent);
 
   const getChildPath = function(parent, path) {
     // TODO: reused (see setChildPath)
@@ -61,13 +52,10 @@ const makeTraps = function(callback, $PROXY) {
   };
 
   const wrapTrap = function(trap) {
-    let depth = 0;
     // max arguments = 4
     return function trapWrapper(one, two, three, four) {
-      depth++;
       const result = trap(one, two, three, four);
-      depth--;
-      if (changed && !depth && !stopped) {
+      if (changed) {
         const paths = changedPaths;
         changed = false;
         changedPaths = [];
@@ -80,54 +68,37 @@ const makeTraps = function(callback, $PROXY) {
   const traps = {
     get: wrapTrap((target, property, rec) => {
       if (property === $TARGET) return target;
-      if (property === $STOP) {
-        stopped = true;
-        changedPaths = undefined;
-        paths = undefined;
-        delete PROXY_CACHE[$PROXY];
-        return target;
-      }
-      if (property === $GET_RECORD_START) return (getPathsRecording = true);
-      if (property === $GET_RECORD_STOP) {
-        const paths = getPaths;
-        getPathsRecording = false;
-        getPaths = [];
-        return paths;
-      }
       
       let receiver = rec;
       if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
-      // We are only recording root paths, because I don't see a use case for recording deeper paths too
-      if (getPathsRecording && !getParentPath(target)) getPaths.push(property);
       const value = Reflect.get(target, property, receiver);
       if (isBuiltinWithoutMutableMethods(value) || property === 'constructor') return value;
       const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
-      if (descriptor && !descriptor.configurable && !descriptor.writable) return value; // Preserving invariants
-      if (stopped || isSymbol(property) || isBuiltinUnsupported(value)) return value;
-      // TODO: FIXME: Binding here prevents the function to be potentially re-bounded later
+      // preserving invariants
+      if (descriptor && !descriptor.configurable && !descriptor.writable) return value;
+      if (isSymbol(property) || isBuiltinUnsupported(value)) return value;
+      // TODO: FIXME: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(target, value)) return value.bind(target);
       setChildPath(target, value, property);
-      return makeProxy(value, callback, $PROXY, traps);
+      return makeProxy(value, callback, cache, traps);
     }),
     set: wrapTrap((target, property, val, rec) => {
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
       if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
-      if (stopped || isSymbol(property)) return Reflect.set(target, property, value);
+      if (isSymbol(property)) return Reflect.set(target, property, value);
       const isValueUndefined = (value === undefined);
       const didPropertyExist = isValueUndefined && Reflect.has(target, property);
       const prev = Reflect.get(target, property, receiver);
       const result = Reflect.set(target, property, value);
       const changed = result && ((isValueUndefined && !didPropertyExist) || !isEqual(prev, value));
       if (!changed) return result;
-      
-      triggerChange(result, getChildPath(target, property));
-
+      triggerChange(getChildPath(target, property));
       return result;
     }),
     defineProperty: wrapTrap((target, property, descriptor) => {
-      if (stopped || isSymbol(property)) return Reflect.defineProperty(target, property, descriptor);
+      if (isSymbol(property)) return Reflect.defineProperty(target, property, descriptor);
       const prev = Reflect.getOwnPropertyDescriptor(target, property);
       const changed = Reflect.defineProperty(target, property, descriptor);
       if (changed) {
@@ -139,49 +110,38 @@ const makeTraps = function(callback, $PROXY) {
         }, descriptor);
         if (isEqual(prev, next)) return true;
       }
-      return changed ? 
-        triggerChange(changed, getChildPath(target, property)) : 
-        changed;
+      if (!changed) return changed;
+      triggerChange(getChildPath(target, property));
+      return changed;
     }),
     deleteProperty: wrapTrap((target, property) => {
       if (!Reflect.has(target, property)) return true;
       const changed = Reflect.deleteProperty(target, property);
-      if (stopped || isSymbol(property)) return changed;
-      return changed ? 
-        triggerChange(changed, getChildPath(target, property)) : 
-        changed;
+      if (isSymbol(property)) return changed;
+      if (!changed) return changed;
+      triggerChange(getChildPath(target, property));
+      return changed;
     }),
     apply: wrapTrap((target, thisArg, args) => {
       let arg = thisArg;
       if (isBuiltinWithMutableMethods(arg)) arg = thisArg[$TARGET];
-      if (stopped || isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
+      if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
       const clonedArg = clone(arg);
       const result = Reflect.apply(target, arg, args);
       const changed = !isEqual(clonedArg, arg);
-      return changed ? 
-        triggerChange(result, getParentPath(arg[$TARGET] || arg)) : 
-        // TODO: FIXME: Why do we need to retrieve the path this way (for arrays)?
-        result;
+      if (!changed) return result;
+      triggerChange(getParentPath(arg[$TARGET] || arg));
+      // TODO: FIXME: Why do we need to retrieve the path this way (for arrays)?
+      return result;
     }),
   };
   return traps;
 };
 
-// TODO: Maybe use revocable Proxies, will the target object remain usable?
-export default function makeProxy(object, callback, $PROXY, passedTraps) {
-  if ($PROXY) {
-    const proxy = PROXY_CACHE[$PROXY].get(object);
-    if (proxy) return proxy;
-  } else {
-    // TODO: no param reassign
-    // TODO: move symbol to constants
-    // eslint-disable-next-line no-param-reassign
-    $PROXY = Symbol('Target -> Proxy');
-    PROXY_CACHE[$PROXY] = new WeakMap();
-  }
-
-  const traps = passedTraps || makeTraps(callback, $PROXY);
-  const proxy = new Proxy(object, traps);
-  PROXY_CACHE[$PROXY].set(object, proxy);
+export default function makeProxy(object, callback, cache = new WeakMap(), traps) {
+  if (cache.has(object)) return cache.get(object);
+  
+  const proxy = new Proxy(object, traps || makeTraps(callback, cache));
+  cache.set(object, proxy);
   return proxy;
 };

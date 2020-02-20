@@ -1,17 +1,13 @@
 import merge from 'lodash/merge';
 import test from 'tape';
 import watch from '../src/proxyWatcher';
-import {
-  $GET_RECORD_START,
-  $GET_RECORD_STOP
-} from '../src/proxyWatcher/consts';
 
 // TODO: make resetting explicit
 const makeData = function(object) {
   let callsNr = 0;
   let paths = [];
 
-  const [proxy, dispose] = watch(object, changedPaths => {
+  const proxy = watch(object, changedPaths => {
     callsNr++;
     paths = paths.concat(changedPaths);
   });
@@ -19,7 +15,6 @@ const makeData = function(object) {
   return {
     object,
     proxy,
-    dispose,
     get nr() {
       return callsNr;
     },
@@ -162,37 +157,6 @@ test(`proxyWatcher: assignment are also checked for equality`, assert => {
   Object.defineProperty(data.proxy, 'deep2', { configurable: true, value: { deeper: true } });
 
   assert.is(data.nr, 1);
-
-  assert.end();
-});
-
-test(`proxyWatcher: can record get root paths`, assert => {
-  assert.plan(2);
-
-  const data = makeData({
-    deep: {
-      arr: [
-        1,
-        2,
-        { foo: true },
-        { zzz: true },
-      ],
-    },
-  });
-
-  assert.is(data.proxy[$GET_RECORD_START], true);
-
-  data.proxy.deep.arr[0] = 1;
-  data.proxy.deep.arr[1] = 2;
-  data.proxy.deep.arr[2].foo = true;
-  data.proxy.deep.arr[2].bar;
-
-  assert.deepEqual(data.proxy[$GET_RECORD_STOP], [
-    'deep',
-    'deep',
-    'deep',
-    'deep',
-  ]);
 
   assert.end();
 });

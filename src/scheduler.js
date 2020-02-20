@@ -1,8 +1,4 @@
 import get from 'lodash/get';
-import {
-  $GET_RECORD_START,
-  $GET_RECORD_STOP,
-} from './proxyWatcher/consts'; // UGLY
 
 // TODO: move to utils
 const defer = fn => setTimeout(fn, 0);
@@ -45,7 +41,6 @@ export default function Scheduler(proxy, emitter, asynchronous) {
         return memo;
       }, [])
     );
-    proxy[$GET_RECORD_STOP];
 
     emitter.emit('change', {
       paths: Array.from(pathMap.values()),
@@ -65,8 +60,6 @@ export default function Scheduler(proxy, emitter, asynchronous) {
         data: get(proxy, selector),
       });
     });
-
-    proxy[$GET_RECORD_START];
 
     paths = [];
 

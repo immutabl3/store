@@ -1,12 +1,4 @@
-// TODO: FIXME: This looks like a potential memory leak source, symbols 
-// and associated maps are never garbage collected if the watched objects 
-// get garbage collected without being disposed of first
-export const PROXY_CACHE = {};
-
 export const $TARGET = Symbol('Proxy -> Target');
-export const $STOP = Symbol('Stop proxying');
-export const $GET_RECORD_START = Symbol('Start recording get paths');
-export const $GET_RECORD_STOP = Symbol('Stop recording get paths');
 
 // We are assuming the following immutable methods don't get 
 // messed up with, and custom methods with the same name that 
