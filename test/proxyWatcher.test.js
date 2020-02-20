@@ -1,5 +1,4 @@
-// TODO: refactor lodash
-import _ from 'lodash';
+import merge from 'lodash/merge';
 import test from 'tape';
 import watch from '../src/proxyWatcher';
 import {
@@ -101,6 +100,8 @@ test(`trap errors don't break things`, assert => {
 });
 
 test(`watching immutable primitives doesn't throw an error`, assert => {
+  assert.plan(14);
+
   const values = [
     null,
     undefined,
@@ -111,19 +112,16 @@ test(`watching immutable primitives doesn't throw an error`, assert => {
     'string',
     Symbol(),
     /foo/g,
-    new ArrayBuffer (123),
+    new ArrayBuffer(123),
     new Number(123),
     new Boolean(true),
     new String('string'),
   ];
 
-  assert.plan(values.length + 1);
-
   values.forEach(value => assert.is(value, watch(value)[0]));
   
   // NaN !== NaN, have to use isNaN
-  const nan = NaN;
-  assert.ok(Number.isNaN(watch(nan)[0]));
+  assert.ok(Number.isNaN(watch(NaN)[0]));
 
   assert.end();
 });
@@ -241,20 +239,26 @@ test('structures: basics', assert => {
   data.proxy.bar = undefined;
 
   assert.is(data.nr, 1);
-  assert.deepEqual(data.paths, ['bar']);
+  assert.deepEqual(data.paths, [
+    ['bar'],
+  ]);
 
   data.proxy.foo = false;
   data.proxy.foo = false;
 
   assert.is(data.nr, 2);
-  assert.deepEqual(data.paths, ['foo']);
+  assert.deepEqual(data.paths, [
+    ['foo'],
+  ]);
 
   data.proxy.bar = { deep: true };
   data.proxy.bar = { deep: true };
   data.proxy.bar = { deep: true };
 
   assert.is(data.nr, 3);
-  assert.deepEqual(data.paths, ['bar']);
+  assert.deepEqual(data.paths, [
+    ['bar'],
+  ]);
 
   data.proxy.bar.deep = undefined;
   data.proxy.baz = undefined;
@@ -263,13 +267,20 @@ test('structures: basics', assert => {
   delete data.proxy.bar;
 
   assert.is(data.nr, 7);
-  assert.deepEqual(data.paths, ['bar.deep', 'baz', 'bar.deep', 'bar']);
+  assert.deepEqual(data.paths, [
+    ['bar', 'deep'],
+    ['baz'],
+    ['bar', 'deep'],
+    ['bar'],
+  ]);
 
-  Object.defineProperty (data.proxy, 'bar', { value: 2 });
-  Object.defineProperty (data.proxy, 'bar', { value: 2 });
+  Object.defineProperty(data.proxy, 'bar', { value: 2 });
+  Object.defineProperty(data.proxy, 'bar', { value: 2 });
 
   assert.is(data.nr, 8);
-  assert.deepEqual(data.paths, ['bar']);
+  assert.deepEqual(data.paths, [
+    ['bar'],
+  ]);
 
   assert.true(data.proxy.hasOwnProperty('foo'));
   assert.true('foo' in data.proxy);
@@ -303,7 +314,9 @@ test('structures: accessors', assert => {
 
   assert.is(data.proxy.accessor, 10);
   assert.is(data.nr, 1);
-  assert.deepEqual(data.paths, ['accessor']);
+  assert.deepEqual(data.paths, [
+    ['accessor'],
+  ]);
 
   assert.end();
 });
@@ -335,7 +348,7 @@ test('structures: deep', assert => {
   data.proxy.deep.map.forEach(x => (x.mod = true));
   data.proxy.deep.set.forEach(x => (x.mod = true));
 
-  _.merge(data.proxy, {
+  merge(data.proxy, {
     root: true,
     deep: {
       deeper: {
@@ -344,7 +357,7 @@ test('structures: deep', assert => {
     },
   });
 
-  _.merge(data.proxy, {
+  merge(data.proxy, {
     root: false,
     deep: {
       deeper: {
@@ -355,19 +368,19 @@ test('structures: deep', assert => {
 
   assert.is(data.nr, 13);
   assert.deepEqual(data.paths, [
-    'deep.arr.0',
-    'deep.arr.1',
-    'deep.arr.2.foo',
-    'deep.arr.2.bar',
-    'deep.arr.4',
-    'deep.arr.4',
-    'deep.arr.3.mod',
-    'deep.map',
-    'deep.set',
-    'root',
-    'deep.deeper',
-    'root',
-    'deep.deeper.bottom'
+    ['deep', 'arr', 0],
+    ['deep', 'arr', 1],
+    ['deep', 'arr', 2, 'foo'],
+    ['deep', 'arr', 2, 'bar'],
+    ['deep', 'arr', 4],
+    ['deep', 'arr', 4],
+    ['deep', 'arr', 3, 'mod'],
+    ['deep', 'map'],
+    ['deep', 'set'],
+    ['root'],
+    ['deep', 'deeper'],
+    ['root'],
+    ['deep', 'deeper', 'bottom'],
   ]);
 
   assert.end();
@@ -403,12 +416,12 @@ test('structures: primitives - tricky', assert => {
 
   assert.is(data.nr, 6);
   assert.deepEqual(data.paths, [
-    'minInf',
-    'inf',
-    'minZero',
-    'zero',
-    'nan',
-    'bigint'
+    ['minInf'],
+    ['inf'],
+    ['minZero'],
+    ['zero'],
+    ['nan'],
+    ['bigint'],
   ]);
 
   assert.end();
@@ -453,7 +466,12 @@ test('structures: primitives - constructors', assert => {
   data.proxy.fn.nr = new Number(123);
 
   assert.is(data.nr, 4);
-  assert.deepEqual(data.paths, ['fn.symbol', 'fn.bool', 'fn.str', 'fn.nr']);
+  assert.deepEqual(data.paths, [
+    ['fn', 'symbol'],
+    ['fn', 'bool'],
+    ['fn', 'str'],
+    ['fn', 'nr'],
+  ]);
 
   data.proxy.new.bool = new Boolean(true);
   data.proxy.new.str = new String('string');
@@ -467,9 +485,9 @@ test('structures: primitives - constructors', assert => {
 
   assert.is(data.nr, 7);
   assert.deepEqual(data.paths, [
-    'new.bool',
-    'new.str',
-    'new.nr',
+    ['new', 'bool'],
+    ['new', 'str'],
+    ['new', 'nr'],
   ]);
 
   delete data.proxy.fn.bool;
@@ -481,12 +499,12 @@ test('structures: primitives - constructors', assert => {
 
   assert.is(data.nr, 13);
   assert.deepEqual(data.paths, [
-    'fn.bool',
-    'fn.str',
-    'fn.nr',
-    'new.bool',
-    'new.str',
-    'new.nr',
+    ['fn', 'bool'],
+    ['fn', 'str'],
+    ['fn', 'nr'],
+    ['new', 'bool'],
+    ['new', 'str'],
+    ['new', 'nr'],
   ]);
 
   assert.end();
@@ -573,21 +591,21 @@ test('structures: Date', assert => {
 
   assert.is(data.nr, 15);
   assert.deepEqual(data.paths, [
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
-    'date',
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
+    ['date'],
   ]);
 
   assert.end();
@@ -640,7 +658,9 @@ test('structures: function', assert => {
   data.proxy.fn.displayName = 'Name';
 
   assert.is(data.nr, 1);
-  assert.deepEqual(data.paths, ['fn.displayName']);
+  assert.deepEqual(data.paths, [
+    ['fn', 'displayName'],
+  ]);
 
   assert.end();
 });
@@ -681,7 +701,9 @@ test('structures: Array', assert => {
   data.proxy.arr.length = 10;
 
   assert.is(data.nr, 1);
-  assert.deepEqual(data.paths, ['arr.length']);
+  assert.deepEqual(data.paths, [
+    ['arr', 'length'],
+  ]);
 
   data.proxy.arr.copyWithin(0, 0, 0);
   data.proxy.arr.push();
@@ -701,49 +723,49 @@ test('structures: Array', assert => {
 
   assert.is(data.nr, 44);
   assert.deepEqual(data.paths, [
-    'arr.0',
-    'arr',
-    'arr.0',
-    'arr.1',
-    'arr.2',
-    'arr.3',
-    'arr.4',
-    'arr.5',
-    'arr.6',
-    'arr.7',
-    'arr.8',
-    'arr.9',
-    'arr',
-    'arr.9',
-    'arr.length',
-    'arr',
-    'arr.9',
-    'arr.10',
-    'arr.11',
-    'arr',
-    'arr.0',
-    'arr.11',
-    'arr.1',
-    'arr.10',
-    'arr.2',
-    'arr.9',
-    'arr',
-    'arr.0',
-    'arr.1',
-    'arr.2',
-    'arr.11',
-    'arr.length',
-    'arr',
-    'arr.0',
-    'arr.1',
-    'arr',
-    'arr.0',
-    'arr',
-    'arr.11',
-    'arr.2',
-    'arr.1',
-    'arr.0',
-    'arr',
+    ['arr', 0],
+    ['arr'],
+    ['arr', 0],
+    ['arr', 1],
+    ['arr', 2],
+    ['arr', 3],
+    ['arr', 4],
+    ['arr', 5],
+    ['arr', 6],
+    ['arr', 7],
+    ['arr', 8],
+    ['arr', 9],
+    ['arr'],
+    ['arr', 9],
+    ['arr', 'length'],
+    ['arr'],
+    ['arr', 9],
+    ['arr', 10],
+    ['arr', 11],
+    ['arr'],
+    ['arr', 0],
+    ['arr', 11],
+    ['arr', 1],
+    ['arr', 10],
+    ['arr', 2],
+    ['arr', 9],
+    ['arr'],
+    ['arr', 0],
+    ['arr', 1],
+    ['arr', 2],
+    ['arr', 11],
+    ['arr', 'length'],
+    ['arr'],
+    ['arr', 0],
+    ['arr', 1],
+    ['arr'],
+    ['arr', 0],
+    ['arr'],
+    ['arr', 11],
+    ['arr', 2],
+    ['arr', 1],
+    ['arr', 0],
+    ['arr'],
   ]);
 
   assert.end();
@@ -759,7 +781,7 @@ test('structures: ArrayBuffer', assert => {
 
   assert.is(data.nr, 0);
 
-  data.proxy.arr.slice (0, 8);
+  data.proxy.arr.slice(0, 8);
 
   assert.is(data.nr, 0);
 
@@ -798,21 +820,21 @@ test('structures: typed arrays', assert => {
     assert.is(data.nr, 0);
 
     data.proxy.arr.entries();
-    data.proxy.arr.every (() => false);
-    data.proxy.arr.filter (() => false);
-    data.proxy.arr.find (() => false);
-    data.proxy.arr.findIndex (() => false);
-    data.proxy.arr.forEach (() => {});
-    data.proxy.arr.includes (1);
-    data.proxy.arr.indexOf (1);
+    data.proxy.arr.every(() => false);
+    data.proxy.arr.filter(() => false);
+    data.proxy.arr.find(() => false);
+    data.proxy.arr.findIndex(() => false);
+    data.proxy.arr.forEach(() => {});
+    data.proxy.arr.includes(1);
+    data.proxy.arr.indexOf(1);
     data.proxy.arr.join();
     data.proxy.arr.keys();
     data.proxy.arr.lastIndexOf (1);
-    data.proxy.arr.map (() => false);
-    data.proxy.arr.reduce (() => ({}));
-    data.proxy.arr.reduceRight (() => ({}));
+    data.proxy.arr.map(() => false);
+    data.proxy.arr.reduce(() => ({}));
+    data.proxy.arr.reduceRight(() => ({}));
     data.proxy.arr.slice();
-    data.proxy.arr.some (() => false);
+    data.proxy.arr.some(() => false);
     data.proxy.arr.subarray();
     data.proxy.arr.toLocaleString();
     data.proxy.arr.toString();
@@ -820,19 +842,24 @@ test('structures: typed arrays', assert => {
 
     assert.is(data.nr, 0);
 
-    data.proxy.arr.copyWithin (0, 0, 0);
+    data.proxy.arr.copyWithin(0, 0, 0);
 
     assert.is(data.nr, 0);
 
-    const sampleDigit = data.proxy.arr.constructor.name.startsWith ('Big') ? 1n : 1;
+    const sampleDigit = data.proxy.arr.constructor.name.startsWith('Big') ? 1n : 1;
 
-    data.proxy.arr.set ([sampleDigit]);
-    data.proxy.arr.copyWithin (1, 0, 1);
+    data.proxy.arr.set([sampleDigit]);
+    data.proxy.arr.copyWithin(1, 0, 1);
     data.proxy.arr.reverse();
-    data.proxy.arr.fill (sampleDigit);
+    data.proxy.arr.fill(sampleDigit);
 
     assert.is(data.nr, 4);
-    assert.deepEqual(data.paths, ['arr', 'arr', 'arr', 'arr']);
+    assert.deepEqual(data.paths, [
+      ['arr'],
+      ['arr'],
+      ['arr'],
+      ['arr'],
+    ]);
   });
 
   assert.end();
@@ -874,7 +901,11 @@ test('structures: Map', assert => {
   data.proxy.map.set('4', 4);
 
   assert.is(data.nr, 3);
-  assert.deepEqual(data.paths, ['map', 'map', 'map']);
+  assert.deepEqual(data.paths, [
+    ['map'],
+    ['map'],
+    ['map'],
+  ]);
 
   assert.end();
 });
@@ -888,7 +919,7 @@ test('structures: WeakMap', assert => {
 
   assert.is(data.proxy.weakmap.constructor.name, 'WeakMap');
 
-  data.proxy.weakmap.has ('foo');
+  data.proxy.weakmap.has('foo');
 
   assert.is(data.nr, 0);
 
@@ -933,7 +964,11 @@ test('structures: Set', assert => {
   data.proxy.set.clear();
 
   assert.is(data.nr, 3);
-  assert.deepEqual(data.paths, ['set', 'set', 'set']);
+  assert.deepEqual(data.paths, [
+    ['set'],
+    ['set'],
+    ['set'],
+  ]);
 
   assert.end();
 });
