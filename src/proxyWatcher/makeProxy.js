@@ -15,13 +15,11 @@ import {
 
 // TODO: this could benefit from being prototypical
 const makeTraps = function(callback, cache) {
-  let changed = false;
   let changedPaths = [];
   
   const paths = new WeakMap();
 
   const triggerChange = function(path) {
-    changed = true;
     changedPaths.push(path);
   };
   
@@ -50,23 +48,15 @@ const makeTraps = function(callback, cache) {
     }
     paths.set(child, getChildPath(parent, path));
   };
-
-  const wrapTrap = function(trap) {
-    // max arguments = 4
-    return function trapWrapper(one, two, three, four) {
-      const result = trap(one, two, three, four);
-      if (changed) {
-        const paths = changedPaths;
-        changed = false;
-        changedPaths = [];
-        callback(paths);
-      }
-      return result;
-    };
-  };
   
-  const traps = {
-    get: wrapTrap((target, property, rec) => {
+  const emit = () => {
+    const paths = changedPaths;
+    changedPaths = [];
+    callback(paths);
+  };
+
+  return {
+    get(target, property, rec) {
       if (property === $TARGET) return target;
       
       let receiver = rec;
@@ -80,9 +70,10 @@ const makeTraps = function(callback, cache) {
       // TODO: FIXME: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(target, value)) return value.bind(target);
       setChildPath(target, value, property);
-      return makeProxy(value, callback, cache, traps);
-    }),
-    set: wrapTrap((target, property, val, rec) => {
+      // eslint-disable-next-line no-use-before-define
+      return makeProxy(value, callback, cache, this);
+    },
+    set(target, property, val, rec) {
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
@@ -94,10 +85,14 @@ const makeTraps = function(callback, cache) {
       const result = Reflect.set(target, property, value);
       const changed = result && ((isValueUndefined && !didPropertyExist) || !isEqual(prev, value));
       if (!changed) return result;
+      
       triggerChange(getChildPath(target, property));
+
+      emit();
+
       return result;
-    }),
-    defineProperty: wrapTrap((target, property, descriptor) => {
+    },
+    defineProperty(target, property, descriptor) {
       if (isSymbol(property)) return Reflect.defineProperty(target, property, descriptor);
       const prev = Reflect.getOwnPropertyDescriptor(target, property);
       const changed = Reflect.defineProperty(target, property, descriptor);
@@ -111,18 +106,24 @@ const makeTraps = function(callback, cache) {
         if (isEqual(prev, next)) return true;
       }
       if (!changed) return changed;
+      
       triggerChange(getChildPath(target, property));
+      emit();
+
       return changed;
-    }),
-    deleteProperty: wrapTrap((target, property) => {
+    },
+    deleteProperty(target, property) {
       if (!Reflect.has(target, property)) return true;
       const changed = Reflect.deleteProperty(target, property);
       if (isSymbol(property)) return changed;
       if (!changed) return changed;
+      
       triggerChange(getChildPath(target, property));
+      emit();
+
       return changed;
-    }),
-    apply: wrapTrap((target, thisArg, args) => {
+    },
+    apply(target, thisArg, args) {
       let arg = thisArg;
       if (isBuiltinWithMutableMethods(arg)) arg = thisArg[$TARGET];
       if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
@@ -130,12 +131,14 @@ const makeTraps = function(callback, cache) {
       const result = Reflect.apply(target, arg, args);
       const changed = !isEqual(clonedArg, arg);
       if (!changed) return result;
+
       triggerChange(getParentPath(arg[$TARGET] || arg));
+      emit();
+
       // TODO: FIXME: Why do we need to retrieve the path this way (for arrays)?
       return result;
-    }),
+    },
   };
-  return traps;
 };
 
 export default function makeProxy(object, callback, cache = new WeakMap(), traps) {
