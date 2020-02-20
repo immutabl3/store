@@ -620,8 +620,8 @@ test('structures: RegExp', assert => {
   // TODO: FIXME: https://github.com/lodash/lodash/issues/4645
   // data.proxy.re.lastIndex = -10;
 
-  // t.is(data.nr, 1);
-  // t.deepEqual(data.paths, ['re.lastIndex']);
+  // assert.is(data.nr, 1);
+  // assert.deepEqual(data.paths, ['re.lastIndex']);
 
   assert.end();
 });
@@ -777,8 +777,8 @@ test('structures: typed arrays', assert => {
     Uint32Array,
     Float32Array,
     Float64Array,
-    global.BigInt64Array,
-    global.BigUint64Array,
+    BigInt64Array,
+    BigUint64Array,
   ];
 
   assert.plan(Constructors.length * 5);

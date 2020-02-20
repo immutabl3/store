@@ -26,8 +26,8 @@ export const isTypedArray = x => {
     x instanceof Uint32Array || 
     x instanceof Float32Array || 
     x instanceof Float64Array || 
-    x instanceof global.BigInt64Array || 
-    x instanceof global.BigUint64Array;
+    x instanceof BigInt64Array ||
+    x instanceof BigUint64Array;
 };
 
 const cloneCustomizer = value => {
