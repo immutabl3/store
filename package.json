@@ -10,6 +10,10 @@
     "debug": "node -r esm --inspect-brk=1234 test",
     "benchmark": "node -r esm benchmark"
   },
+  "engines": {
+    "node": "^13.9.0",
+    "npm": "^6.13.7"
+  },
   "bugs": {
     "url": "https://github.com/immutabl3/store/issues"
   },
