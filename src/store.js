@@ -1,17 +1,37 @@
-import './changesCounters';
-
+import signal from 'signal-js';
 import proxyWatcher from './proxyWatcher';
-import ChangeSubscriber from './changesSubscriber';
-import changesSubscribers from './changesSubscribers';
-import hooks from './hooks';
+import Scheduler from './Scheduler';
 
-export default function store(store) {
-  const changes = new ChangeSubscriber();
-  const [proxy] = proxyWatcher(store, paths => {
-    hooks.store.change.trigger(proxy, paths);
-    changes.schedule(paths);
+export default function Store(obj, {
+  // should the transactions be handled asynchronously?
+  asynchronous = true,
+  // should the tree handle its transactions on its own?
+  autoCommit = true,
+  // should we debug the transactions?
+  debug = false,
+} = {}) {
+  const emitter = signal();
+
+  let scheduler;
+  
+  // creates a proxy and fires every time the proxy changes
+  // with the changed paths
+  const [proxy] = proxyWatcher(obj, paths => {
+    scheduler.add(paths);
+    autoCommit && scheduler.commit();
   });
-  changesSubscribers.set(proxy, changes);
-  hooks.store.new.trigger(proxy);
-  return proxy;
+
+  scheduler = Scheduler(proxy, emitter, asynchronous);
+
+  return Object.assign(emitter, {
+    data: proxy,
+    // TODO: selectors/cursors
+    select: () => {},
+    commit: scheduler.commit,
+    watch(listener, callback) {
+      const selector = typeof listener === 'function' ? listener : () => listener;
+      scheduler.watch(selector, callback);
+      return this;
+    },
+  });
 };

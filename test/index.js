@@ -1,10 +1,10 @@
 import './proxyWatcher.test';
-import './changesCounters.test';
-import './changesSubscriber.test';
-import './changesSubscribers.test';
-import './debug.test';
-import './hooks.test';
+// import './changesCounters.test';
+// import './changesSubscriber.test';
+// import './changesSubscribers.test';
+// import './debug.test';
+// import './hooks.test';
 import './onChange.test';
-import './scheduler.test';
-import './store.test';
-import './subscriber.test';
+// import './scheduler.test';
+// import './store.test';
+// import './subscriber.test';

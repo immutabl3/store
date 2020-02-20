@@ -6,7 +6,7 @@
   "scripts": {
     "test:js": "node -r esm test | tap-spec",
     "test:dom": "node -r esm test/useStore.test | tap-spec",
-    "test": "npm run test:js && npm run test:dom",
+    "test": "npm run test:js",
     "debug": "node -r esm --inspect-brk=1234 test",
     "benchmark": "node -r esm benchmark"
   },
@@ -43,7 +43,8 @@
     "is-primitive": "^3.0.1",
     "plain-object-is-empty": "^1.0.0",
     "proxy-watcher": "^1.2.1",
-    "react-use-mounted": "^1.0.0"
+    "react-use-mounted": "^1.0.0",
+    "signal-js": "^2.3.2"
   },
   "peerDependencies": {
     "react": ">=16.6.0"

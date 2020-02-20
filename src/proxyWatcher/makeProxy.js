@@ -31,7 +31,7 @@ const makeTraps = function(callback, $PROXY) {
     changedPaths.push(path);
     return result;
   };
-
+  
   const getParentPath = function(parent) {
     return paths.get(parent);
   };
@@ -62,9 +62,10 @@ const makeTraps = function(callback, $PROXY) {
 
   const wrapTrap = function(trap) {
     let depth = 0;
-    return function trapWrapper(...args) {
+    // max arguments = 4
+    return function trapWrapper(one, two, three, four) {
       depth++;
-      const result = trap(...args);
+      const result = trap(one, two, three, four);
       depth--;
       if (changed && !depth && !stopped) {
         const paths = changedPaths;
@@ -77,7 +78,7 @@ const makeTraps = function(callback, $PROXY) {
   };
   
   const traps = {
-    get: wrapTrap((target, property, receiver) => {
+    get: wrapTrap((target, property, rec) => {
       if (property === $TARGET) return target;
       if (property === $STOP) {
         stopped = true;
@@ -93,6 +94,8 @@ const makeTraps = function(callback, $PROXY) {
         getPaths = [];
         return paths;
       }
+      
+      let receiver = rec;
       if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
       // We are only recording root paths, because I don't see a use case for recording deeper paths too
       if (getPathsRecording && !getParentPath(target)) getPaths.push(property);
@@ -106,7 +109,9 @@ const makeTraps = function(callback, $PROXY) {
       setChildPath(target, value, property);
       return makeProxy(value, callback, $PROXY, traps);
     }),
-    set: wrapTrap((target, property, value, receiver) => {
+    set: wrapTrap((target, property, val, rec) => {
+      let value = val;
+      let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
       if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
       if (stopped || isSymbol(property)) return Reflect.set(target, property, value);
@@ -115,7 +120,11 @@ const makeTraps = function(callback, $PROXY) {
       const prev = Reflect.get(target, property, receiver);
       const result = Reflect.set(target, property, value);
       const changed = result && ((isValueUndefined && !didPropertyExist) || !isEqual(prev, value));
-      return changed ? triggerChange(result, getChildPath(target, property)) : result;
+      if (!changed) return result;
+      
+      triggerChange(result, getChildPath(target, property));
+
+      return result;
     }),
     defineProperty: wrapTrap((target, property, descriptor) => {
       if (stopped || isSymbol(property)) return Reflect.defineProperty(target, property, descriptor);
@@ -143,13 +152,14 @@ const makeTraps = function(callback, $PROXY) {
         changed;
     }),
     apply: wrapTrap((target, thisArg, args) => {
-      if (isBuiltinWithMutableMethods(thisArg)) thisArg = thisArg[$TARGET];
-      if (stopped || isLooselyImmutableMethod(thisArg, target)) return Reflect.apply(target, thisArg, args);
-      const clonedArg = clone(thisArg);
-      const result = Reflect.apply(target, thisArg, args);
-      const changed = !isEqual(clonedArg, thisArg);
+      let arg = thisArg;
+      if (isBuiltinWithMutableMethods(arg)) arg = thisArg[$TARGET];
+      if (stopped || isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
+      const clonedArg = clone(arg);
+      const result = Reflect.apply(target, arg, args);
+      const changed = !isEqual(clonedArg, arg);
       return changed ? 
-        triggerChange(result, getParentPath(thisArg[$TARGET] || thisArg)) : 
+        triggerChange(result, getParentPath(arg[$TARGET] || arg)) : 
         // TODO: FIXME: Why do we need to retrieve the path this way (for arrays)?
         result;
     }),

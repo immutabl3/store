@@ -6,6 +6,7 @@ import {
   $GET_RECORD_STOP
 } from '../src/proxyWatcher/consts';
 
+// TODO: make resetting explicit
 const makeData = function(object) {
   let callsNr = 0;
   let paths = [];
@@ -31,7 +32,7 @@ const makeData = function(object) {
   };
 };
 
-test(`get invariants are respected`, assert => {
+test(`proxyWatcher: get invariants are respected`, assert => {
   assert.plan(3);
 
   const obj = {};
@@ -56,7 +57,7 @@ test(`get invariants are respected`, assert => {
   assert.end();
 });
 
-test(`trap errors don't break things`, assert => {
+test(`proxyWatcher: trap errors don't break things`, assert => {
   assert.plan(5);
 
   const obj = {
@@ -99,7 +100,7 @@ test(`trap errors don't break things`, assert => {
   assert.end();
 });
 
-test(`watching immutable primitives doesn't throw an error`, assert => {
+test(`proxyWatcher: watching immutable primitives doesn't throw an error`, assert => {
   assert.plan(14);
 
   const values = [
@@ -126,7 +127,7 @@ test(`watching immutable primitives doesn't throw an error`, assert => {
   assert.end();
 });
 
-test(`watching mutations nested inside symbols aren't detected`, assert => {
+test(`proxyWatcher: watching mutations nested inside symbols aren't detected`, assert => {
   assert.plan(3);
 
   const symbol = Symbol();
@@ -143,7 +144,7 @@ test(`watching mutations nested inside symbols aren't detected`, assert => {
   assert.end();
 });
 
-test(`assignment are also checked for equality`, assert => {
+test(`proxyWatcher: assignment are also checked for equality`, assert => {
   assert.plan(1);
 
   const obj = {
@@ -165,7 +166,7 @@ test(`assignment are also checked for equality`, assert => {
   assert.end();
 });
 
-test(`can record get root paths`, assert => {
+test(`proxyWatcher: can record get root paths`, assert => {
   assert.plan(2);
 
   const data = makeData({
@@ -196,36 +197,7 @@ test(`can record get root paths`, assert => {
   assert.end();
 });
 
-test(`returns a disposer`, assert => {
-  assert.plan(3);
-
-  const obj = {
-    deep: {
-      deeper: true,
-    },
-  };
-
-  const data = makeData(obj);
-
-  data.proxy.deep.deeper = false; // In order to deeply proxy
-
-  assert.is(data.nr, 1);
-
-  const target = data.dispose();
-
-  assert.is(target, obj);
-
-  data.proxy.foo = true;
-  data.proxy.deep.foo = true;
-  data.proxy.deep.deeper = { foo: true };
-  delete data.proxy.deep;
-
-  assert.is(data.nr, 1);
-
-  assert.end();
-});
-
-test('structures: basics', assert => {
+test('proxyWatcher: structures: basics', assert => {
   assert.plan(16);
 
   const data = makeData({ foo: true });
@@ -292,7 +264,7 @@ test('structures: basics', assert => {
   assert.end();
 });
 
-test('structures: accessors', assert => {
+test('proxyWatcher: structures: accessors', assert => {
   assert.plan(3);
 
   const obj = {};
@@ -321,7 +293,7 @@ test('structures: accessors', assert => {
   assert.end();
 });
 
-test('structures: deep', assert => {
+test('proxyWatcher: structures: deep', assert => {
   assert.plan(3);
 
   const data = makeData({
@@ -386,7 +358,7 @@ test('structures: deep', assert => {
   assert.end();
 });
 
-test('structures: primitives - tricky', assert => {
+test('proxyWatcher: structures: primitives - tricky', assert => {
   assert.plan(3);
 
   const data = makeData({
@@ -427,7 +399,7 @@ test('structures: primitives - tricky', assert => {
   assert.end();
 });
 
-test('structures: primitives - constructors', assert => {
+test('proxyWatcher: structures: primitives - constructors', assert => {
   assert.plan(9);
 
   const data = makeData({
@@ -510,7 +482,7 @@ test('structures: primitives - constructors', assert => {
   assert.end();
 });
 
-test('structures: Date', assert => {
+test('proxyWatcher: structures: Date', assert => {
   assert.plan(5);
 
   const data = makeData({ date: new Date() });
@@ -611,7 +583,7 @@ test('structures: Date', assert => {
   assert.end();
 });
 
-test('structures: RegExp', assert => {
+test('proxyWatcher: structures: RegExp', assert => {
   assert.plan(3);
 
   const data = makeData({ re: /foo/gi });
@@ -644,7 +616,7 @@ test('structures: RegExp', assert => {
   assert.end();
 });
 
-test('structures: function', assert => {
+test('proxyWatcher: structures: function', assert => {
   assert.plan(3);
 
   const data = makeData({ fn() {} });
@@ -665,7 +637,7 @@ test('structures: function', assert => {
   assert.end();
 });
 
-test('structures: Array', assert => {
+test('proxyWatcher: structures: Array', assert => {
   assert.plan(8);
 
   const data = makeData({ arr: [2, 1, 3] });
@@ -771,7 +743,7 @@ test('structures: Array', assert => {
   assert.end();
 });
 
-test('structures: ArrayBuffer', assert => {
+test('proxyWatcher: structures: ArrayBuffer', assert => {
   assert.plan(2);
 
   const data = makeData({ arr: new ArrayBuffer(12) });
@@ -788,7 +760,7 @@ test('structures: ArrayBuffer', assert => {
   assert.end();
 });
 
-test('structures: typed arrays', assert => {
+test('proxyWatcher: structures: typed arrays', assert => {
   const Constructors = [
     Int8Array,
     Uint8Array,
@@ -865,7 +837,7 @@ test('structures: typed arrays', assert => {
   assert.end();
 });
 
-test('structures: Map', assert => {
+test('proxyWatcher: structures: Map', assert => {
   assert.plan(6);
 
   // TODO: test with reversal of keys to values
@@ -910,7 +882,7 @@ test('structures: Map', assert => {
   assert.end();
 });
 
-test('structures: WeakMap', assert => {
+test('proxyWatcher: structures: WeakMap', assert => {
   assert.plan(4);
 
   const data = makeData({
@@ -934,7 +906,7 @@ test('structures: WeakMap', assert => {
   assert.end();
 });
 
-test('structures: Set', assert => {
+test('proxyWatcher: structures: Set', assert => {
   assert.plan(6);
 
   const data = makeData({
@@ -973,7 +945,7 @@ test('structures: Set', assert => {
   assert.end();
 });
 
-test('structures: WeakSet', assert => {
+test('proxyWatcher: structures: WeakSet', assert => {
   assert.plan(4);
 
   const data = makeData({
@@ -997,7 +969,7 @@ test('structures: WeakSet', assert => {
   assert.end();
 });
 
-test('structures: Promise', async assert => {
+test('proxyWatcher: structures: Promise', async assert => {
   assert.plan(10);
 
   const data = makeData({
