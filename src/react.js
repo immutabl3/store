@@ -48,7 +48,7 @@ export const useBranch = function(cursors) {
 
   const [state, setState] = useState(() => {
     const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
-    return context.store.project(mapping);
+    return context.store.projection(mapping);
   });
 
   useEffect(() => {

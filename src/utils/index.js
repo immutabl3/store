@@ -81,6 +81,45 @@ export const get = (object, path) => {
   return current;
 };
 
+export const solvePath = (object, path) => {
+  const solvedPath = [];
+
+  let current = object;
+  let idx;
+  let i = 0;
+  const len = path.length;
+
+  for (; i < len; i++) {
+    debugger;
+    if (!current) return solvedPath.concat(path.slice(i));
+
+    if (isFunction(path[i])) {
+      if (!isArray(current)) return [];
+
+      idx = index(current, path[i]);
+      if (!~idx) return [];
+
+      solvedPath.push(idx);
+      current = current[idx];
+    } else if (isObjectLike(path[i])) {
+      if (!isArray(current)) return [];
+
+      // TODO: a lodash impl of find for object?
+      // eslint-disable-next-line no-loop-func
+      idx = index(current, e => compare(e, path[i]));
+      if (!~idx) return [];
+
+      solvedPath.push(idx);
+      current = current[idx];
+    } else {
+      solvedPath.push(path[i]);
+      current = current[path[i]];
+    }
+  }
+
+  return solvedPath;
+};
+
 export const defer = fn => setTimeout(fn, 0);
 
 export const delay = (ms = 0) => (
@@ -107,7 +146,7 @@ export const isEmpty = obj => {
 
 export const isStore = store => (
   'data' in store &&
-  isFunction(store.project) &&
+  isFunction(store.projection) &&
   isFunction(store.watch)
 );
 

@@ -18,6 +18,8 @@ export const isObject = target => (
 
 export const isFunction = target => typeof target === 'function';
 
+export const isString = x => typeof x === 'string';
+
 export const isSymbol = x => typeof x === 'symbol';
 
 export const isObjectLike = x => typeof x === 'object';
@@ -75,4 +77,8 @@ export const isLooselyImmutableMethod = (target, method) => {
   // TODO: For some reason mutations generated via these methods from Map or Set objects don't get detected
   // return LOOSELY_IMMUTABLE_METHODS.others.has(name);
   return false;
+};
+
+export const isDynamicPath = function(path) {
+  return path.some(step => isFunction(step) || isObject(step));
 };
