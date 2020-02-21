@@ -9,4 +9,7 @@ export const obj = () => ({
   set: new Set(),
 });
 
-export const selector = obj => obj.bar;
+export const uniqueId = (function() {
+  let id = 0;
+  return () => id++;
+}());

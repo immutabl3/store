@@ -1,14 +1,8 @@
-import get from 'lodash/get';
-
-// TODO: move to utils
-const defer = fn => setTimeout(fn, 0);
-
-// hashing the path similar to
-// https://github.com/Yomguithereal/baobab/blob/master/src/helpers.js#L474
-const hashPath = path => `λ${path.join('λ')}`;
+import { get, defer, hashPath } from './utils';
 
 // TODO: break permute out and unit test
 const permute = arr => {
+  if (!arr) debugger;
   if (!arr.length) return arr;
   if (arr.length === 1) return [arr];
 
@@ -21,13 +15,18 @@ const permute = arr => {
   return result;
 };
 
+// TODO: scheduler shouldn't also be the emitter - should behave as a batcher
+
 export default function Scheduler(proxy, emitter, asynchronous) {
+  // TODO: WeakMap of listeners/paths e.g. https://github.com/Yomguithereal/baobab/blob/master/src/baobab.js#L303
+  // TODO: WeakMap of projections/paths e.g. https://github.com/Yomguithereal/baobab/blob/master/src/baobab.js#L303
+
   let processing;
   
-  // TODO: don't hold onto paths here, get it from the proxyWatcher
   let paths = [];
   
   const listeners = [];
+  const projections = [];
     
   const process = () => {
     if (!paths.length) return;
@@ -47,6 +46,8 @@ export default function Scheduler(proxy, emitter, asynchronous) {
       data: proxy,
     });
 
+    if (proxy.arr[3].foo === 2) debugger;
+
     listeners.forEach(([selectorFn, fn]) => {
       const value = selectorFn();
       const selector = Array.isArray(value) ? value : [value];
@@ -55,9 +56,45 @@ export default function Scheduler(proxy, emitter, asynchronous) {
 
       fn({
         paths: selector,
-        // TODO: this is going to trigger all gets on the proxy
-        // even if nothing comes of it because we're stopped
+        // TODO: a short circuit stop on the gets for the proxy
         data: get(proxy, selector),
+      });
+    });
+
+    projections.forEach(([selectorFn, fn]) => {
+      const [
+        paths,
+        keySelectorPairs,
+      ] = Object.entries(selectorFn())
+        // TODO: optimize
+        .reduce((memo, [key, value]) => {
+          const [paths, pairs] = memo;
+          const selector = Array.isArray(value) ? value : [value];
+          const path = hashPath(selector);
+          
+          if (pathMap.has(path)) paths.push(selector);
+          pairs.push([key, selector]);
+
+          return memo;
+        }, [
+          [],
+          [],
+        ]);
+
+      // nothing changed
+      if (!paths.length) return;
+
+      const data = Object.fromEntries(
+        keySelectorPairs
+          .map(([key, selector]) => {
+            return [key, get(proxy, selector)];
+          })
+      );
+
+      fn({
+        paths,
+        // TODO: a short circuit stop on the gets for the proxy
+        data,
       });
     });
 
@@ -67,12 +104,16 @@ export default function Scheduler(proxy, emitter, asynchronous) {
   };
 
   return {
-    add(changes) {
-      paths.push(...changes);
+    add(path) {
+      paths.push(path);
     },
 
     watch(selector, callback) {
       listeners.push([selector, callback]);
+    },
+
+    project(selector, callback) {
+      projections.push([selector, callback]);
     },
 
     commit() {

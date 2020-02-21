@@ -2,14 +2,14 @@ import merge from 'lodash/merge';
 import test from 'tape';
 import watch from '../src/proxyWatcher';
 
-// TODO: make resetting explicit
+// TODO: move to fixture
 const makeData = function(object) {
   let callsNr = 0;
   let paths = [];
 
-  const proxy = watch(object, changedPaths => {
+  const proxy = watch(object, changePath => {
     callsNr++;
-    paths = paths.concat(changedPaths);
+    paths = [...paths, changePath];
   });
 
   return {
@@ -114,10 +114,10 @@ test(`proxyWatcher: watching immutable primitives doesn't throw an error`, asser
     new String('string'),
   ];
 
-  values.forEach(value => assert.is(value, watch(value)[0]));
+  values.forEach(value => assert.is(value, watch(value)));
   
   // NaN !== NaN, have to use isNaN
-  assert.ok(Number.isNaN(watch(NaN)[0]));
+  assert.ok(Number.isNaN(watch(NaN)));
 
   assert.end();
 });

@@ -1,10 +1,7 @@
 import noop from 'lodash/noop';
-import { store, onChange } from '../src';
-import Scheduler from '../src/scheduler';
+import Store from '../src';
 import benchmark from 'benchloop';
-import { obj, selector } from './fixtures';
-
-Scheduler.schedule = Scheduler.trigger;
+import { obj, uniqueId } from './fixtures';
 
 benchmark.defaultOptions = {
   ...benchmark.defaultOptions,
@@ -15,72 +12,53 @@ benchmark.defaultOptions = {
 benchmark({
   name: 'store',
   fn() {
-    store(obj());
+    Store(obj());
   },
 });
 
 benchmark({
-  name: 'onChange:register:all',
+  name: 'gets',
   beforeEach(ctx) {
-    ctx.proxy = store(obj());
+    ctx.store = Store(obj());
   },
-  fn(ctx) {
-    onChange(ctx.proxy, noop);
+  fn({ store }) {
+    const foo = store.data.arr[3].foo;
+    return foo;
   },
 });
 
 benchmark({
-  name: 'onChange:register:selector',
+  name: 'sets',
   beforeEach(ctx) {
-    ctx.proxy = store(obj());
+    ctx.store = Store(obj());
   },
-  fn(ctx) {
-    onChange(ctx.proxy, selector, noop);
+  fn({ store }) {
+    store.data.arr[3].foo = uniqueId();
   },
 });
 
 benchmark({
-  name: 'onChange:trigger:all:no',
+  name: 'onChange',
   beforeEach(ctx) {
-    ctx.proxy = store(obj());
-    onChange(ctx.proxy, noop);
+    const store = ctx.store = Store(obj());
+    store.on('change', noop);
   },
-  fn(ctx) {
-    ctx.proxy.foo = 123;
+  fn({ store }) {
+    store.data.arr[3].foo = uniqueId();
   },
 });
 
 benchmark({
-  name: 'onChange:trigger:all:yes',
+  name: 'watch',
   beforeEach(ctx) {
-    ctx.proxy = store(obj());
-    onChange(ctx.proxy, noop);
+    const store = ctx.store = Store(obj());
+    store.watch(['arr', 3, 'foo'], noop);
   },
-  fn(ctx) {
-    ctx.proxy.foo = 1234;
+  fn({ store }) {
+    store.data.arr[3].foo = uniqueId();
   },
 });
 
-benchmark({
-  name: 'onChange:trigger:selector:no',
-  beforeEach(ctx) {
-    ctx.proxy = store(obj());
-    onChange(ctx.proxy, selector, noop);
-  },
-  fn(ctx) {
-    ctx.proxy.bar.deep = true;
-  },
-});
-
-benchmark({
-  name: 'onChange:trigger:selector:yes',
-  beforeEach(ctx) {
-    ctx.proxy = store(obj());
-    onChange(ctx.proxy, selector, noop);
-  },
-  fn(ctx) {
-    ctx.proxy.bar.deep = false;
-  },
-});
+// TODO: additional checking
 
 benchmark.summary();

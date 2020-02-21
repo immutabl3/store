@@ -16,8 +16,8 @@ export default function Store(obj, {
   
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
-  const proxy = proxyWatcher(obj, paths => {
-    scheduler.add(paths);
+  const proxy = proxyWatcher(obj, path => {
+    scheduler.add(path);
     autoCommit && scheduler.commit();
   });
 
@@ -31,6 +31,11 @@ export default function Store(obj, {
     watch(listener, callback) {
       const selector = typeof listener === 'function' ? listener : () => listener;
       scheduler.watch(selector, callback);
+      return this;
+    },
+    project(listener, callback) {
+      const selector = typeof listener === 'function' ? listener : () => listener;
+      scheduler.project(selector, callback);
       return this;
     },
   });
