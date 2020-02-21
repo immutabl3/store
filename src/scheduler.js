@@ -1,35 +1,21 @@
-import { get, defer, hashPath } from './utils';
+import event from './event';
+import {
+  defer,
+  hashPath,
+  permute,
+} from './utils';
 
-// TODO: break permute out and unit test
-const permute = arr => {
-  if (!arr) debugger;
-  if (!arr.length) return arr;
-  if (arr.length === 1) return [arr];
-
-  const result = [];
-  let idx = 0;
-  while (idx < arr.length) {
-    result.push(arr.slice(0, idx + 1));
-    idx++;
-  }
-  return result;
-};
-
-// TODO: scheduler shouldn't also be the emitter - should behave as a batcher
-
-export default function Scheduler(proxy, emitter, asynchronous) {
-  // TODO: WeakMap of listeners/paths e.g. https://github.com/Yomguithereal/baobab/blob/master/src/baobab.js#L303
-  // TODO: WeakMap of projections/paths e.g. https://github.com/Yomguithereal/baobab/blob/master/src/baobab.js#L303
-
+export default function Scheduler(asynchronous, autoCommit) {
+  let debug;
   let processing;
   
-  let paths = [];
+  const paths = [];
+  const dispatchers = [];
+  // TODO: will this improve performance?
+  // const pathMap = new Map();
   
-  const listeners = [];
-  const projections = [];
-    
   const process = () => {
-    if (!paths.length) return;
+    if (!paths.length) return (processing = false);
 
     // TODO: performance
     const pathMap = new Map(
@@ -41,89 +27,39 @@ export default function Scheduler(proxy, emitter, asynchronous) {
       }, [])
     );
 
-    emitter.emit('change', {
-      paths: Array.from(pathMap.values()),
-      data: proxy,
-    });
+    for (const dispatcher of dispatchers) {
+      dispatcher(pathMap);
+    }
 
-    if (proxy.arr[3].foo === 2) debugger;
-
-    listeners.forEach(([selectorFn, fn]) => {
-      const value = selectorFn();
-      const selector = Array.isArray(value) ? value : [value];
-      const path = hashPath(selector);
-      if (!pathMap.has(path)) return;
-
-      fn({
-        paths: selector,
-        // TODO: a short circuit stop on the gets for the proxy
-        data: get(proxy, selector),
-      });
-    });
-
-    projections.forEach(([selectorFn, fn]) => {
-      const [
-        paths,
-        keySelectorPairs,
-      ] = Object.entries(selectorFn())
-        // TODO: optimize
-        .reduce((memo, [key, value]) => {
-          const [paths, pairs] = memo;
-          const selector = Array.isArray(value) ? value : [value];
-          const path = hashPath(selector);
-          
-          if (pathMap.has(path)) paths.push(selector);
-          pairs.push([key, selector]);
-
-          return memo;
-        }, [
-          [],
-          [],
-        ]);
-
-      // nothing changed
-      if (!paths.length) return;
-
-      const data = Object.fromEntries(
-        keySelectorPairs
-          .map(([key, selector]) => {
-            return [key, get(proxy, selector)];
-          })
-      );
-
-      fn({
-        paths,
-        // TODO: a short circuit stop on the gets for the proxy
-        data,
-      });
-    });
-
-    paths = [];
-
+    event.reset();
+    paths.length = 0;
     processing = false;
+    debug && debug();
+  };
+
+  const commit = () => {
+    if (asynchronous && processing) return;
+    
+    if (asynchronous) {
+      processing = true;
+      return defer(process);
+    }
+
+    process();
   };
 
   return {
+    debug(bug) {
+      debug = bug;
+    },
+
+    register(dispatcher) {
+      dispatchers.push(dispatcher);
+    },
+
     add(path) {
       paths.push(path);
-    },
-
-    watch(selector, callback) {
-      listeners.push([selector, callback]);
-    },
-
-    project(selector, callback) {
-      projections.push([selector, callback]);
-    },
-
-    commit() {
-      if (asynchronous) {
-        if (processing) return;
-        processing = true;
-        return defer(process);
-      }
-
-      process();
-    },
+      autoCommit && commit();
+    },   
   };
 };

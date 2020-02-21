@@ -2,37 +2,7 @@ import test from 'tape';
 import delay from './delay';
 import Store from '../src';
 
-test('project: supports a selector function', async assert => {
-  assert.plan(2);
-
-  const store = Store({
-    foo: 123,
-    bar: {
-      deep: [1, 2, 3],
-    },
-  });
-
-  store.watch(() => Math.random(), () => {
-    assert.fail(`watching an invalid value shouldn't trigger`);
-  });
-  store.project(() => ({
-    hello: 'foo',
-    world: ['bar', 'deep', 0],
-  }), e => {
-    assert.is(e.data.hello, store.data.foo);
-    assert.is(e.data.world, store.data.bar.deep[0]);
-  });
-
-  store.data.baz = true;
-  store.data.foo = 1234;
-  store.data.bar.deep[0] = 0;
-
-  await delay(10);
-
-  assert.end();
-});
-
-test('project: supports a static selector', async assert => {
+test('project: supports an object selector', async assert => {
   assert.plan(2);
 
   const store = Store({

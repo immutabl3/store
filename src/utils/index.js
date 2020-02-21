@@ -1,0 +1,152 @@
+import permute from './permute';
+import {
+  isArray,
+  isObject,
+  isFunction,
+  isTypedArray,
+  isObjectLike,
+} from '../types';
+import baseIsEqual from 'lodash/isEqual';
+import cloneWith from 'lodash/cloneWith';
+import cloneDeepWith from 'lodash/cloneDeepWith';
+import isPrimitive from 'is-primitive';
+import {
+  $TARGET,
+  STRICTLY_IMMUTABLE_METHODS,
+  LOOSELY_IMMUTABLE_METHODS,
+} from '../consts';
+
+export const noop = () => {};
+
+// TODO: move types out of utils
+
+const index = (arr, fn) => {
+  let idx = 0;
+  const len = arr.length;
+  for (; idx < len; idx++) {
+    if (fn(arr[idx])) return idx;
+  }
+  return -1;
+};
+
+const compare = (object, description) => {
+  let ok = true;
+
+  // If we reached here via a recursive call, object may be undefined because
+  // not all items in a collection will have the same deep nesting structure.
+  if (!object) return false;
+
+  // TODO: optimize
+  for (const key in description) {
+    if (isObject(description[key])) {
+      ok = ok && compare(object[key], description[key]);
+    } else if (isArray(description[key])) {
+      ok = ok && !!~description[key].indexOf(object[key]);
+    }
+    
+    if (object[key] !== description[key]) return false;
+  }
+
+  return ok;
+};
+
+export const get = (object, path) => {
+  let current = object;
+  let idx;
+  let i = 0;
+  const len = path.length;
+
+  for (; i < len; i++) {
+    if (!current) return;
+
+    if (isFunction(path[i])) {
+      if (!isArray(current)) return;
+
+      idx = index(current, path[i]);
+      if (!~idx) return;
+
+      current = current[idx];
+    } else if (isObjectLike(path[i])) {
+      if (!isArray(current)) return;
+
+      // TODO: a lodash impl of find for object?
+      // eslint-disable-next-line no-loop-func
+      idx = index(current, e => compare(e, path[i]));
+      if (!~idx) return;
+
+      current = current[idx];
+    } else {
+      current = current[path[i]];
+    }
+  }
+
+  return current;
+};
+
+export const defer = fn => setTimeout(fn, 0);
+
+// TODO: there are two unique ids - consolidate
+const uniqid = (function() {
+  let i = 0;
+  return () => i++;
+}());
+
+// hashing the path similar to
+// https://github.com/Yomguithereal/baobab/blob/master/src/helpers.js#L474
+const hashPathIterator = step => (
+  isFunction(step) || isObject(step) ? `#${uniqid()}#` : step
+);
+export const hashPath = path => path && path.length ? `λ${path.map(hashPathIterator).join('λ')}` : '';
+
+export const isEqual = (x, y) => {
+  return isPrimitive(x) || isPrimitive(y) ? Object.is(x, y) : baseIsEqual(x, y);
+};
+
+const cloneCustomizer = value => {
+  // TODO: FIXME: https://github.com/lodash/lodash/issues/4646
+  if (!isPrimitive(value) && isTypedArray(value)) return (value[$TARGET] || value).slice();
+};
+export const clone = x => cloneWith(x, cloneCustomizer);
+export const cloneDeep = x => cloneDeepWith(x, cloneCustomizer);
+
+export const isBuiltinUnsupported = x => {
+  return x instanceof Promise || 
+    x instanceof WeakMap || 
+    x instanceof WeakSet;
+};
+
+export const isBuiltinWithoutMutableMethods = x => {
+  return isPrimitive(x) || 
+    x instanceof RegExp || 
+    x instanceof ArrayBuffer || 
+    x instanceof Number || 
+    x instanceof Boolean || 
+    x instanceof String;
+};
+
+export const isBuiltinWithMutableMethods = x => {
+  // TODO: "Array" should be included this, but then some tests will fail
+  return !isPrimitive(x) && (
+    x instanceof Date || 
+    x instanceof Map || 
+    x instanceof Set || 
+    isTypedArray(x)
+  );
+};
+
+export const isStrictlyImmutableMethod = (target, method) => {
+  const { name } = method;
+  if (!name) return false;
+  return STRICTLY_IMMUTABLE_METHODS.has(name);
+};
+
+export const isLooselyImmutableMethod = (target, method) => {
+  const { name } = method;
+  if (!name) return false;
+  if (Array.isArray(target)) return LOOSELY_IMMUTABLE_METHODS.array.has(name);
+  // TODO: For some reason mutations generated via these methods from Map or Set objects don't get detected
+  // return LOOSELY_IMMUTABLE_METHODS.others.has(name);
+  return false;
+};
+
+export { permute };

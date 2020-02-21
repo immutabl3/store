@@ -70,7 +70,7 @@ test('watch: supports a static selector', async assert => {
   assert.end();
 });
 
-test.only('watch: supports a deep static selector', async assert => {
+test('watch: supports a deep static selector', async assert => {
   assert.plan(3);
 
   const store = Store({

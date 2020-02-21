@@ -1,87 +1,76 @@
+import { cloneDeep } from './utils';
 import plainObjectIsEmpty from 'plain-object-is-empty';
-import { cloneDeep } from './proxyWatcher/utils'; // UGLY
-import changeSubscribers from './changesSubscribers';
-import hooks from './hooks';
 import { detailedDiff } from 'deep-object-diff';
 
-const groupLog = (title, collapsed = true, fn) => {
-  collapsed ? console.groupCollapsed(title) : console.group(title);
-  fn();
-  console.groupEnd();
-};
-
-const debug = function(opts = {}) {
-  if (global.STORE) return global.STORE;
-  
-  const options = {
-    ...debug.defaultOptions,
-    ...opts
-  };
-
-  const STORE = global.STORE = {
-    stores: [],
-    log() {
-      STORE.stores.forEach(store => {
-        console.log(cloneDeep(store));
-      });
+const groupLog = (log, collapsed) => {
+  return {
+    open(title) {
+      collapsed ? log.groupCollapsed(title) : log.group(title);
+    },
+    log(...args) {
+      log.log(...args);
+    },
+    close() {
+      log.groupEnd();
     },
   };
-
-  hooks.store.new.subscribe(store => {
-    STORE.stores.push(store);
-
-    let storePrev = cloneDeep(store);
-    
-    if (options.logStoresNew) {
-      groupLog('Store - New', options.collapsed, () => {
-        console.log(storePrev);
-      });
-    }
-
-    if (options.logChangesFull || options.logChangesDiff) {
-      const changes = changeSubscribers.get(store);
-      changes.subscribe(() => {
-        const storeNext = cloneDeep(store);
-        groupLog(`Store - Change - ${new Date().toISOString()}`, options.collapsed, () => {
-          if (options.logChangesDiff) {
-            const { added, updated, deleted } = detailedDiff(storePrev, storeNext);
-            
-            if (!plainObjectIsEmpty(added)) {
-              console.log('Added');
-              console.log(added);
-            }
-
-            if (!plainObjectIsEmpty(updated)) {
-              console.log('Updated');
-              console.log(updated);
-            }
-
-            if (!plainObjectIsEmpty(deleted)) {
-              console.log('Deleted');
-              console.log(deleted);
-            }
-          }
-
-          if (options.logChangesFull) {
-            console.log('New store');
-            console.log(storeNext);
-            console.log('Old store');
-            console.log(storePrev);
-          }
-        });
-        
-        storePrev = storeNext;
-      });
-    }
-  });
-  return STORE;
 };
 
-debug.defaultOptions = {
+const debug = function(proxy, opts = {}) {
+  const {
+    full,
+    diffs,
+    collapsed,
+    log,
+  } = {
+    ...debug.options,
+    ...opts,
+  };
+
+  const logger = groupLog(log, collapsed);
+
+  let prev = cloneDeep(proxy);
+
+  return () => {
+    const next = cloneDeep(proxy);
+    
+    logger.open(`store: change: ${new Date().toISOString()}`);
+
+    const {
+      added,
+      updated,
+      deleted,
+    } = detailedDiff(prev, next);
+    
+    if (diffs && !plainObjectIsEmpty(added)) {
+      logger.log('added', added);
+    }
+
+    if (diffs && !plainObjectIsEmpty(updated)) {
+      logger.log('updated', updated);
+    }
+
+    if (diffs && !plainObjectIsEmpty(deleted)) {
+      logger.log('deleted', deleted);
+    }
+
+    if (full) {
+      logger.log('new state', next);
+      logger.log('old state', prev);
+    }
+
+    logger.close();
+
+    prev = next;
+    return this;
+  };
+};
+
+debug.options = {
   collapsed: true,
-  logStoresNew: false,
-  logChangesDiff: true,
-  logChangesFull: false,
+  diffs: true,
+  full: false,
+  log: console,
 };
 
 export default debug;

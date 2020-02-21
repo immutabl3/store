@@ -4,11 +4,13 @@ import {
   clone,
   isBuiltinWithoutMutableMethods,
   isBuiltinUnsupported,
-  isFunction,
   isStrictlyImmutableMethod,
   isBuiltinWithMutableMethods,
-  isSymbol,
 } from './utils';
+import {
+  isFunction,
+  isSymbol,
+} from './types';
 import {
   $TARGET,
 } from './consts';
@@ -118,10 +120,15 @@ const makeTraps = function(onChange, cache, makeProxy) {
   };
 };
 
-export default function makeProxy(object, onChange, cache = new WeakMap(), traps) {
+const makeProxy = function(object, onChange, cache = new WeakMap(), traps) {
   if (cache.has(object)) return cache.get(object);
   
   const proxy = new Proxy(object, traps || makeTraps(onChange, cache, makeProxy));
   cache.set(object, proxy);
   return proxy;
+};
+
+export default function proxyWatcher(object, callback) {
+  if (isBuiltinWithoutMutableMethods(object)) return object;
+  return makeProxy(object, callback);
 };

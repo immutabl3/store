@@ -45,7 +45,6 @@
     "is-primitive": "^3.0.1",
     "plain-object-is-empty": "^1.0.0",
     "proxy-watcher": "^1.2.1",
-    "react-use-mounted": "^1.0.0",
     "signal-js": "^2.3.2"
   },
   "peerDependencies": {
