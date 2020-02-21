@@ -1,7 +1,7 @@
-import noop from 'lodash/noop';
-import Store from '../src';
 import benchmark from 'benchloop';
-import { obj, uniqueId } from './fixtures';
+import Store from '../src';
+import { obj } from './fixtures';
+import { noop, uniqueId } from '../src/utils';
 
 benchmark.defaultOptions = {
   ...benchmark.defaultOptions,

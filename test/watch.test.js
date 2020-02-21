@@ -1,6 +1,6 @@
 import test from 'tape';
-import delay from './delay';
 import Store from '../src';
+import { delay } from '../src/utils';
 
 test('watch: supports a selector function', async assert => {
   assert.plan(3);

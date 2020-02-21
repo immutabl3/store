@@ -1,11 +1,16 @@
-import './dom';
-
 import test from 'tape';
+import React from 'react';
 import { configure, mount } from 'enzyme';
 import ReactAdapter from 'enzyme-adapter-react-16';
-import delay from './delay';
-import React from 'react';
-import { API, AppNoSelector, AppSelector } from './fixtures';
+import { delay } from '../src/utils';
+import {
+  API,
+  AppNoSelector,
+  AppSelector,
+  dom,
+} from './fixtures';
+
+dom();
 
 configure({
   adapter: new ReactAdapter(),

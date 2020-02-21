@@ -1,15 +1,15 @@
 import {
   isEqual,
-  isLooselyImmutableMethod,
   clone,
-  isBuiltinWithoutMutableMethods,
-  isBuiltinUnsupported,
-  isStrictlyImmutableMethod,
-  isBuiltinWithMutableMethods,
 } from './utils';
 import {
   isFunction,
   isSymbol,
+  isLooselyImmutableMethod,
+  isBuiltinWithoutMutableMethods,
+  isBuiltinUnsupported,
+  isStrictlyImmutableMethod,
+  isBuiltinWithMutableMethods,
 } from './types';
 import {
   $TARGET,

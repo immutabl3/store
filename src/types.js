@@ -1,3 +1,9 @@
+import isPrimitive from 'is-primitive';
+import {
+  STRICTLY_IMMUTABLE_METHODS,
+  LOOSELY_IMMUTABLE_METHODS,
+} from './consts';
+
 export const isArray = target => Array.isArray(target);
 
 export const isObject = target => (
@@ -28,4 +34,45 @@ export const isTypedArray = x => {
     x instanceof Float64Array || 
     x instanceof BigInt64Array ||
     x instanceof BigUint64Array;
+};
+
+
+export const isBuiltinUnsupported = x => {
+  return x instanceof Promise || 
+    x instanceof WeakMap || 
+    x instanceof WeakSet;
+};
+
+export const isBuiltinWithoutMutableMethods = x => {
+  return isPrimitive(x) || 
+    x instanceof RegExp || 
+    x instanceof ArrayBuffer || 
+    x instanceof Number || 
+    x instanceof Boolean || 
+    x instanceof String;
+};
+
+export const isBuiltinWithMutableMethods = x => {
+  // TODO: "Array" should be included this, but then some tests will fail
+  return !isPrimitive(x) && (
+    x instanceof Date || 
+    x instanceof Map || 
+    x instanceof Set || 
+    isTypedArray(x)
+  );
+};
+
+export const isStrictlyImmutableMethod = (target, method) => {
+  const { name } = method;
+  if (!name) return false;
+  return STRICTLY_IMMUTABLE_METHODS.has(name);
+};
+
+export const isLooselyImmutableMethod = (target, method) => {
+  const { name } = method;
+  if (!name) return false;
+  if (Array.isArray(target)) return LOOSELY_IMMUTABLE_METHODS.array.has(name);
+  // TODO: For some reason mutations generated via these methods from Map or Set objects don't get detected
+  // return LOOSELY_IMMUTABLE_METHODS.others.has(name);
+  return false;
 };

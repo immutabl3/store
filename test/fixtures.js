@@ -1,6 +1,7 @@
 import React from 'react';
 import { store } from '../src';
 import { useStore } from '../src/react';
+import { JSDOM } from 'jsdom';
 
 // TODO: shared references
 
@@ -28,4 +29,24 @@ export const AppSelector = ({ rendering }) => {
       id: 'value',
     }, value)
   );
+};
+
+export const dom = () => {
+  const { window } = new JSDOM('<!doctype html><html><body></body></html>');
+
+  global.window = window;
+  global.document = window.document;
+  global.navigator = {
+    userAgent: 'node.js',
+  };
+  global.requestAnimationFrame = function(callback) {
+    return setTimeout(callback, 0);
+  };
+  global.cancelAnimationFrame = function(id) {
+    clearTimeout(id);
+  };
+  Object.defineProperties(global, {
+    ...Object.getOwnPropertyDescriptors(window),
+    ...Object.getOwnPropertyDescriptors(global),
+  });
 };

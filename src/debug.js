@@ -1,5 +1,4 @@
-import { cloneDeep } from './utils';
-import plainObjectIsEmpty from 'plain-object-is-empty';
+import { cloneDeep, isEmpty } from './utils';
 import { detailedDiff } from 'deep-object-diff';
 
 const groupLog = (log, collapsed) => {
@@ -16,7 +15,7 @@ const groupLog = (log, collapsed) => {
   };
 };
 
-const debug = function(proxy, opts = {}) {
+const debug = function(opts = {}) {
   const {
     full,
     diffs,
@@ -29,40 +28,42 @@ const debug = function(proxy, opts = {}) {
 
   const logger = groupLog(log, collapsed);
 
-  let prev = cloneDeep(proxy);
+  return proxy => {
+    let prev = cloneDeep(proxy);
 
-  return () => {
-    const next = cloneDeep(proxy);
-    
-    logger.open(`store: change: ${new Date().toISOString()}`);
+    return () => {
+      const next = cloneDeep(proxy);
+      
+      logger.open(`store: change: ${new Date().toISOString()}`);
 
-    const {
-      added,
-      updated,
-      deleted,
-    } = detailedDiff(prev, next);
-    
-    if (diffs && !plainObjectIsEmpty(added)) {
-      logger.log('added', added);
-    }
+      const {
+        added,
+        updated,
+        deleted,
+      } = detailedDiff(prev, next);
+      
+      if (diffs && !isEmpty(added)) {
+        logger.log('added', added);
+      }
 
-    if (diffs && !plainObjectIsEmpty(updated)) {
-      logger.log('updated', updated);
-    }
+      if (diffs && !isEmpty(updated)) {
+        logger.log('updated', updated);
+      }
 
-    if (diffs && !plainObjectIsEmpty(deleted)) {
-      logger.log('deleted', deleted);
-    }
+      if (diffs && !isEmpty(deleted)) {
+        logger.log('deleted', deleted);
+      }
 
-    if (full) {
-      logger.log('new state', next);
-      logger.log('old state', prev);
-    }
+      if (full) {
+        logger.log('new state', next);
+        logger.log('old state', prev);
+      }
 
-    logger.close();
+      logger.close();
 
-    prev = next;
-    return this;
+      prev = next;
+      return this;
+    };
   };
 };
 

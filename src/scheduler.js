@@ -11,21 +11,17 @@ export default function Scheduler(asynchronous, autoCommit) {
   
   const paths = [];
   const dispatchers = [];
-  // TODO: will this improve performance?
-  // const pathMap = new Map();
+  const pathMap = new Map();
   
   const process = () => {
     if (!paths.length) return (processing = false);
 
-    // TODO: performance
-    const pathMap = new Map(
-      paths.reduce((memo, path) => {
-        const masterPaths = permute(path)
-          .map(path => [hashPath(path), path]);
-        memo.push(...masterPaths);
-        return memo;
-      }, [])
-    );
+    for (const path of paths) {
+      const permutations = permute(path);
+      for (const path of permutations) {
+        pathMap.set(hashPath(path), path);
+      }
+    }
 
     for (const dispatcher of dispatchers) {
       dispatcher(pathMap);
@@ -34,6 +30,7 @@ export default function Scheduler(asynchronous, autoCommit) {
     event.reset();
     paths.length = 0;
     processing = false;
+    pathMap.clear();
     debug && debug();
   };
 

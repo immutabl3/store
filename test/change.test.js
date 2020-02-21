@@ -1,6 +1,6 @@
 import test from 'tape';
-import delay from './delay';
 import Store from '../src';
+import { delay } from '../src/utils';
 
 test('change: schedules a call to the listener when a mutation is made to the object', async assert => {
   assert.plan(39);

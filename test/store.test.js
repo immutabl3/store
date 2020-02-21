@@ -1,8 +1,9 @@
 import test from 'tape';
-import { store } from '../src';
+import Store from '../src';
+import { delay } from '../src/utils';
 
-test('wraps an object in a transparent proxy', assert => {
-  assert.plan(4);
+test('store: wraps an object', async assert => {
+  assert.plan(3);
 
   const dataInitial = {
     foo: true,
@@ -15,17 +16,18 @@ test('wraps an object in a transparent proxy', assert => {
     baz: true
   };
 
-  const proxy = store(dataInitial);
+  const store = Store(dataInitial);
 
-  assert.false(dataInitial === proxy);
-  assert.deepEqual(dataInitial, proxy);
+  assert.false(dataInitial === store.data);
+  assert.deepEqual(dataInitial, store.data);
 
-  proxy.baz = true;
-  proxy.bar.push(3);
-  proxy.bar[2].qux = 'str';
+  store.data.baz = true;
+  store.data.bar.push(3);
+  store.data.bar[2].qux = 'str';
 
-  assert.deepEqual(dataInitial, proxy);
-  assert.deepEqual(dataFinal, proxy);
+  await delay(10);
+
+  assert.deepEqual(dataFinal, store.data);
 
   assert.end();
 });

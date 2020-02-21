@@ -8,8 +8,3 @@ export const obj = () => ({
   map: new Map(),
   set: new Set(),
 });
-
-export const uniqueId = (function() {
-  let id = 0;
-  return () => id++;
-}());

@@ -19,6 +19,7 @@ export default function Dispatcher(proxy, emitter, path = []) {
       proxy,
     ));
 
+    // TODO: optimize
     listeners.forEach(([selectorFn, fn]) => {
       const value = selectorFn();
       const selector = Array.isArray(value) ? value : [value];
@@ -32,6 +33,7 @@ export default function Dispatcher(proxy, emitter, path = []) {
       ));
     });
 
+    // TODO: optimize
     projections.forEach(([selector, fn]) => {
       const [
         paths,

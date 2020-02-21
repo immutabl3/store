@@ -1,6 +1,7 @@
 import test from 'tape';
-import delay from './delay';
 import Store from '../src';
+import debug from '../src/debug';
+import { delay } from '../src/utils';
 
 test('debug: logs details', async assert => {
   assert.plan(3);
@@ -10,8 +11,7 @@ test('debug: logs details', async assert => {
   const store = Store({
     foo: 'bar',
   }, {
-    debug: true,
-    debugOptions: {
+    debug: debug({
       log: {
         groupCollapsed() {
           assert.ok(true, 'group collapsed called');
@@ -23,7 +23,7 @@ test('debug: logs details', async assert => {
           assert.ok(true, 'groupEnd called');
         },
       },
-    },
+    }),
   });
 
   store.data.foo = 'baz';
