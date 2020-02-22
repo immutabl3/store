@@ -2,6 +2,28 @@ import test from 'tape';
 import Store from '../src';
 import { delay } from '../src/utils';
 
+test('get', async assert => {
+  assert.plan(2);
+
+  const store = Store({
+    bar: {
+      deep: [1, 2, 3],
+    },
+  });
+
+  const pre = store.get();
+  assert.is(pre, store.data, `initial data is retrieved`);
+
+  store.data.bar.deep[0] = 0;
+
+  await delay(10);
+
+  const post = store.get();
+  assert.is(post, store.data, `mutated data is retrieved`);
+
+  assert.end();
+});
+
 test('get: selector', async assert => {
   assert.plan(2);
 

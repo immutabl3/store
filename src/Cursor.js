@@ -20,9 +20,9 @@ export default function Cursor(proxy, schedule, path = []) {
   
   return Object.assign(emitter, {
     data: proxy,
-    select(path) {
-      // TODO: target the correct part of the object in proxy to pass to Cursor
-      return Cursor(proxy, schedule, path);
+    select(value) {
+      const selector = isArray(value) ? value : [value];
+      return Cursor(get(proxy, selector), schedule, [...path, ...selector]);
     },
     watch(listener, fn) {
       const selector = isFunction(listener) ? listener : () => listener;
@@ -40,6 +40,7 @@ export default function Cursor(proxy, schedule, path = []) {
       );
     },
     get(path) {
+      if (!path) return proxy;
       const selector = isArray(path) ? path : [path];
       return get(proxy, selector);
     },

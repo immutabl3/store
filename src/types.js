@@ -22,6 +22,8 @@ export const isString = x => typeof x === 'string';
 
 export const isSymbol = x => typeof x === 'symbol';
 
+export const isNumber = x => typeof x === 'number';
+
 export const isObjectLike = x => typeof x === 'object';
 
 export const isTypedArray = x => {

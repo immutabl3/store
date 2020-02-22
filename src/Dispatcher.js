@@ -9,19 +9,28 @@ import {
   isDynamicPath,
   isString,
 } from './types';
+import query from './query';
 
 export default function Dispatcher(proxy, emitter, path = []) {
-  // TODO: utilize root
   const root = hashPath(path);
   const listeners = [];
 
-  const emit = pathMap => {
-    emitter.emit('change', event(
-      Array.from(pathMap.values()),
-      proxy,
-    ));
+  const emit = pathMap => {    
+    if (root) {
+      if (pathMap.has(root)) {
+        emitter.emit('change', event(
+          Array.from(pathMap.values()),
+          proxy,
+        ));
+      }
+    } else {
+      emitter.emit('change', event(
+        Array.from(pathMap.values()),
+        proxy,
+      ));
+    }
 
-    // TODO: optimize
+    // TODO: optimize (heavily)
     listeners.forEach(([selectorFn, fn]) => {
       const value = selectorFn();
       const isProjection = !isArray(value) && !isString(value);
@@ -33,9 +42,8 @@ export default function Dispatcher(proxy, emitter, path = []) {
         ] = Object.entries(value)
           .reduce((memo, [key, value]) => {
             const [paths, entries] = memo;
-            const startingSelector = isString(value) ? [value] : value;
-            const selector = isDynamicPath(startingSelector) ? solvePath(proxy, startingSelector) : startingSelector;
-            const path = hashPath(selector);
+            const selector = query.resolve(proxy, value);
+            const path = query.toString(root, selector);
             const hasPath = pathMap.has(path);
             if (hasPath) paths.push(path);
             entries.push([key, selector]);
@@ -57,9 +65,8 @@ export default function Dispatcher(proxy, emitter, path = []) {
           )
         ));
       } else {
-        const startingSelector = isString(value) ? [value] : value;
-        const selector = isDynamicPath(startingSelector) ? solvePath(proxy, startingSelector) : startingSelector;
-        const path = hashPath(selector);
+        const selector = query.resolve(proxy, value);
+        const path = query.toString(root, selector);
         if (!pathMap.has(path)) return;
 
         fn(event(
@@ -83,9 +90,9 @@ export default function Dispatcher(proxy, emitter, path = []) {
     };
 
     disposer.get = () => {
-      const path = selector();
-      const isProjection = !isArray(path) && !isString(path);
-      return isProjection ? cursor.projection(path) : cursor.get(path);
+      const value = selector();
+      const isProjection = query.isProjection(value);
+      return isProjection ? cursor.projection(value) : cursor.get(value);
     };
 
     return disposer;
