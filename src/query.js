@@ -21,9 +21,11 @@ import {
 // (and to solve) before hashing, so it's simplified
 const hash = path => path.length ? path.join(DELIMITER) : '';
 
-// TODO: optimize
 const isDynamicPath = function(path) {
-  return path.some(step => isFunction(step) || isObject(step));
+  for (const value of path) {
+    if (isFunction(value) || isObject(value)) return true;
+  }
+  return false;
 };
 
 const solvePath = (object, path) => {
@@ -66,6 +68,7 @@ const solvePath = (object, path) => {
 };
 
 export default {
+  // TODO: move to types
   isProjection(value) {
     return !isArray(value) && !isString(value) && !isNumber(value);
   },

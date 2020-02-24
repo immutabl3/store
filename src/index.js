@@ -7,7 +7,7 @@ export default function Store(obj, {
   asynchronous = true,
   // should the tree handle its transactions on its own?
   autoCommit = true,
-  // debug changes if the debugger is passed
+  // if the debugger is passed, we'll initialize it
   debug,
 } = {}) {
   const schedule = Scheduler(asynchronous, autoCommit);

@@ -102,7 +102,7 @@ export const isEmpty = obj => {
   return true;
 };
 
-// TODO: more to types
+// TODO: move to types
 export const isStore = store => (
   store &&
   'data' in store &&

@@ -1,13 +1,16 @@
 import Benchmark from 'benchmark';
 import Store from '../src';
 import BaobabTree from 'baobab';
-import delay from '../test/delay';
+import { delay as baseDelay } from '../test/utils';
 import uniqueId from 'lodash/uniqueId';
-import { obj, objLarge } from './fixtures';
+import noop from 'lodash/noop';
+import { obj } from './fixtures';
 import {
   store as fabio,
   onChange as fabioOnChange,
 } from '@fabiospampinato/store';
+
+const delay = () => baseDelay(0);
 
 // compare baobab without immutability e.g. production
 // mode and in the best light possible
@@ -22,7 +25,7 @@ const suite = (name, resolve, reject) => {
     .on('cycle', e => console.log(`${e.target}`))
     .on('start', () => console.log(name))
     .on('complete', function() {
-      console.log(`${name}: fastest is '${this.filter('fastest').map('name')}'`);
+      console.log(`${name}: fastest: ${this.filter('fastest').map('name')}\n`);
       resolve();
     })
     .on('abort', err => {
@@ -43,15 +46,25 @@ const creation = () => new Promise((resolve, reject) => {
     .run({ async: true });
 });
 
-const get = () => new Promise((resolve, reject) => {
+const access = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
   const fab = fabio(obj());
 
-  suite('get', resolve, reject)
+  suite('access', resolve, reject)
     .add('store', () => store.data.arr[3].foo)
     .add('baobab', () => baobab.get(['arr', 3, 'foo']))
     .add('fabio', () => fab.arr[3].foo)
+    .run({ async: true });
+});
+
+const get = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const baobab = Baobab(obj());
+
+  suite('get', resolve, reject)
+    .add('store', () => store.get(['arr', 3, 'foo']))
+    .add('baobab', () => baobab.get(['arr', 3, 'foo']))
     .run({ async: true });
 });
 
@@ -60,7 +73,7 @@ const set = () => new Promise((resolve, reject) => {
   const baobab = Baobab(obj());
   const fab = fabio(obj());
 
-  suite('get', resolve, reject)
+  suite('set', resolve, reject)
     .add('store', () => {
       store.data.arr[3].foo = 'bar';
     })
@@ -79,48 +92,39 @@ const change = () => new Promise((resolve, reject) => {
   const fab = fabio(obj());
 
   suite('change', resolve, reject)
-    .add({
-      name: 'store',
-      defer: true,
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        store.on('change', callback);
-        store.data.arr[3].foo = uniqueId();
-      },
-    })
-    .add({
-      name: 'baobab',
-      defer: true,
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        baobab.on('update', callback);
-        baobab.set(['arr', 3, 'foo'], uniqueId());
-      },
-    })
-    .add({
-      name: 'fabio',
-      defer: true, 
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        fabioOnChange(fab, callback);
-        fab.arr[3].foo = uniqueId();
-      },
-    })
+    .add('store', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      store.on('change', callback);
+      await delay();
+      store.data.arr[3].foo = uniqueId();
+    }, { defer: true })
+    .add('baobab', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      baobab.on('update', callback);
+      await delay();
+      baobab.set(['arr', 3, 'foo'], uniqueId());
+    }, { defer: true })
+    .add('fabio', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      fabioOnChange(fab, callback);
+      await delay();
+      fab.arr[3].foo = uniqueId();
+    }, { defer: true })
     .run({ async: true });
 });
 
@@ -130,121 +134,123 @@ const watch = () => new Promise((resolve, reject) => {
   const fab = fabio(obj());
 
   suite('watch', resolve, reject)
-    .add({
-      name: 'store',
-      defer: true,
-      // TODO: unbinding watch
-      fn: async deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          console.log(store.data.arr[3].foo);
-          deferred.resolve();
-        };
-        store.watch(['arr', 3, 'foo'], callback);
-        await delay();
-        store.data.arr[3].foo = uniqueId();
-      },
+    .add('store', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      store.watch(['arr', 3, 'foo'], callback);
+      await delay();
+      store.data.arr[3].foo = uniqueId();
+    }, { defer: true })
+    .add('baobab', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      baobab.select(['arr', 3, 'foo']).on('update', callback);
+      await delay();
+      baobab.set(['arr', 3, 'foo'], uniqueId());
+    }, { defer: true })
+    .add('fabio', async deferred => {
+      let called = false;
+      const callback = () => {
+        if (called) return;
+        called = true;
+        deferred.resolve();
+      };
+      fabioOnChange(fab, () => {
+        return fab.arr[3].foo !== 'bar';
+      }, callback);
+      await delay();
+      fab.arr[3].foo = uniqueId();
+    }, { defer: true })
+    .run({ async: true });
+});
+
+const dispose = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const fab = fabio(obj());
+
+  suite('dispose', resolve, reject)
+    .add('store', () => {
+      const disposer = store.watch(['arr', 3, 'foo'], noop);
+      disposer();
     })
-    .add({
-      name: 'baobab',
-      defer: true,
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        baobab.select(['arr', 3, 'foo']).on('update', callback);
-        baobab.set(['arr', 3, 'foo'], uniqueId());
-      },
-    })
-    .add({
-      name: 'fabio',
-      defer: true, 
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        fabioOnChange(fab, () => Number.isFinite(fab.arr[3].foo), callback);
-        fab.arr[3].foo = uniqueId();
-      },
+    .add('fabio', () => {
+      const disposer = fabioOnChange(fab, () => Number.isFinite(fab.arr[3].foo), noop);
+      disposer();
     })
     .run({ async: true });
 });
 
-// TODO: large data sets comparison
-const largeDataSets = () => new Promise((resolve, reject) => {
-  const store = Store(objLarge());
-  const baobab = Baobab(objLarge());
-  const fab = fabio(objLarge());
+const projection = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const baobab = Baobab(obj());
+  const mapping = {
+    foo: ['arr', 3, 'foo'],
+  };
 
-  suite('watch', resolve, reject)
-    .add({
-      name: 'store',
-      defer: true,
-      // TODO: unbinding watch
-      fn: async deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          console.log(store.data.arr[3].foo);
-          deferred.resolve();
-        };
-        store.watch(['arr', 3, 'foo'], callback);
-        await delay();
-        store.data.arr[3].foo = uniqueId();
-      },
+  suite('projection', resolve, reject)
+    .add('store', () => {
+      return store.projection(mapping);
     })
-    .add({
-      name: 'baobab',
-      defer: true,
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        baobab.select(['arr', 3, 'foo']).on('update', callback);
-        baobab.set(['arr', 3, 'foo'], uniqueId());
-      },
+    .add('baobab', () => {
+      return baobab.project(mapping);
     })
-    .add({
-      name: 'fabio',
-      defer: true, 
-      fn: deferred => {
-        let called = false;
-        const callback = () => {
-          if (called) return;
-          called = true;
-          deferred.resolve();
-        };
-        fabioOnChange(fab, () => Number.isFinite(fab.arr[3].foo), callback);
-        fab.arr[3].foo = uniqueId();
-      },
+    .run({ async: true });
+});
+
+const select = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const baobab = Baobab(obj());
+  const path = ['arr', 3, 'foo'];
+
+  suite('select', resolve, reject)
+    .add('store', () => {
+      return store.select(path);
+    })
+    .add('baobab', () => {
+      return baobab.select(path);
+    })
+    .run({ async: true });
+});
+
+const complexSelectors = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const baobab = Baobab(obj());
+  const path = [
+    'arr',
+    { foo: 'bar' },
+    'baz',
+    () => 0
+  ];
+
+  suite('complex selectors', resolve, reject)
+    .add('store', () => {
+      return store.get(path);
+    })
+    .add('baobab', () => {
+      return baobab.get(path);
     })
     .run({ async: true });
 });
 
 (async function() {
   await creation();
+  await access();
   await get();
   await set();
   await change();
   await watch();
-  // TODO: projection comparisons
-  // await project();
-  // TODO: large
-  // await largeDataSets();
-
-  // TODO: test efficiency of complex selectors in baobab & store
+  await dispose();
+  await projection();
+  await select();
+  await complexSelectors();
 
   console.log('done');
 }());

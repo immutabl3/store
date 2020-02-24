@@ -7,8 +7,8 @@
     "test": "node -r esm test | tap-spec",
     "debug": "node -r esm --inspect-brk=1234 test",
     "benchmark": "node -r esm benchmark",
-    "benchmark:compare": "node -r esm benchmark/compare",
-    "debug:benchmark:compare": "node -r esm --inspect-brk=1234 benchmark/compare"
+    "compare": "node -r esm benchmark/compare",
+    "debug:compare": "node -r esm --inspect-brk=1234 benchmark/compare"
   },
   "engines": {
     "node": "^13.9.0",
