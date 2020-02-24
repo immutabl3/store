@@ -1,4 +1,6 @@
-export const $TARGET = Symbol('Proxy -> Target');
+export const $TARGET = Symbol('proxy->target');
+export const $PAUSE = Symbol('pause');
+export const $RESUME = Symbol('resume');
 
 export const PATH_DELIMITER = 'λ';
 
@@ -55,29 +57,19 @@ export const STRICTLY_IMMUTABLE_METHODS = new Set([
   'subarray',
 ]);
 
-export const LOOSELY_IMMUTABLE_METHODS = {
-  array: new Set([
-    'concat',
-    'entries',
-    'every',
-    'filter',
-    'find',
-    'findIndex',
-    'forEach',
-    'keys',
-    'map',
-    'reduce',
-    'reduceRight',
-    'slice',
-    'some',
-    'values',
-  ]),
-  others: new Set([
-    // MAP & SET
-    'entries',
-    'forEach',
-    'get',
-    'keys',
-    'values',
-  ]),
-};
+export const LOOSELY_IMMUTABLE_ARRAY_METHODS = new Set([
+  'concat',
+  'entries',
+  'every',
+  'filter',
+  'find',
+  'findIndex',
+  'forEach',
+  'keys',
+  'map',
+  'reduce',
+  'reduceRight',
+  'slice',
+  'some',
+  'values',
+]);

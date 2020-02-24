@@ -575,12 +575,6 @@ test('proxyWatcher: structures: RegExp', assert => {
 
   assert.is(watcher.changes, 0);
 
-  // TODO: FIXME: https://github.com/lodash/lodash/issues/4645
-  // proxy.re.lastIndex = -10;
-
-  // assert.is(data.changes, 1);
-  // assert.deepEqual(data.paths, ['re.lastIndex']);
-
   assert.end();
 });
 

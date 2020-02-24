@@ -1,5 +1,4 @@
 import permute from './permute';
-import hashPath from './hashPath';
 import {
   isArray,
   isObject,
@@ -15,9 +14,8 @@ import {
   $TARGET,
 } from '../consts';
 
-export const noop = () => {};
+// TODO: break apart
 
-// TODO: don't expose?
 export const index = (arr, fn) => {
   let idx = 0;
   const len = arr.length;
@@ -27,26 +25,31 @@ export const index = (arr, fn) => {
   return -1;
 };
 
-// TODO: don't expose?
 export const compare = (object, description) => {
-  let ok = true;
-
   // If we reached here via a recursive call, object may be undefined because
   // not all items in a collection will have the same deep nesting structure.
   if (!object) return false;
 
-  // TODO: optimize
   for (const key in description) {
-    if (isObject(description[key])) {
-      ok = ok && compare(object[key], description[key]);
-    } else if (isArray(description[key])) {
-      ok = ok && !!~description[key].indexOf(object[key]);
+    const obj = object[key];
+    const des = description[key];
+
+    if (isObject(des)) {
+      const ok = compare(obj, des);
+      if (!ok) return false;
+      continue;
     }
     
-    if (object[key] !== description[key]) return false;
+    if (isArray(des)) {
+      const ok = !!~des.indexOf(obj);
+      if (!ok) return false;
+      continue;
+    }
+    
+    if (obj !== des) return false;
   }
 
-  return ok;
+  return true;
 };
 
 export const get = (object, path) => {
@@ -65,7 +68,10 @@ export const get = (object, path) => {
       if (!~idx) return;
 
       current = current[idx];
-    } else if (isObjectLike(path[i])) {
+      continue;
+    }
+    
+    if (isObjectLike(path[i])) {
       if (!isArray(current)) return;
 
       // TODO: a lodash impl of find for object?
@@ -74,9 +80,10 @@ export const get = (object, path) => {
       if (!~idx) return;
 
       current = current[idx];
-    } else {
-      current = current[path[i]];
+      continue;
     }
+    
+    current = current[path[i]];
   }
 
   return current;
@@ -85,11 +92,13 @@ export const get = (object, path) => {
 export const defer = fn => setTimeout(fn, 0);
 
 export const isEqual = (x, y) => {
-  return isPrimitive(x) || isPrimitive(y) ? Object.is(x, y) : baseIsEqual(x, y);
+  return isPrimitive(x) || isPrimitive(y) ? 
+    Object.is(x, y) : 
+    baseIsEqual(x, y);
 };
 
 const cloneCustomizer = value => {
-  // TODO: FIXME: https://github.com/lodash/lodash/issues/4646
+  // to support BigInt64Array and BigUint64Array
   if (!isPrimitive(value) && isTypedArray(value)) return (value[$TARGET] || value).slice();
 };
 
@@ -102,15 +111,6 @@ export const isEmpty = obj => {
   return true;
 };
 
-// TODO: move to types
-export const isStore = store => (
-  store &&
-  'data' in store &&
-  isFunction(store.projection) &&
-  isFunction(store.watch)
-);
-
 export {
   permute,
-  hashPath,
 };

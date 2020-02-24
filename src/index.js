@@ -15,6 +15,7 @@ export default function Store(obj, {
   // with the changed paths
   const proxy = proxyWatcher(obj, schedule.add);
   const cursor = Cursor(proxy, schedule);
+  schedule.proxy(proxy);
   if (debug) schedule.debug(debug(proxy));
   cursor.commit = schedule.commit;
   return cursor;

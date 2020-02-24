@@ -2,8 +2,6 @@ import React from 'react';
 import StoreError from './StoreError';
 import {
   isStore,
-} from './utils';
-import {
   isFunction,
   isObjectLike,
 } from './types';

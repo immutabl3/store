@@ -37,7 +37,6 @@ const solvePath = (object, path) => {
   const len = path.length;
 
   for (; i < len; i++) {
-    debugger;
     if (!current) return solvedPath.concat(path.slice(i));
 
     if (isFunction(path[i])) {
@@ -68,10 +67,7 @@ const solvePath = (object, path) => {
 };
 
 export default {
-  // TODO: move to types
-  isProjection(value) {
-    return !isArray(value) && !isString(value) && !isNumber(value);
-  },
+  hash,
   resolve(proxy, value) {
     const selector = isString(value) || isNumber(value) ? [value] : value;
     if (!isArray(selector)) throw new StoreError(`invalid selector`, { selector: value });

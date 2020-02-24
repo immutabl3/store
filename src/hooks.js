@@ -6,11 +6,11 @@ import React, {
   useRef,
 } from 'react';
 import {
+  isStore,
   isObjectLike,
   isFunction,
 } from './types';
 import {
-  isStore,
   isEqual,
 } from './utils';
 

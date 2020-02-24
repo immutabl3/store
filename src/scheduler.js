@@ -1,36 +1,46 @@
 import event from './event';
 import {
   defer,
-  hashPath,
   permute,
 } from './utils';
+import {
+  $PAUSE,
+  $RESUME,
+} from './consts';
+import query from './query';
 
 export default function Scheduler(asynchronous, autoCommit) {
   let debug;
+  let proxy;
   let processing;
   
   const paths = [];
   const dispatchers = [];
-  const pathMap = new Map();
+  const map = new Map();
   
   const process = () => {
     if (!paths.length) return (processing = false);
 
     for (const path of paths) {
+      const initialPath = query.hash(path);
+      if (map.has(initialPath)) continue;
+      
       const permutations = permute(path);
       for (const path of permutations) {
-        pathMap.set(hashPath(path), path);
+        map.set(query.hash(path), path);
       }
     }
 
+    proxy[$PAUSE];
     for (const dispatcher of dispatchers) {
-      dispatcher(pathMap);
+      dispatcher(map, Array.from(map.values()));
     }
+    proxy[$RESUME];
 
     event.reset();
     paths.length = 0;
     processing = false;
-    pathMap.clear();
+    map.clear();
     debug && debug();
   };
 
@@ -48,6 +58,10 @@ export default function Scheduler(asynchronous, autoCommit) {
   return {
     debug(bug) {
       debug = bug;
+    },
+    
+    proxy(obj) {
+      proxy = obj;
     },
 
     register(dispatcher) {

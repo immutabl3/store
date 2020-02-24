@@ -1,7 +1,7 @@
 import isPrimitive from 'is-primitive';
 import {
   STRICTLY_IMMUTABLE_METHODS,
-  LOOSELY_IMMUTABLE_METHODS,
+  LOOSELY_IMMUTABLE_ARRAY_METHODS,
 } from './consts';
 
 export const isArray = target => Array.isArray(target);
@@ -9,7 +9,7 @@ export const isArray = target => Array.isArray(target);
 export const isObject = target => (
   target &&
   typeof target === 'object' &&
-  !Array.isArray(target) &&
+  !isArray(target) &&
   !(target instanceof Date) &&
   !(target instanceof RegExp) &&
   !(typeof Map === 'function' && target instanceof Map) &&
@@ -39,7 +39,6 @@ export const isTypedArray = x => {
     x instanceof BigInt64Array ||
     x instanceof BigUint64Array;
 };
-
 
 export const isBuiltinUnsupported = x => {
   return x instanceof Promise || 
@@ -74,8 +73,17 @@ export const isStrictlyImmutableMethod = (target, method) => {
 export const isLooselyImmutableMethod = (target, method) => {
   const { name } = method;
   if (!name) return false;
-  if (Array.isArray(target)) return LOOSELY_IMMUTABLE_METHODS.array.has(name);
-  // TODO: For some reason mutations generated via these methods from Map or Set objects don't get detected
-  // return LOOSELY_IMMUTABLE_METHODS.others.has(name);
+  if (Array.isArray(target)) return LOOSELY_IMMUTABLE_ARRAY_METHODS.has(name);
   return false;
+};
+
+export const isStore = store => (
+  store &&
+  'data' in store &&
+  isFunction(store.projection) &&
+  isFunction(store.watch)
+);
+
+export const isProjection = value => {
+  return !isArray(value) && !isString(value) && !isNumber(value);
 };

@@ -4,7 +4,7 @@ import BaobabTree from 'baobab';
 import { delay as baseDelay } from '../test/utils';
 import uniqueId from 'lodash/uniqueId';
 import noop from 'lodash/noop';
-import { obj } from './fixtures';
+import { large as obj } from './fixtures';
 import {
   store as fabio,
   onChange as fabioOnChange,

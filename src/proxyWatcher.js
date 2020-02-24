@@ -13,9 +13,13 @@ import {
 } from './types';
 import {
   $TARGET,
+  $PAUSE,
+  $RESUME,
 } from './consts';
 
 const makeTraps = function(onChange, cache, makeProxy) {  
+  let paused = false;
+
   const paths = new WeakMap();
   
   const getParentPath = parent => paths.get(parent);
@@ -43,8 +47,18 @@ const makeTraps = function(onChange, cache, makeProxy) {
   
   return {
     get(target, property, rec) {
+      // target access
       if (property === $TARGET) return target;
       
+      // when paused, short circuit the gets - this provides
+      // a meaningful speed boost when accessing data e.g.
+      // firing watchers (which performs gets on the proxy)
+      if (paused && property !== $RESUME) return target[property];
+      
+      // pause toggling
+      if (property === $PAUSE) return (paused = true);
+      if (property === $RESUME) return (paused = false);
+
       let receiver = rec;
       if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
       const value = Reflect.get(target, property, receiver);
@@ -53,9 +67,10 @@ const makeTraps = function(onChange, cache, makeProxy) {
       // preserving invariants
       if (descriptor && !descriptor.configurable && !descriptor.writable) return value;
       if (isSymbol(property) || isBuiltinUnsupported(value)) return value;
-      // TODO: FIXME: binding here prevents the function to be potentially re-bounded later
+      // TODO: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(target, value)) return value.bind(target);
       setChildPath(target, value, property);
+      if (cache.has(value)) return cache.get(value);
       return makeProxy(value, onChange, cache, this);
     },
     set(target, property, val, rec) {
@@ -79,16 +94,16 @@ const makeTraps = function(onChange, cache, makeProxy) {
       if (isSymbol(property)) return Reflect.defineProperty(target, property, descriptor);
       const prev = Reflect.getOwnPropertyDescriptor(target, property);
       const changed = Reflect.defineProperty(target, property, descriptor);
-      if (changed) {
-        const next = Object.assign({
-          // Accounting for defaults
-          configurable: false,
-          enumerable: false,
-          writable: false
-        }, descriptor);
-        if (isEqual(prev, next)) return true;
-      }
       if (!changed) return changed;
+      
+      const next = {
+        // accounting for defaults
+        configurable: false,
+        enumerable: false,
+        writable: false,
+        ...descriptor,
+      };
+      if (isEqual(prev, next)) return true;
       
       onChange(getChildPath(target, property));
 
@@ -96,6 +111,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
     },
     deleteProperty(target, property) {
       if (!Reflect.has(target, property)) return true;
+      
       const changed = Reflect.deleteProperty(target, property);
       if (isSymbol(property)) return changed;
       if (!changed) return changed;
@@ -121,8 +137,6 @@ const makeTraps = function(onChange, cache, makeProxy) {
 };
 
 const makeProxy = function(object, onChange, cache = new WeakMap(), traps) {
-  if (cache.has(object)) return cache.get(object);
-  
   const proxy = new Proxy(object, traps || makeTraps(onChange, cache, makeProxy));
   cache.set(object, proxy);
   return proxy;
