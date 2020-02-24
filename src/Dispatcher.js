@@ -43,7 +43,7 @@ export default function Dispatcher(proxy, emitter, path = []) {
             const selector = query.resolve(proxy, value);
             const path = query.toString(root, selector);
             const hasPath = pathMap.has(path);
-            if (hasPath) paths.push(path);
+            if (hasPath) paths.push(selector);
             entries.push([key, selector]);
             return memo;
           }, [
@@ -68,7 +68,7 @@ export default function Dispatcher(proxy, emitter, path = []) {
         if (!pathMap.has(path)) return;
 
         fn(event(
-          selector,
+          [selector],
           // TODO: a short circuit stop on the gets for the proxy
           get(proxy, selector)
         ));

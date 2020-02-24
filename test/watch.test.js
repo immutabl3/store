@@ -18,9 +18,9 @@ export const Data = function(object) {
       return this;
     },
     watch(path = []) {
-      store.watch(path, ({ paths: changedPath }) => {
+      store.watch(path, ({ paths: changedPaths }) => {
         changes++;
-        paths = [...paths, changedPath];
+        paths = [...paths, ...changedPaths];
       });
       return this;
     },
@@ -408,8 +408,7 @@ test(`watch: deep projection`, async assert => {
   assert.is(fixture.changes, 5);
   assert.deepEqual(fixture.paths, [
     ['bar'],
-    // TODO: should be giving back ['bar', 'deep', 0],
-    ['barλdeepλ0'],
+    ['bar', 'deep', 0],
   ]);
 
   assert.end();

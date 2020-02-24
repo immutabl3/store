@@ -1,7 +1,8 @@
 import benchmark from 'benchloop';
+import noop from 'lodash/noop';
+import uniqueId from 'lodash/uniqueId';
 import Store from '../src';
 import { obj } from './fixtures';
-import { noop, uniqueId } from '../src/utils';
 
 benchmark.defaultOptions = {
   ...benchmark.defaultOptions,
@@ -10,7 +11,7 @@ benchmark.defaultOptions = {
 };
 
 benchmark({
-  name: 'store',
+  name: 'creation',
   fn() {
     Store(obj());
   },
@@ -19,7 +20,7 @@ benchmark({
 benchmark({
   name: 'gets',
   beforeEach(ctx) {
-    ctx.store = Store(obj());
+    ctx.store = Store(obj(), { async: false });
   },
   fn({ store }) {
     const foo = store.data.arr[3].foo;
@@ -30,7 +31,7 @@ benchmark({
 benchmark({
   name: 'sets',
   beforeEach(ctx) {
-    ctx.store = Store(obj());
+    ctx.store = Store(obj(), { async: false });
   },
   fn({ store }) {
     store.data.arr[3].foo = uniqueId();
@@ -40,7 +41,7 @@ benchmark({
 benchmark({
   name: 'onChange',
   beforeEach(ctx) {
-    const store = ctx.store = Store(obj());
+    const store = ctx.store = Store(obj(), { async: false });
     store.on('change', noop);
   },
   fn({ store }) {
@@ -51,7 +52,7 @@ benchmark({
 benchmark({
   name: 'watch',
   beforeEach(ctx) {
-    const store = ctx.store = Store(obj());
+    const store = ctx.store = Store(obj(), { async: false });
     store.watch(['arr', 3, 'foo'], noop);
   },
   fn({ store }) {
@@ -59,6 +60,24 @@ benchmark({
   },
 });
 
-// TODO: additional checking
+benchmark({
+  name: 'projection',
+  beforeEach(ctx) {
+    ctx.store = Store(obj(), { async: false });
+  },
+  fn({ store }) {
+    store.projection({ foo: ['arr', 3, 'foo'] });
+  },
+});
+
+benchmark({
+  name: 'select',
+  beforeEach(ctx) {
+    ctx.store = Store(obj(), { async: false });
+  },
+  fn({ store }) {
+    store.select(['bar', 'deep']);
+  },
+});
 
 benchmark.summary();

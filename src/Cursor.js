@@ -1,4 +1,5 @@
 import signal from 'signal-js';
+import StoreError from './StoreError';
 import query from './query';
 import Dispatcher from './Dispatcher';
 import {
@@ -27,7 +28,7 @@ export default function Cursor(proxy, schedule, path = []) {
       return dispatcher.watcher(selector, this, fn);
     },
     projection(path) {
-      if (!isObjectLike(path)) throw new Error(`store: projection requires an object`);
+      if (!isObjectLike(path)) throw new StoreError(`projection requires an object`, { value: path });
       if (isArray(path)) return this.get(path);
       return Object.fromEntries(
         Object.entries(path)

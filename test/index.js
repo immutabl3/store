@@ -1,3 +1,4 @@
+import './utils.test';
 import './proxyWatcher.test';
 import './change.test';
 import './watch.test';

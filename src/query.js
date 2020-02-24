@@ -1,3 +1,4 @@
+import StoreError from './StoreError';
 import {
   isArray,
   isString,
@@ -70,7 +71,7 @@ export default {
   },
   resolve(proxy, value) {
     const selector = isString(value) || isNumber(value) ? [value] : value;
-    if (!isArray(selector)) throw new Error(`store: invalid selector: "${value}"`);
+    if (!isArray(selector)) throw new StoreError(`invalid selector`, { selector: value });
     return isDynamicPath(selector) ? solvePath(proxy, selector) : selector;
   },
   toString(root, selector) {
