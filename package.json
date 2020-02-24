@@ -39,6 +39,7 @@
     "proxy"
   ],
   "dependencies": {
+    "deep-equal": "^2.0.1",
     "deep-object-diff": "^1.1.0",
     "is-primitive": "^3.0.1",
     "plain-object-is-empty": "^1.0.0",

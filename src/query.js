@@ -8,8 +8,8 @@ import {
   isObjectLike,
 } from './types';
 import {
-  index,
-  compare,
+  indexOf,
+  indexOfCompare,
 } from './utils';
 import {
   PATH_DELIMITER as DELIMITER,
@@ -42,7 +42,7 @@ const solvePath = (object, path) => {
     if (isFunction(path[i])) {
       if (!isArray(current)) return [];
 
-      idx = index(current, path[i]);
+      idx = indexOf(current, path[i]);
       if (!~idx) return [];
 
       solvedPath.push(idx);
@@ -50,9 +50,7 @@ const solvePath = (object, path) => {
     } else if (isObjectLike(path[i])) {
       if (!isArray(current)) return [];
 
-      // TODO: a lodash impl of find for object?
-      // eslint-disable-next-line no-loop-func
-      idx = index(current, e => compare(e, path[i]));
+      idx = indexOfCompare(current, path[i]);
       if (!~idx) return [];
 
       solvedPath.push(idx);
