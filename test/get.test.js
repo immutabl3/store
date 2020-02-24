@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src';
-import { delay } from '../src/utils';
+import { delay } from './utils';
 
 test('get', async assert => {
   assert.plan(2);
@@ -16,7 +16,7 @@ test('get', async assert => {
 
   store.data.bar.deep[0] = 0;
 
-  await delay(10);
+  await delay();
 
   const post = store.get();
   assert.is(post, store.data, `mutated data is retrieved`);
@@ -38,7 +38,7 @@ test('get: selector', async assert => {
 
   store.data.bar.deep[0] = 0;
 
-  await delay(10);
+  await delay();
 
   const post = store.get(['bar', 'deep', 0]);
   assert.is(post, 0, `mutated data is retrieved`);

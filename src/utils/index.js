@@ -1,5 +1,4 @@
 import permute from './permute';
-import uniqueId from './uniqueId';
 import hashPath from './hashPath';
 import {
   isArray,
@@ -18,7 +17,8 @@ import {
 
 export const noop = () => {};
 
-const index = (arr, fn) => {
+// TODO: don't expose?
+export const index = (arr, fn) => {
   let idx = 0;
   const len = arr.length;
   for (; idx < len; idx++) {
@@ -27,7 +27,8 @@ const index = (arr, fn) => {
   return -1;
 };
 
-const compare = (object, description) => {
+// TODO: don't expose?
+export const compare = (object, description) => {
   let ok = true;
 
   // If we reached here via a recursive call, object may be undefined because
@@ -81,50 +82,7 @@ export const get = (object, path) => {
   return current;
 };
 
-export const solvePath = (object, path) => {
-  const solvedPath = [];
-
-  let current = object;
-  let idx;
-  let i = 0;
-  const len = path.length;
-
-  for (; i < len; i++) {
-    debugger;
-    if (!current) return solvedPath.concat(path.slice(i));
-
-    if (isFunction(path[i])) {
-      if (!isArray(current)) return [];
-
-      idx = index(current, path[i]);
-      if (!~idx) return [];
-
-      solvedPath.push(idx);
-      current = current[idx];
-    } else if (isObjectLike(path[i])) {
-      if (!isArray(current)) return [];
-
-      // TODO: a lodash impl of find for object?
-      // eslint-disable-next-line no-loop-func
-      idx = index(current, e => compare(e, path[i]));
-      if (!~idx) return [];
-
-      solvedPath.push(idx);
-      current = current[idx];
-    } else {
-      solvedPath.push(path[i]);
-      current = current[path[i]];
-    }
-  }
-
-  return solvedPath;
-};
-
 export const defer = fn => setTimeout(fn, 0);
-
-export const delay = (ms = 0) => (
-  new Promise(resolve => setTimeout(resolve, ms))
-);
 
 export const isEqual = (x, y) => {
   return isPrimitive(x) || isPrimitive(y) ? Object.is(x, y) : baseIsEqual(x, y);
@@ -144,7 +102,9 @@ export const isEmpty = obj => {
   return true;
 };
 
+// TODO: more to types
 export const isStore = store => (
+  store &&
   'data' in store &&
   isFunction(store.projection) &&
   isFunction(store.watch)
@@ -152,6 +112,5 @@ export const isStore = store => (
 
 export {
   permute,
-  uniqueId,
   hashPath,
 };

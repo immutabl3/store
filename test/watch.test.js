@@ -2,10 +2,50 @@ import test from 'tape';
 import isFunction from 'lodash/isFunction';
 import noop from 'lodash/noop';
 import Store from '../src';
-import { delay } from '../src/utils';
+import { delay } from './utils';
 
-test('watch: selector function', async assert => {
-  assert.plan(3);
+export const Data = function(object) {
+  let changes = 0;
+  let paths = [];
+
+  const store = Store(object);
+
+  const fixture = {
+    err(fn) {
+      store.watch(['noop'], () => {
+        fn(`watching an invalid value shouldn't trigger`);
+      });
+      return this;
+    },
+    watch(path = []) {
+      store.watch(path, ({ paths: changedPath }) => {
+        changes++;
+        paths = [...paths, changedPath];
+      });
+      return this;
+    },
+    get changes() {
+      return changes;
+    },
+    get paths() {
+      const result = paths;
+      // resetting
+      paths = [];
+      return result;
+    },
+    ready() {
+      return [
+        store,
+        fixture,
+      ];
+    },
+  };
+
+  return fixture;
+};
+
+test('watch: event data', async assert => {
+  assert.plan(2);
 
   const store = Store({
     foo: 123,
@@ -13,27 +53,48 @@ test('watch: selector function', async assert => {
       deep: [1, 2, 3],
     },
   });
-  const calls = [];
 
-  store.watch(['noop'], () => {
-    assert.fail(`watching an invalid value shouldn't trigger`);
-  });
-  store.watch(() => 'foo', e => {
+  store.watch(['foo'], e => {
     assert.is(e.data, store.data.foo);
-    calls.push(1);
   });
-  store.watch(() => ['bar'], e => {
+  store.watch(['bar'], e => {
     assert.deepEqual(e.data, store.data.bar);
-    calls.push(2);
   });
 
-  store.data.baz = true;
   store.data.foo = 1234;
   store.data.bar.foo = true;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [1, 2]);
+  assert.end();
+});
+
+test('watch: selector types', async assert => {
+  assert.plan(2);
+
+  const [store, fixture] = Data({
+    foo: 123,
+    arr: [0],
+  })
+    .err(err => assert.fail(err))
+    .watch('foo')
+    .watch(['foo'])
+    .watch(() => ['foo'])
+    .watch(['arr', 0])
+    .ready();
+
+  store.data.foo = 1234;
+  store.data.arr[0] = 1;
+
+  await delay();
+
+  assert.is(fixture.changes, 4);
+  assert.deepEqual(fixture.paths, [
+    ['foo'],
+    ['foo'],
+    ['foo'],
+    ['arr', 0],
+  ]);
 
   assert.end();
 });
@@ -65,7 +126,7 @@ test('watch: static selector', async assert => {
   store.data.foo = 1234;
   store.data.bar.foo = true;
 
-  await delay(10);
+  await delay();
 
   assert.deepEqual(calls, [1, 2]);
 
@@ -73,130 +134,141 @@ test('watch: static selector', async assert => {
 });
 
 test('watch: deep static selector', async assert => {
-  assert.plan(3);
+  assert.plan(6);
 
-  const store = Store({
+  const [store, fixture] = Data({
     arr: [1, 2, '3', { foo: 'bar' }],
-  });
-  const calls = [];
+  })
+    .err(err => assert.fail(err))
+    .watch(['arr', 3, 'foo'])
+    .ready();
 
-  store.watch(['noop'], () => {
-    assert.fail(`watching an invalid value shouldn't trigger`);
-  });
-  store.watch(['arr', 3, 'foo'], () => calls.push(1));
+  await delay();
 
   store.data.arr[3].foo = 0;
 
-  await delay(10);
+  await delay();
 
-  // TODO: use makeData fixture
-  assert.deepEqual(calls, [1]);
+  assert.is(fixture.changes, 1);
+  assert.deepEqual(fixture.paths, [
+    ['arr', 3, 'foo'],
+  ]);
   
   store.data.arr[3].foo = 1;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [1, 1]);
+  assert.is(fixture.changes, 2);
+  assert.deepEqual(fixture.paths, [
+    ['arr', 3, 'foo'],
+  ]);
 
   store.data.arr[3].foo = 2;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [1, 1, 1]);
+  assert.is(fixture.changes, 3);
+  assert.deepEqual(fixture.paths, [
+    ['arr', 3, 'foo'],
+  ]);
 
   assert.end();
 });
 
 test('watch: complex selector', async assert => {
-  assert.plan(2);
+  assert.plan(4);
 
-  const store = Store({
+  const [store, fixture] = Data({
     arr: [
       { foo: 1 },
       { foo: 2 },
       { foo: 3 },
     ],
-  });
-  const calls = [];
-
-  store.watch(['noop'], () => {
-    assert.fail(`watching an invalid value shouldn't trigger`);
-  });
-  store.watch(['arr', { foo: 2 }], () => calls.push(1));
+  })
+    .err(err => assert.fail(err))
+    .watch(['arr', { foo: 2 }])
+    .ready();
 
   store.data.arr[1].bar = 'baz';
 
-  await delay(10);
+  await delay();
 
-  // TODO: use makeData fixture
-  assert.deepEqual(calls, [1], `call made, selected object changed`);
-
-  calls.length = 0;
+  assert.is(fixture.changes, 1);
+  assert.deepEqual(fixture.paths, [
+    ['arr', 1],
+  ], `call made, selected object changed`);
 
   store.data.arr[1].foo = 0;
 
-  await delay(10);
+  await delay();
 
-  // TODO: use makeData fixture
-  assert.deepEqual(calls, [], `no call made, selector changed`);
+  assert.is(fixture.changes, 1);
+  assert.deepEqual(fixture.paths, [], `no call made, selector changed`);
 
   assert.end();
 });
 
 test(`watch: same data assignments don't emit changes`, async assert => {
-  assert.plan(5);
+  assert.plan(10);
 
-  const store = Store({
+  const [store, fixture] = Data({
     foo: 123,
     bar: {
       deep: [1, 2, 3],
     },
-  });
-  const calls = [];
-
-  store.on('change', () => calls.push(0));
-  store.watch(['foo'], () => calls.push(1));
-  store.watch(['bar'], () => calls.push(2));
-  store.watch(['bar', 'deep', 0], () => calls.push(3));
+  })
+    .err(err => assert.fail(err))
+    .watch(['foo'])
+    .watch(['bar'])
+    .watch(['bar', 'deep', 0])
+    .ready();
 
   store.data.foo = 123;
   store.data.bar = store.data.bar;
   store.data.bar = { deep: [1, 2, 3] };
   store.data.bar.deep[0] = 1;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, []);
+  assert.is(fixture.changes, 0);
+  assert.deepEqual(fixture.paths, []);
 
   store.data.foo = 1234;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 1]);
-  // TODO: use makeData fixture
-  calls.length = 0;
+  assert.is(fixture.changes, 1);
+  assert.deepEqual(fixture.paths, [
+    ['foo'],
+  ]);
 
   store.data.bar.foo = true;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2]);
-
-  calls.length = 0;
+  assert.is(fixture.changes, 2);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+  ]);
 
   store.data.bar.deep.push(4);
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2]);
-
-  calls.length = 0;
+  assert.is(fixture.changes, 3);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+  ]);
 
   store.data.bar.deep[0] = 2;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2, 3]);
+  assert.is(fixture.changes, 5, `2 watchers counts 2 changes`);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+    ['bar', 'deep', 0],
+  ], `found changes for both watchers`);
 
   assert.end();
 });
@@ -216,9 +288,8 @@ test('watch: is disposable', async assert => {
 
   store.data.arr[3].foo = 0;
 
-  await delay(10);
+  await delay();
 
-  // TODO: use makeData fixture
   assert.deepEqual(calls, [1], `made a call on data change`);
 
   // dispose
@@ -244,7 +315,7 @@ test('watch: is getable', async assert => {
 
   store.data.arr[3].foo = 0;
 
-  await delay(10);
+  await delay();
 
   assert.is(watcher.get(), 0, `getting data from watcher matches expected data`);
 
@@ -273,65 +344,73 @@ test('watch: basic projection', async assert => {
   store.data.foo = 1234;
   store.data.bar.deep[0] = 0;
 
-  await delay(10);
+  await delay();
 
   assert.end();
 });
 
 test(`watch: deep projection`, async assert => {
-  assert.plan(5);
+  assert.plan(10);
 
-  const store = Store({
+  const [store, fixture] = Data({
     foo: 123,
     bar: {
       deep: [1, 2, 3],
     },
-  });
-  const calls = [];
-
-  store.on('change', () => calls.push(0));
-  store.watch({ helloworld: ['foo'] }, () => calls.push(1));
-  store.watch({ helloworld: ['bar'] }, () => calls.push(2));
-  store.watch({ helloworld: ['bar', 'deep', 0] }, () => calls.push(3));
-
+  })
+    .err(err => assert.fail(err))
+    .watch({ helloworld: ['foo'] })
+    .watch({ helloworld: ['bar'] })
+    .watch({ helloworld: ['bar', 'deep', 0] })
+    .ready();
+  
   store.data.foo = 123;
   store.data.bar = store.data.bar;
   store.data.bar = { deep: [1, 2, 3] };
   store.data.bar.deep[0] = 1;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, []);
+  assert.is(fixture.changes, 0);
+  assert.deepEqual(fixture.paths, []);
 
   store.data.foo = 1234;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 1]);
-  // TODO: use makeData fixture
-  calls.length = 0;
+  assert.is(fixture.changes, 1);
+  assert.deepEqual(fixture.paths, [
+    ['foo'],
+  ]);
 
   store.data.bar.foo = true;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2]);
-
-  calls.length = 0;
+  assert.is(fixture.changes, 2);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+  ]);
 
   store.data.bar.deep.push(4);
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2]);
-
-  calls.length = 0;
+  assert.is(fixture.changes, 3);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+  ]);
 
   store.data.bar.deep[0] = 2;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [0, 2, 3]);
+  assert.is(fixture.changes, 5);
+  assert.deepEqual(fixture.paths, [
+    ['bar'],
+    // TODO: should be giving back ['bar', 'deep', 0],
+    ['barλdeepλ0'],
+  ]);
 
   assert.end();
 });
@@ -347,7 +426,7 @@ test('watch: project on invalid paths', async assert => {
 
   store.data.biz = true;
 
-  await delay(10);
+  await delay();
 
   assert.pass(`no change event fired`);
 

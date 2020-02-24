@@ -178,7 +178,7 @@ const watch = () => new Promise((resolve, reject) => {
   await set();
   await change();
   await watch();
-  // TODO: projection tests
+  // TODO: projection comparisons
   // await project();
 
   // TODO: test efficiency of complex selectors in baobab & store

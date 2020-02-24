@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src';
-import { delay } from '../src/utils';
+import { delay } from './utils';
 
 test('change: schedules a call to the listener when a mutation is made to the object', async assert => {
   assert.plan(39);
@@ -46,7 +46,7 @@ test('change: schedules a call to the listener when a mutation is made to the ob
 
     fn(store.data);
 
-    await delay(10);
+    await delay();
 
     assert.pass(`no mutation`);
   }
@@ -69,7 +69,7 @@ test('change: schedules a call to the listener when a mutation is made to the ob
 
     fn(store.data);
 
-    await delay(10);
+    await delay();
 
     assert.is(calls, 1, `one mutation made`);
   }

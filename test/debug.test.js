@@ -1,7 +1,7 @@
 import test from 'tape';
 import Store from '../src';
 import debug from '../src/debug';
-import { delay } from '../src/utils';
+import { delay } from './utils';
 
 test('debug: logs details', async assert => {
   assert.plan(3);
@@ -28,7 +28,7 @@ test('debug: logs details', async assert => {
 
   store.data.foo = 'baz';
 
-  await delay(10);
+  await delay();
 
   assert.deepEqual(messages, [
     ['updated', { foo: 'baz' }]

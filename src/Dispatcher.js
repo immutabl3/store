@@ -2,11 +2,9 @@ import event from './event';
 import {
   get,
   hashPath,
-  solvePath,
 } from './utils';
 import {
   isArray,
-  isDynamicPath,
   isString,
 } from './types';
 import query from './query';

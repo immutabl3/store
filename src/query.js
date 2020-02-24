@@ -2,22 +2,67 @@ import {
   isArray,
   isString,
   isNumber,
-  // TODO: move into query
-  isDynamicPath,
+  isFunction,
+  isObject,
+  isObjectLike,
 } from './types';
 import {
-  // TODO: move into query
-  solvePath,
+  index,
+  compare,
 } from './utils';
-
-// TODO: make the symbol a constant
-const DELIMITER = 'λ';
+import {
+  PATH_DELIMITER as DELIMITER,
+} from './consts';
 
 // hashing the path similar to
 // https://github.com/Yomguithereal/baobab/blob/master/src/helpers.js#L474
 // however, we have a check to see if the path is dynamic 
 // (and to solve) before hashing, so it's simplified
 const hash = path => path.length ? path.join(DELIMITER) : '';
+
+// TODO: optimize
+const isDynamicPath = function(path) {
+  return path.some(step => isFunction(step) || isObject(step));
+};
+
+const solvePath = (object, path) => {
+  const solvedPath = [];
+
+  let current = object;
+  let idx;
+  let i = 0;
+  const len = path.length;
+
+  for (; i < len; i++) {
+    debugger;
+    if (!current) return solvedPath.concat(path.slice(i));
+
+    if (isFunction(path[i])) {
+      if (!isArray(current)) return [];
+
+      idx = index(current, path[i]);
+      if (!~idx) return [];
+
+      solvedPath.push(idx);
+      current = current[idx];
+    } else if (isObjectLike(path[i])) {
+      if (!isArray(current)) return [];
+
+      // TODO: a lodash impl of find for object?
+      // eslint-disable-next-line no-loop-func
+      idx = index(current, e => compare(e, path[i]));
+      if (!~idx) return [];
+
+      solvedPath.push(idx);
+      current = current[idx];
+    } else {
+      solvedPath.push(path[i]);
+      current = current[path[i]];
+    }
+  }
+
+  return solvedPath;
+};
 
 export default {
   isProjection(value) {

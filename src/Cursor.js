@@ -1,15 +1,13 @@
 import signal from 'signal-js';
+import query from './query';
 import Dispatcher from './Dispatcher';
 import {
   get,
-  solvePath,
 } from './utils';
 import {
   isArray,
-  isString,
   isFunction,
   isObjectLike,
-  isDynamicPath,
 } from './types';
 
 // TODO: performance - prototypes
@@ -30,18 +28,18 @@ export default function Cursor(proxy, schedule, path = []) {
     },
     projection(path) {
       if (!isObjectLike(path)) throw new Error(`store: projection requires an object`);
+      if (isArray(path)) return this.get(path);
       return Object.fromEntries(
         Object.entries(path)
           .map(([key, value]) => {
-            const startingSelector = isString(value) ? [value] : value;
-            const selector = isDynamicPath(startingSelector) ? solvePath(proxy, startingSelector) : startingSelector;
+            const selector = query.resolve(proxy, value);
             return [key, get(proxy, selector)];
           })
       );
     },
-    get(path) {
-      if (!path) return proxy;
-      const selector = isArray(path) ? path : [path];
+    get(value) {
+      if (!value) return proxy;
+      const selector = query.resolve(proxy, value);
       return get(proxy, selector);
     },
   });

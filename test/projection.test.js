@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src';
-import { delay } from '../src/utils';
+import { delay } from './utils';
 
 test('projection: object selector', async assert => {
   assert.plan(4);
@@ -23,7 +23,7 @@ test('projection: object selector', async assert => {
   store.data.foo = 1234;
   store.data.bar.deep[0] = 0;
 
-  await delay(10);
+  await delay();
 
   const post = store.projection({
     hello: 'foo',
@@ -31,6 +31,31 @@ test('projection: object selector', async assert => {
   });
   assert.is(post.hello, store.data.foo, `mutated data is retrieved`);
   assert.is(post.world, store.data.bar.deep[0], `mutated data is retrieved`);
+
+  assert.end();
+});
+
+test('projection: can project on an array', async assert => {
+  assert.plan(2);
+
+  const store = Store({
+    foo: 123,
+    bar: {
+      deep: [1, 2, 3],
+    },
+  });
+
+  const pre = store.projection(['bar', 'deep', 0]);
+  assert.is(pre, store.data.bar.deep[0], `initial data is retrieved`);
+
+  store.data.baz = true;
+  store.data.foo = 1234;
+  store.data.bar.deep[0] = 0;
+
+  await delay();
+
+  const post = store.projection(['bar', 'deep', 0]);
+  assert.is(post, store.data.bar.deep[0], `mutated data is retrieved`);
 
   assert.end();
 });

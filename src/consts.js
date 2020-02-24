@@ -1,5 +1,7 @@
 export const $TARGET = Symbol('Proxy -> Target');
 
+export const PATH_DELIMITER = 'λ';
+
 // We are assuming the following immutable methods don't get 
 // messed up with, and custom methods with the same name that 
 // are mutating are not defined

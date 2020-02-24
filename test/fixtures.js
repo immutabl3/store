@@ -1,37 +1,38 @@
 import React from 'react';
-import { store } from '../src';
-import { useStore } from '../src/react';
 import { JSDOM } from 'jsdom';
+import once from 'lodash/once';
+import { configure } from 'enzyme';
+import ReactAdapter from 'enzyme-adapter-react-16';
+import Store from '../src';
 
-// TODO: shared references
-
-export const API = {
-  store: store({ value: 0 }),
-  increment: () => API.store.value++,
-  decrement: () => API.store.value--,
+export const API = () => {
+  const store = Store({
+    value: 0,
+    arr: ['foo', 'bar', 'baz'],
+  });
+  const obj = {
+    store,
+    renders: 0,
+    actions: {
+      onIncrement() {
+        store.data.value++;
+      },
+      onDecrement() {
+        store.data.value--;
+      },
+      onRender() {
+        obj.renders++;
+      },
+    }
+  };
+  return obj;
 };
 
-export const AppNoSelector = ({ rendering }) => {
-  rendering();
-  const { value } = useStore(API.store);
-  return (
-    React.createElement('div', {
-      id: 'value',
-    }, value)
-  );
-};
+export const dom = once(() => {
+  configure({
+    adapter: new ReactAdapter(),
+  });
 
-export const AppSelector = ({ rendering }) => {
-  rendering();
-  const value = useStore(API.store, store => store.value);
-  return (
-    React.createElement('div', {
-      id: 'value',
-    }, value)
-  );
-};
-
-export const dom = () => {
   const { window } = new JSDOM('<!doctype html><html><body></body></html>');
 
   global.window = window;
@@ -49,4 +50,18 @@ export const dom = () => {
     ...Object.getOwnPropertyDescriptors(window),
     ...Object.getOwnPropertyDescriptors(global),
   });
+});
+
+export const Component = ({
+  value,
+  onIncrement,
+  onDecrement,
+}) => {
+  return (
+    React.createElement('div', null,
+      React.createElement('div', { id: 'value', }, value),
+      React.createElement('div', { id: 'increment', onClick: onIncrement }, 'Increment'),
+      React.createElement('div', { id: 'decrement', onClick: onDecrement }, 'Decrement')
+    )
+  );
 };

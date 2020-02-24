@@ -57,7 +57,6 @@ export const isBuiltinWithoutMutableMethods = x => {
 };
 
 export const isBuiltinWithMutableMethods = x => {
-  // TODO: "Array" should be included this, but then some tests will fail
   return !isPrimitive(x) && (
     x instanceof Date || 
     x instanceof Map || 
@@ -79,8 +78,4 @@ export const isLooselyImmutableMethod = (target, method) => {
   // TODO: For some reason mutations generated via these methods from Map or Set objects don't get detected
   // return LOOSELY_IMMUTABLE_METHODS.others.has(name);
   return false;
-};
-
-export const isDynamicPath = function(path) {
-  return path.some(step => isFunction(step) || isObject(step));
 };

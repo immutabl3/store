@@ -1,6 +1,20 @@
 import test from 'tape';
 import Store from '../src';
-import { delay } from '../src/utils';
+import { delay } from './utils';
+
+const Changes = () => {
+  let arr = [];
+  return {
+    push(path) {
+      arr.push(path);
+    },
+    get paths() {
+      const saved = arr;
+      arr = [];
+      return saved;
+    },
+  };
+};
 
 test('select', async assert => {
   assert.plan(11);
@@ -17,21 +31,18 @@ test('select', async assert => {
     },
   });
 
-  const calls = [];
+  const changes = Changes();
 
-  store.watch(['noop'], () => {
-    assert.fail(`watching an invalid value shouldn't trigger`);
-  });
-  store.on('change', () => calls.push('main'));
+  store.on('change', () => changes.push('main'));
   
   const selection = store.select(['bar', 'deep']);
   selection.on('change', e => {
     assert.deepEqual(e.data, store.data.bar.deep, `selection change`);
-    calls.push('sub');
+    changes.push('sub');
   });
   selection.watch(['baz'], e => {
     assert.deepEqual(e.data, store.data.bar.deep.baz, `selection watch`);
-    calls.push('watch');
+    changes.push('watch');
   });
 
   const preProjection = selection.projection({ foo: 'baz' });
@@ -42,19 +53,17 @@ test('select', async assert => {
 
   store.data.foo = 1234;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [
+  assert.deepEqual(changes.paths, [
     'main'
   ], `changing top-level data does not affect selector`);
 
-  calls.length = 0;
-
   store.data.bar.deep.baz = -1;
 
-  await delay(10);
+  await delay();
   
-  assert.deepEqual(calls, [
+  assert.deepEqual(changes.paths, [
     'main',
     'sub',
     'watch',
@@ -69,16 +78,14 @@ test('select', async assert => {
   const subSelection = selection.select(['biz']);
   subSelection.on('change', e => {
     assert.deepEqual(e.data, store.data.bar.deep.biz, `sub selection change`);
-    calls.push('subsub');
+    changes.push('subsub');
   });
-
-  calls.length = 0;
 
   store.data.bar.deep.biz.deepest = -1;
 
-  await delay(10);
+  await delay();
 
-  assert.deepEqual(calls, [
+  assert.deepEqual(changes.paths, [
     'main',
     'sub',
     'subsub',

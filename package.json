@@ -4,9 +4,7 @@
   "version": "0.0.1",
   "main": "src/index.js",
   "scripts": {
-    "test:js": "node -r esm test | tap-spec",
-    "test:dom": "node -r esm test/useStore.test | tap-spec",
-    "test": "npm run test:js",
+    "test": "node -r esm test | tap-spec",
     "debug": "node -r esm --inspect-brk=1234 test",
     "benchmark": "node -r esm benchmark",
     "benchmark:compare": "node -r esm benchmark/compare",
