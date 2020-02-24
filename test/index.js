@@ -6,7 +6,6 @@ import './projection.test';
 import './debug.test';
 import './get.test';
 import './select.test';
-// import './syncEvents.test';
 import './store.test';
 import './hooks.test';
 import './hoc.test';
