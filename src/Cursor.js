@@ -1,4 +1,3 @@
-import signal from 'signal-js';
 import StoreError from './StoreError';
 import query from './query';
 import Dispatcher from './Dispatcher';
@@ -11,18 +10,50 @@ import {
   isObjectLike,
 } from './types';
 
-const prototype = Object.assign(Object.create(null), signal.__proto__, {
+const EMIT = Symbol('emit');
+
+const Cursor = function(proxy, schedule, path = []) {
+  const dispatcher = new Dispatcher(proxy, e => this[EMIT](e), path);
+  schedule.register(dispatcher);
+  
+  this.listeners = [];
+  this.schedule = schedule;
+  this.path = path;
+  this.dispatcher = dispatcher;
+  this.data = proxy;
+};
+
+Cursor.prototype = {
+  [EMIT](e) {
+    const listeners = this.listeners;
+    for (let idx = 0; idx < listeners.length; idx++) {
+      listeners[idx](e);
+    }
+  },
+
+  onChange(fn) {
+    this.listeners.push(fn);
+    return () => {
+      const listeners = this.listener;
+      const index = listeners.indexOf(fn);
+      if (!~index) return;
+      listeners.splice(index, 1);
+    };
+  },
+
   select(value) {
     const { schedule, path, data } = this;
     const selector = isArray(value) ? value : [value];
     // eslint-disable-next-line no-use-before-define
-    return Cursor(get(data, selector), schedule, [...path, ...selector]);
+    return new Cursor(get(data, selector), schedule, [...path, ...selector]);
   },
+
   watch(listener, fn) {
     const { dispatcher } = this;
     const selector = isFunction(listener) ? listener : () => listener;
     return dispatcher.watcher(selector, this, fn);
   },
+
   projection(path) {
     if (!isObjectLike(path)) throw new StoreError(`projection requires an object`, { value: path });
     if (isArray(path)) return this.get(path);
@@ -35,25 +66,13 @@ const prototype = Object.assign(Object.create(null), signal.__proto__, {
         })
     );
   },
+
   get(value) {
     const { data } = this;
     if (!value) return data;
     const selector = query.resolve(data, value);
     return get(data, selector);
   },
-});
-
-export default function Cursor(proxy, schedule, path = []) {
-  const emitter = signal();
-  const dispatcher = Dispatcher(proxy, emitter, path);
-  schedule.register(dispatcher);
-  
-  emitter.schedule = schedule;
-  emitter.path = path;
-  emitter.dispatcher = dispatcher;
-  emitter.data = proxy;
-
-  emitter.__proto__ = prototype;
-
-  return emitter;
 };
+
+export default Cursor;

@@ -99,7 +99,7 @@ const change = () => new Promise((resolve, reject) => {
         called = true;
         deferred.resolve();
       };
-      store.on('change', callback);
+      store.onChange(callback);
       await delay();
       store.data.arr[3].foo = uniqueId();
     }, { defer: true })

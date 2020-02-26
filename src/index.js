@@ -1,5 +1,5 @@
 import proxyWatcher from './proxyWatcher';
-import Scheduler from './Scheduler';
+import scheduler from './scheduler';
 import Cursor from './Cursor';
 
 export default function Store(obj, {
@@ -10,11 +10,11 @@ export default function Store(obj, {
   // if the debugger is passed, we'll initialize it
   debug,
 } = {}) {
-  const schedule = Scheduler(asynchronous, autoCommit);
+  const schedule = scheduler(asynchronous, autoCommit);
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
   const proxy = proxyWatcher(obj, schedule.add);
-  const cursor = Cursor(proxy, schedule);
+  const cursor = new Cursor(proxy, schedule);
   schedule.proxy(proxy);
   if (debug) schedule.debug(debug(proxy));
   cursor.commit = schedule.commit;

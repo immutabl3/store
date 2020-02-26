@@ -33,10 +33,10 @@ test('select', async assert => {
 
   const changes = Changes();
 
-  store.on('change', () => changes.push('main'));
+  store.onChange(() => changes.push('main'));
   
   const selection = store.select(['bar', 'deep']);
-  selection.on('change', e => {
+  selection.onChange(e => {
     assert.deepEqual(e.data, store.data.bar.deep, `selection change`);
     changes.push('sub');
   });
@@ -76,7 +76,7 @@ test('select', async assert => {
   assert.is(postGet, -1, `post mutation get`);
 
   const subSelection = selection.select(['biz']);
-  subSelection.on('change', e => {
+  subSelection.onChange(e => {
     assert.deepEqual(e.data, store.data.bar.deep.biz, `sub selection change`);
     changes.push('subsub');
   });

@@ -35,9 +35,9 @@ const suite = new Benchmark.Suite()
 (function() {
   const store = Store(obj(), { asynchronous: false });
   suite.add('on(change)', () => {
-    store.on('change', noop);
+    const dispose = store.onChange(noop);
     store.data.arr[3].foo = uniqueId();
-    store.off('change', 'noop');
+    dispose();
   });
 }());
 

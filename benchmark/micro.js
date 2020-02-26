@@ -1,6 +1,6 @@
 import Benchmark from 'benchmark';
-import { clone as legacyClone } from './legacy/clone';
-import { isEqual as legacyIsEqual } from './legacy/isEqual';
+import baseClone from './perf/clone';
+import baseIsEqual from './perf/isEqual';
 import baseCloneMap from './perf/cloneMap';
 import baseCloneSet from './perf/cloneSet';
 import {
@@ -33,8 +33,8 @@ const suite = (name, resolve, reject) => {
 const clone = () => new Promise((resolve, reject) => {
   const target = OBJ();
   suite('clone', resolve, reject)
-    .add('legacy', () => legacyClone(target))
-    .add('modern', () => storeClone(target))
+    .add('base', () => baseClone(target))
+    .add('store', () => storeClone(target))
     .run({ async: true });
 });
 
@@ -42,8 +42,8 @@ const isEqual = () => new Promise((resolve, reject) => {
   const source = obj();
   const target = OBJ();
   suite('isEqual', resolve, reject)
-    .add('legacy', () => legacyIsEqual(source, target))
-    .add('modern', () => storeIsEqual(source, target))
+    .add('base', () => baseIsEqual(source, target))
+    .add('store', () => storeIsEqual(source, target))
     .run({ async: true });
 });
 
@@ -81,9 +81,9 @@ const cloneSet = () => new Promise((resolve, reject) => {
 });
 
 (async function() {
-  // await clone();
-  // await isEqual();
-  // await cloneMap();
+  await clone();
+  await isEqual();
+  await cloneMap();
   await cloneSet();
 
   console.log('done');

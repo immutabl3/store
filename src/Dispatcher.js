@@ -7,31 +7,50 @@ import {
 } from './types';
 import query from './query';
 
-export default function Dispatcher(proxy, emitter, path = []) {
-  const root = query.hash(path);
-  const hasRoot = !!root;
-  const listeners = [];
+const GET_MAPPER = Symbol('get_iterator');
+const PROJECTION_REDUCER = Symbol('projection_iterator');
 
-  const projectionReducer = (memo, [key, value]) => {
-    const { map, paths, entries } = memo;
-    const selector = query.resolve(proxy, value);
-    const path = query.toString(root, selector);
-    const hasPath = map.has(path);
-    if (hasPath) paths.push(selector);
-    entries.push([key, selector]);
-    return memo;
-  };
+const Dispatcher = function(proxy, onChange, path = []) {
+  this.root = query.hash(path);
+  this.hasRoot = !!this.root;
+  this.listeners = [];
+  this.proxy = proxy;
+  this.onChange = onChange;
+};
 
-  const getMapper = ([key, selector]) => {
-    return [key, get(proxy, selector)];
-  };
+Dispatcher.prototype = {
+  // lazy instantiation
+  get getMapper() {
+    if (this[GET_MAPPER]) return this[GET_MAPPER];
 
-  const emitProjection = (map, value, fn) => {
+    this[GET_MAPPER] = ([key, selector]) => [key, get(this.proxy, selector)];
+
+    return this[GET_MAPPER];
+  },
+
+  // lazy instantiation
+  get projectionReducer() {
+    if (this[PROJECTION_REDUCER]) return this[PROJECTION_REDUCER];
+    
+    this[PROJECTION_REDUCER] = (memo, [key, value]) => {
+      const { map, paths, entries } = memo;
+      const selector = query.resolve(this.proxy, value);
+      const path = query.toString(this.root, selector);
+      const hasPath = map.has(path);
+      if (hasPath) paths.push(selector);
+      entries.push([key, selector]);
+      return memo;
+    };
+
+    return this[PROJECTION_REDUCER];
+  },
+
+  emitProjection(map, value, fn) {
     const {
       paths,
       entries,
     } = Object.entries(value)
-      .reduce(projectionReducer, {
+      .reduce(this.projectionReducer, {
         map,
         paths: [],
         entries: [],
@@ -41,11 +60,16 @@ export default function Dispatcher(proxy, emitter, path = []) {
 
     fn(event(
       paths,
-      Object.fromEntries(entries.map(getMapper))
+      Object.fromEntries(entries.map(this.getMapper))
     ));
-  };
+  },
 
-  const emitSelection = (map, value, fn) => {
+  emitSelection(map, value, fn) {
+    const {
+      root,
+      proxy
+    } = this;
+
     const selector = query.resolve(proxy, value);
     const path = query.toString(root, selector);
     if (!map.has(path)) return;
@@ -54,11 +78,18 @@ export default function Dispatcher(proxy, emitter, path = []) {
       [selector],
       get(proxy, selector)
     ));
-  };
+  },
 
-  const emit = (map, values) => {    
+  dispatch(map, values) {
+    const {
+      root,
+      proxy,
+      hasRoot,
+      listeners,
+    } = this;
+
     if (!hasRoot || (hasRoot && map.has(root))) {
-      emitter.emit('change', event(
+      this.onChange(event(
         values,
         proxy,
       ));
@@ -67,22 +98,22 @@ export default function Dispatcher(proxy, emitter, path = []) {
     for (const [selectorFn, fn] of listeners) {
       const value = selectorFn();
       if (isProjection(value)) {
-        emitProjection(map, value, fn);
+        this.emitProjection(map, value, fn);
       } else {
-        emitSelection(map, value, fn);
+        this.emitSelection(map, value, fn);
       }
     }
-  };
+  },
 
-  emit.watcher = (selector, cursor, fn) => {
+  watcher(selector, cursor, fn) {
     const entry = [selector, fn];
     
-    listeners.push(entry);
+    this.listeners.push(entry);
 
     const disposer = () => {
-      const index = listeners.indexOf(entry);
+      const index = this.listeners.indexOf(entry);
       if (!~index) return;
-      listeners.splice(index, 1);
+      this.listeners.splice(index, 1);
     };
 
     disposer.get = () => {
@@ -91,7 +122,7 @@ export default function Dispatcher(proxy, emitter, path = []) {
     };
 
     return disposer;
-  };
-
-  return emit;
+  },
 };
+
+export default Dispatcher;

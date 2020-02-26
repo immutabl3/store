@@ -42,7 +42,7 @@ test('change: schedules a call to the listener when a mutation is made to the ob
       nan: NaN,
     });
 
-    store.on('change', () => assert.fail(`detected a mutation`));
+    store.onChange(() => assert.fail(`detected a mutation`));
 
     fn(store.data);
 
@@ -62,7 +62,7 @@ test('change: schedules a call to the listener when a mutation is made to the ob
     });
 
     // eslint-disable-next-line no-loop-func
-    store.on('change', e => {
+    store.onChange(e => {
       assert.deepEqual(e.data, store.data, `data passed`);
       calls++;
     });

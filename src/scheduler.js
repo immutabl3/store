@@ -9,7 +9,7 @@ import {
 } from './consts';
 import query from './query';
 
-export default function Scheduler(asynchronous, autoCommit) {
+export default function scheduler(asynchronous, autoCommit) {
   let debug;
   let proxy;
   let processing;
@@ -31,9 +31,11 @@ export default function Scheduler(asynchronous, autoCommit) {
       }
     }
 
+    const values = dispatchers.length ? Array.from(map.values()) : [];
+
     proxy[$PAUSE];
     for (const dispatcher of dispatchers) {
-      dispatcher(map, Array.from(map.values()));
+      dispatcher.dispatch(map, values);
     }
     proxy[$RESUME];
 
