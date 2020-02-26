@@ -1,5 +1,4 @@
 import {
-  MAX_SAFE_INTEGER,
   STRICTLY_IMMUTABLE_METHODS,
   LOOSELY_IMMUTABLE_ARRAY_METHODS,
 } from './consts';
@@ -32,10 +31,6 @@ export const isObject = target => (
   !(target instanceof Set)
 );
 
-export const isLength = value => {
-  return isNumber(value) && value > -1 && value % 1 === 0 && value <= MAX_SAFE_INTEGER;
-};
-
 export const isTypedArray = value => {
   return isObjectLike(value) && 
     (
@@ -53,13 +48,13 @@ export const isTypedArray = value => {
     );
 };
 
-export const isBuiltinUnsupported = x => {
+export const isUnsupported = x => {
   return x instanceof Promise || 
     x instanceof WeakMap || 
     x instanceof WeakSet;
 };
 
-export const isBuiltinWithoutMutableMethods = x => {
+export const isWithoutMutableMethods = x => {
   return isPrimitive(x) || 
     x instanceof RegExp || 
     x instanceof ArrayBuffer || 
@@ -68,7 +63,7 @@ export const isBuiltinWithoutMutableMethods = x => {
     x instanceof String;
 };
 
-export const isBuiltinWithMutableMethods = x => {
+export const hasMutableMethods = x => {
   return !isPrimitive(x) && (
     x instanceof Date || 
     x instanceof Map || 

@@ -3,9 +3,6 @@ export const $TARGET = Symbol('proxy->target');
 export const $PAUSE = Symbol('pause');
 export const $RESUME = Symbol('resume');
 
-// used to check array/object lengths
-export const MAX_SAFE_INTEGER = 9007199254740991;
-
 // private data key
 export const DATA = Symbol('_data');
 

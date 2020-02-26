@@ -3,13 +3,14 @@ import {
   clone,
 } from './utils';
 import {
-  isFunction,
+  isArray,
   isSymbol,
+  isFunction,
   isLooselyImmutableMethod,
-  isBuiltinWithoutMutableMethods,
-  isBuiltinUnsupported,
+  isWithoutMutableMethods,
+  isUnsupported,
   isStrictlyImmutableMethod,
-  isBuiltinWithMutableMethods,
+  hasMutableMethods,
 } from './types';
 import {
   $TARGET,
@@ -17,7 +18,7 @@ import {
   $RESUME,
 } from './consts';
 
-// TODO: how to optimize?
+// TODO: how to optimize further?
 
 const makeTraps = function(onChange, cache, makeProxy) {  
   let paused = false;
@@ -28,7 +29,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
 
   // arrays can have numeric (index) accessors
   const fragmentToPath = (parent, path) => {
-    if (!Array.isArray(parent)) return path;
+    if (!isArray(parent)) return path;
     const num = +path;
     if (Number.isNaN(num)) return path;
     return num;
@@ -62,13 +63,13 @@ const makeTraps = function(onChange, cache, makeProxy) {
       if (property === $RESUME) return (paused = false);
 
       let receiver = rec;
-      if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
+      if (hasMutableMethods(receiver)) receiver = receiver[$TARGET];
       const value = Reflect.get(target, property, receiver);
-      if (isBuiltinWithoutMutableMethods(value) || property === 'constructor') return value;
+      if (isWithoutMutableMethods(value) || property === 'constructor') return value;
       const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
       // preserving invariants
       if (descriptor && !descriptor.configurable && !descriptor.writable) return value;
-      if (isSymbol(property) || isBuiltinUnsupported(value)) return value;
+      if (isSymbol(property) || isUnsupported(value)) return value;
       // TODO: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(value.name)) return value.bind(target);
       setChildPath(target, value, property);
@@ -79,7 +80,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
-      if (isBuiltinWithMutableMethods(receiver)) receiver = receiver[$TARGET];
+      if (hasMutableMethods(receiver)) receiver = receiver[$TARGET];
       if (isSymbol(property)) return Reflect.set(target, property, value);
       const isValueUndefined = value === undefined;
       const didPropertyExist = isValueUndefined && Reflect.has(target, property);
@@ -124,7 +125,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
     },
     apply(target, thisArg, args) {
       let arg = thisArg;
-      if (isBuiltinWithMutableMethods(arg)) arg = thisArg[$TARGET];
+      if (hasMutableMethods(arg)) arg = thisArg[$TARGET];
       if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
       const clonedArg = clone(arg);
       const result = Reflect.apply(target, arg, args);
@@ -145,6 +146,6 @@ const makeProxy = function(object, onChange, cache = new WeakMap(), traps) {
 };
 
 export default function proxyWatcher(object, callback) {
-  if (isBuiltinWithoutMutableMethods(object)) return object;
+  if (isWithoutMutableMethods(object)) return object;
   return makeProxy(object, callback);
 };

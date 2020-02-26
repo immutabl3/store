@@ -578,6 +578,8 @@ test('proxyWatcher: structures: RegExp', assert => {
 
   assert.is(watcher.changes, 0);
 
+  proxy.re.lastIndex = -10;
+
   assert.end();
 });
 
