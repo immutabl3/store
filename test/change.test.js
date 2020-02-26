@@ -2,7 +2,7 @@ import test from 'tape';
 import Store from '../src';
 import { delay } from './utils';
 
-test('change: schedules a call to the listener when a mutation is made to the object', async assert => {
+test('change: fires a change event when a mutation is made', async assert => {
   assert.plan(39);
 
   const noMutation = [
@@ -73,6 +73,32 @@ test('change: schedules a call to the listener when a mutation is made to the ob
 
     assert.is(calls, 1, `one mutation made`);
   }
+
+  assert.end();
+});
+
+test('change: dispose', async assert => {
+  assert.plan(4);
+
+  const store = Store({ foo: 123 });
+
+  let calls = 0;
+
+  const disposer = store.onChange(() => calls++);
+  assert.ok(!!disposer, `returned a disposer`);
+
+  store.data.foo = 321;
+
+  await delay();
+
+  assert.is(calls, 1, `onChange called`);
+  assert.doesNotThrow(() => disposer(), `disposer called`);
+
+  store.data.foo = 0;
+
+  await delay();
+
+  assert.is(calls, 1, `onChange was not called after being disposed`);
 
   assert.end();
 });

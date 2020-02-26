@@ -34,7 +34,7 @@ Cursor.prototype = {
   onChange(fn) {
     this.listeners.push(fn);
     return () => {
-      const listeners = this.listener;
+      const { listeners } = this;
       const index = listeners.indexOf(fn);
       if (!~index) return;
       listeners.splice(index, 1);

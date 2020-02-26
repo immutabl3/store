@@ -17,6 +17,8 @@ import {
   $RESUME,
 } from './consts';
 
+// TODO: how to optimize?
+
 const makeTraps = function(onChange, cache, makeProxy) {  
   let paused = false;
 
