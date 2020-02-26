@@ -1,16 +1,13 @@
+// TODO: kill this file
+
 import get from './get';
 import permute from './permute';
 import isEqual from './isEqual';
 import compare from './compare';
-import {
-  clone,
-} from './cloner';
-import {
-  indexOf,
-  indexOfCompare,
-} from './indexOf';
-
-const defer = fn => setTimeout(fn, 0);
+import clone from './clone';
+import defer from './defer';
+import indexOf from './indexOf';
+import indexOfCompare from './indexOfCompare';
 
 export {
   defer,

@@ -68,7 +68,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
       if (descriptor && !descriptor.configurable && !descriptor.writable) return value;
       if (isSymbol(property) || isBuiltinUnsupported(value)) return value;
       // TODO: binding here prevents the function to be potentially re-bounded later
-      if (isFunction(value) && isStrictlyImmutableMethod(target, value)) return value.bind(target);
+      if (isFunction(value) && isStrictlyImmutableMethod(value.name)) return value.bind(target);
       setChildPath(target, value, property);
       if (cache.has(value)) return cache.get(value);
       return makeProxy(value, onChange, cache, this);

@@ -6,21 +6,12 @@ import {
 
 // https://github.com/jonschlinkert/is-primitive
 export const isPrimitive = function(val) {
-  if (typeof val === 'object') return val === null;
-  return typeof val !== 'function';
+  const type = typeof val;
+  if (type === 'object') return val === null;
+  return type !== 'function';
 };
 
 export const isArray = value => value && Array.isArray(value);
-
-export const isObject = target => (
-  target &&
-  typeof target === 'object' &&
-  !isArray(target) &&
-  !(target instanceof Date) &&
-  !(target instanceof RegExp) &&
-  !(typeof Map === 'function' && target instanceof Map) &&
-  !(typeof Set === 'function' && target instanceof Set)
-);
 
 export const isFunction = value => value && typeof value === 'function';
 
@@ -31,6 +22,15 @@ export const isSymbol = value => typeof value === 'symbol';
 export const isNumber = value => typeof value === 'number';
 
 export const isObjectLike = value => value && typeof value === 'object';
+
+export const isObject = target => (
+  isObjectLike(target) &&
+  !isArray(target) &&
+  !(target instanceof Date) &&
+  !(target instanceof RegExp) &&
+  !(target instanceof Map) &&
+  !(target instanceof Set)
+);
 
 export const isLength = value => {
   return isNumber(value) && value > -1 && value % 1 === 0 && value <= MAX_SAFE_INTEGER;
@@ -77,19 +77,19 @@ export const isBuiltinWithMutableMethods = x => {
   );
 };
 
-export const isStrictlyImmutableMethod = (target, method) => {
-  const { name } = method;
-  if (!name) return false;
-  return STRICTLY_IMMUTABLE_METHODS.has(name);
+export const isStrictlyImmutableMethod = methodName => {
+  if (!methodName) return false;
+  return STRICTLY_IMMUTABLE_METHODS.has(methodName);
 };
 
 export const isLooselyImmutableMethod = (target, method) => {
   const { name } = method;
   if (!name) return false;
-  if (Array.isArray(target)) return LOOSELY_IMMUTABLE_ARRAY_METHODS.has(name);
+  if (isArray(target)) return LOOSELY_IMMUTABLE_ARRAY_METHODS.has(name);
   return false;
 };
 
+// check that the object matches the store's shape
 export const isStore = store => (
   store &&
   'data' in store &&
@@ -97,6 +97,7 @@ export const isStore = store => (
   isFunction(store.watch)
 );
 
+// assume a projection if it isn't a path (and won't be coerced to a path)
 export const isProjection = value => {
   return !isArray(value) && !isString(value) && !isNumber(value);
 };

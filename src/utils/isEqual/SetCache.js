@@ -14,13 +14,14 @@ const SetCache = function(values) {
   }
 };
 
-SetCache.prototype.add = SetCache.prototype.push = function(value) {
-  this[DATA].set(value, HASH_UNDEFINED);
-  return this;
-};
-
-SetCache.prototype.has = function(value) {
-  return this[DATA].has(value);
+SetCache.prototype = {
+  add(value) {
+    this[DATA].set(value, HASH_UNDEFINED);
+    return this;
+  },
+  has(value) {
+    return this[DATA].has(value);
+  },
 };
 
 export default SetCache;

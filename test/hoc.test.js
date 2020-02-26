@@ -3,7 +3,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import { delay } from './utils';
 import { API, dom, Component } from './fixtures';
-import { root, branch } from '../src/hoc';
+import { root, branch } from '../src/react/hoc';
 
 const Root = props => React.createElement('div', props);
 

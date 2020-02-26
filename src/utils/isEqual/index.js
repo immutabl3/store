@@ -4,28 +4,6 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable indent */
 import {
-  eq,
-  arraySome,
-  getTag,
-  symbolValueOf,
-  hasOwnProperty,
-
-  arrayTag,
-  argsTag,
-  objectTag,
-  boolTag,
-  dateTag,
-  errorTag,
-  mapTag,
-  numberTag,
-  regexpTag,
-  setTag,
-  stringTag,
-  symbolTag,
-  arrayBufferTag,
-  dataViewTag,
-} from './shared';
-import {
   isArray,
   isTypedArray,
   isPrimitive,
@@ -34,17 +12,51 @@ import {
   UNORDERED_COMPARE_FLAG,
   PARTIAL_COMPARE_FLAG,
 } from '../../consts';
+import eq from './eq';
 import Stack from './Stack';
 import SetCache from './SetCache';
+
+// `Object#toString` result references
+const argsTag = '[object Arguments]';
+const arrayTag = '[object Array]';
+const objectTag = '[object Object]';
+const boolTag = '[object Boolean]';
+const dateTag = '[object Date]';
+const errorTag = '[object Error]';
+const mapTag = '[object Map]';
+const numberTag = '[object Number]';
+const regexpTag = '[object RegExp]';
+const setTag = '[object Set]';
+const stringTag = '[object String]';
+const symbolTag = '[object Symbol]';
+const arrayBufferTag = '[object ArrayBuffer]';
+const dataViewTag = '[object DataView]';
+
+// used to check objects for own properties
+const hasOwnProperty = Object.prototype.hasOwnProperty;
+
+// Used to convert symbols to primitives and strings
+const symbolValueOf = Symbol.prototype.valueOf;
+
+const some = function(array, predicate) {
+  let index = -1;
+  const length = array ? array.length : 0;
+
+  while (++index < length) {
+    if (predicate(array[index], index)) return true;
+  }
+  return false;
+};
+
+const objectToString = Object.prototype.toString;
+const getTag = value => objectToString.call(value);
 
 const equalArrays = function(array, other, bitmask, stack) {
   const isPartial = bitmask & PARTIAL_COMPARE_FLAG;
   const arrLength = array.length;
   const othLength = other.length;
 
-  if (arrLength !== othLength && !(isPartial && othLength > arrLength)) {
-    return false;
-  }
+  if (arrLength !== othLength && !(isPartial && othLength > arrLength)) return false;
 
   // assume cyclic values are equal
   const stacked = stack.get(array);
@@ -71,7 +83,7 @@ const equalArrays = function(array, other, bitmask, stack) {
     // recursively compare arrays (susceptible to call stack limits)
     if (seen) {
       if (
-        !arraySome(other, function(othValue, othIndex) {
+        !some(other, function(othValue, othIndex) {
           if (
             !seen.has(othIndex) &&
             (arrValue === othValue || baseIsEqual(arrValue, othValue, bitmask, stack))

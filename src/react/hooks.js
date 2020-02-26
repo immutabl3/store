@@ -1,4 +1,5 @@
-import StoreError from './StoreError';
+import StoreError from '../StoreError';
+import Context from './context';
 import React, {
   useContext,
   useState,
@@ -9,12 +10,10 @@ import {
   isStore,
   isObjectLike,
   isFunction,
-} from './types';
+} from '../types';
 import {
   isEqual,
-} from './utils';
-
-const Context = React.createContext();
+} from '../utils';
 
 export const useRoot = function(store) {
   if (!isStore(store)) throw new StoreError(`given object is not a store`, { store });

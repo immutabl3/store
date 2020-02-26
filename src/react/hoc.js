@@ -1,10 +1,10 @@
 import React from 'react';
-import StoreError from './StoreError';
+import StoreError from '../StoreError';
 import {
   isStore,
   isFunction,
   isObjectLike,
-} from './types';
+} from '../types';
 import {
   useRoot,
   useBranch,

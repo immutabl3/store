@@ -3,10 +3,8 @@ import {
   isFunction,
   isObjectLike,
 } from '../types';
-import {
-  indexOf,
-  indexOfCompare,
-} from './indexOf';
+import indexOf from './indexOf';
+import indexOfCompare from './indexOfCompare';
 
 export default function get(object, path) {
   let current = object;

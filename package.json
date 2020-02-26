@@ -41,6 +41,7 @@
   ],
   "dependencies": {
     "deep-object-diff": "^1.1.0",
+    "lodash.clonedeepwith": "^4.5.0",
     "signal-js": "^2.3.2"
   },
   "peerDependencies": {

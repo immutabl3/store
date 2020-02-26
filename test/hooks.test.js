@@ -3,7 +3,7 @@ import React from 'react';
 import { mount } from 'enzyme';
 import { delay } from './utils';
 import { API, dom, Component } from './fixtures';
-import { useRoot, useBranch } from '../src/hooks';
+import { useRoot, useBranch } from '../src/react/hooks';
 
 const Root = function({ store, children }) {
   const Root = useRoot(store);

@@ -1,10 +1,19 @@
 import {
   DATA,
 } from '../../consts';
-import {
-  splice,
-  assocIndexOf,
-} from './shared';
+import eq from './eq';
+
+export const splice = Array.prototype.splice;
+
+const assocIndexOf = (array, key) => {
+  let length = array.length;
+  while (length--) {
+    if (eq(array[length][0], key)) {
+      return length;
+    }
+  }
+  return -1;
+};
 
 const ListCache = function(entries) {
   let index = -1;
@@ -17,47 +26,49 @@ const ListCache = function(entries) {
   }
 };
 
-ListCache.prototype.clear = function() {
-  this[DATA] = [];
-};
+ListCache.prototype = {
+  clear() {
+    this[DATA] = [];
+  },
 
-ListCache.prototype.delete = function(key) {
-  const data = this[DATA];
-  const index = assocIndexOf(data, key);
+  delete(key) {
+    const data = this[DATA];
+    const index = assocIndexOf(data, key);
 
-  if (index < 0) {
-    return false;
-  }
-  const lastIndex = data.length - 1;
-  if (index === lastIndex) {
-    data.pop();
-  } else {
-    splice.call(data, index, 1);
-  }
-  return true;
-};
+    if (index < 0) {
+      return false;
+    }
+    const lastIndex = data.length - 1;
+    if (index === lastIndex) {
+      data.pop();
+    } else {
+      splice.call(data, index, 1);
+    }
+    return true;
+  },
 
-ListCache.prototype.get = function(key) {
-  const data = this[DATA];
-  const index = assocIndexOf(data, key);
+  get(key) {
+    const data = this[DATA];
+    const index = assocIndexOf(data, key);
 
-  return index < 0 ? undefined : data[index][1];
-};
+    return index < 0 ? undefined : data[index][1];
+  },
 
-ListCache.prototype.has = function(key) {
-  return assocIndexOf(this[DATA], key) > -1;
-};
+  has(key) {
+    return assocIndexOf(this[DATA], key) > -1;
+  },
 
-ListCache.prototype.set = function(key, value) {
-  const data = this[DATA];
-  const index = assocIndexOf(data, key);
+  set(key, value) {
+    const data = this[DATA];
+    const index = assocIndexOf(data, key);
 
-  if (index < 0) {
-    data.push([key, value]);
-  } else {
-    data[index][1] = value;
-  }
-  return this;
+    if (index < 0) {
+      data.push([key, value]);
+    } else {
+      data[index][1] = value;
+    }
+    return this;
+  },
 };
 
 export default ListCache;

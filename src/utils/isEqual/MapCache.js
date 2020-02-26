@@ -1,10 +1,14 @@
 import {
   DATA,
 } from '../../consts';
-import {
-  isKeyable,
-} from './shared';
 import Hash from './Hash';
+
+const isKeyable = value => {
+  const type = typeof value;
+  return (type === 'string' || type === 'number' || type === 'symbol' || type === 'boolean')
+    ? (value !== '__proto__')
+    : (value === null);
+};
 
 const getMapData = (map, key) => {
   const data = map[DATA];
@@ -24,29 +28,23 @@ const MapCache = function(entries) {
   }
 };
 
-MapCache.prototype.clear = function() {
-  this[DATA] = {
-    hash: new Hash(),
-    map: new Map(),
-    string: new Hash(),
-  };
-};
+MapCache.prototype = {
+  clear() {
+    this[DATA] = {
+      hash: new Hash(),
+      map: new Map(),
+      string: new Hash(),
+    };
+  },
 
-MapCache.prototype.delete = function(key) {
-  return getMapData(this, key).delete(key);
-};
+  has(key) {
+    return getMapData(this, key).has(key);
+  },
 
-MapCache.prototype.get = function(key) {
-  return getMapData(this, key).get(key);
-};
-
-MapCache.prototype.has = function(key) {
-  return getMapData(this, key).has(key);
-};
-
-MapCache.prototype.set = function(key, value) {
-  getMapData(this, key).set(key, value);
-  return this;
+  set(key, value) {
+    getMapData(this, key).set(key, value);
+    return this;
+  },
 };
 
 export default MapCache;

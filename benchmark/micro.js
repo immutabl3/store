@@ -1,6 +1,8 @@
 import Benchmark from 'benchmark';
-import { clone as lodashClone } from './legacy/clone';
-import { isEqual as lodashIsEqual } from './legacy/isEqual';
+import { clone as legacyClone } from './legacy/clone';
+import { isEqual as legacyIsEqual } from './legacy/isEqual';
+import baseCloneMap from './perf/cloneMap';
+import baseCloneSet from './perf/cloneSet';
 import {
   clone as storeClone,
   isEqual as storeIsEqual,
@@ -31,8 +33,8 @@ const suite = (name, resolve, reject) => {
 const clone = () => new Promise((resolve, reject) => {
   const target = OBJ();
   suite('clone', resolve, reject)
-    .add('lodash', () => lodashClone(target))
-    .add('store', () => storeClone(target))
+    .add('legacy', () => legacyClone(target))
+    .add('modern', () => storeClone(target))
     .run({ async: true });
 });
 
@@ -40,14 +42,49 @@ const isEqual = () => new Promise((resolve, reject) => {
   const source = obj();
   const target = OBJ();
   suite('isEqual', resolve, reject)
-    .add('lodash', () => lodashIsEqual(source, target))
-    .add('store', () => storeIsEqual(source, target))
+    .add('legacy', () => legacyIsEqual(source, target))
+    .add('modern', () => storeIsEqual(source, target))
+    .run({ async: true });
+});
+
+const cloneMap = () => new Promise((resolve, reject) => {
+  const target = new Map([
+    ['1', 1],
+    ['2', 2],
+    ['3', 3],
+    ['4', 4],
+    ['5', 5],
+  ]);
+  suite('cloneMap', resolve, reject)
+    .add('arrayMap', () => baseCloneMap.arrayMap(target))
+    .add('arrayMapExternal', () => baseCloneMap.arrayMapExternal(target))
+    .add('forOf', () => baseCloneMap.forOf(target))
+    .add('forEach', () => baseCloneMap.forEach(target))
+    .run({ async: true });
+});
+
+const cloneSet = () => new Promise((resolve, reject) => {
+  const target = new Set([
+    1,
+    2,
+    3,
+    4,
+    5,
+  ]);
+  suite('cloneSet', resolve, reject)
+    .add('arrayMap', () => baseCloneSet.arrayMap(target))
+    .add('arrayMapExternal', () => baseCloneSet.arrayMapExternal(target))
+    .add('forOfEntries', () => baseCloneSet.forOfEntries(target))
+    .add('forOfValues', () => baseCloneSet.forOfValues(target))
+    .add('forEach', () => baseCloneSet.forEach(target))
     .run({ async: true });
 });
 
 (async function() {
-  await clone();
-  await isEqual();
+  // await clone();
+  // await isEqual();
+  // await cloneMap();
+  await cloneSet();
 
   console.log('done');
 }());
