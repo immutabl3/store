@@ -1,4 +1,5 @@
-import { cloneDeep, isEmpty } from './utils';
+import cloneDeep from './cloneDeep';
+import isEmpty from './isEmpty';
 import { detailedDiff } from 'deep-object-diff';
 
 const groupLog = (log, collapsed) => {

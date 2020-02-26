@@ -1,4 +1,5 @@
-import baseIsEqual from 'lodash/isEqual';
+import baseIsEqual from 'lodash.isequal';
+// import baseIsEqual from 'lodash/isEqual';
 import isPrimitive from 'is-primitive';
 
 export default function isEqual(x, y) {

@@ -6,8 +6,9 @@
   "scripts": {
     "test": "node -r esm test | tap-spec",
     "debug": "node -r esm --inspect-brk=1234 test",
-    "benchmark": "node -r esm benchmark/benchmark",
-    "compare": "node -r esm benchmark/compare",
+    "bench:mark": "node -r esm benchmark/benchmark",
+    "bench:compare": "node -r esm benchmark/compare",
+    "bench:micro": "node -r esm benchmark/micro",
     "debug:compare": "node -r esm --inspect-brk=1234 benchmark/compare"
   },
   "engines": {
@@ -42,6 +43,7 @@
     "deep-equal": "^2.0.1",
     "deep-object-diff": "^1.1.0",
     "is-primitive": "^3.0.1",
+    "lodash.isequal": "^4.5.0",
     "plain-object-is-empty": "^1.0.0",
     "proxy-watcher": "^1.2.1",
     "signal-js": "^2.3.2"

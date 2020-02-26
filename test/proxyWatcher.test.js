@@ -326,7 +326,7 @@ test('proxyWatcher: structures: deep', assert => {
   assert.end();
 });
 
-test('proxyWatcher: structures: primitives - tricky', assert => {
+test('proxyWatcher: structures: tricky', assert => {
   assert.plan(3);
 
   const [proxy, watcher] = Watcher({
@@ -367,8 +367,8 @@ test('proxyWatcher: structures: primitives - tricky', assert => {
   assert.end();
 });
 
-test('proxyWatcher: structures: primitives - constructors', assert => {
-  assert.plan(9);
+test('proxyWatcher: structures: constructors', assert => {
+  assert.plan(11);
 
   const [proxy, watcher] = Watcher({
     fn: {
@@ -414,9 +414,12 @@ test('proxyWatcher: structures: primitives - constructors', assert => {
   ]);
 
   proxy.new.bool = new Boolean(true);
-  proxy.new.str = new String('string');
-  proxy.new.nr = new Number(123);
+  assert.is(watcher.changes, 4);
 
+  proxy.new.str = new String('string');
+  assert.is(watcher.changes, 4);
+
+  proxy.new.nr = new Number(123);
   assert.is(watcher.changes, 4);
 
   proxy.new.bool = true;

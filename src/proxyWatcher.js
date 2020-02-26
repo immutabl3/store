@@ -124,6 +124,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
       let arg = thisArg;
       if (isBuiltinWithMutableMethods(arg)) arg = thisArg[$TARGET];
       if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
+      debugger;
       const clonedArg = clone(arg);
       const result = Reflect.apply(target, arg, args);
       const changed = !isEqual(clonedArg, arg);

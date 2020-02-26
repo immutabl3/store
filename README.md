@@ -1,11 +1,11 @@
 # Store
 
-"description": "a simple, modern state management library",
+a simple, modern state management library
 
 ## Install
 
 ```sh
-npm install --save @immutabl3/store
+npm install @immutabl3/store
 ```
 
 ## Features
@@ -13,7 +13,6 @@ npm install --save @immutabl3/store
 - **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to our usage of [`Proxy`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)s you just have to wrap your state with [`store`](#store), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`onChange`](#onchange) or [`useStore`](#usestore).
 - **Framework-agnostic**: Store doesn't make any assuptions about your UI framework of choice, in fact it can also be used without one.
 - **React support**: an hook for React is provided, because that's the UI framework I'm using. Support for other UI frameworks can be added easily, PRs are very welcome.
-- **TypeScript-ready**: Store is written in TypeScript and enables you to get a fully typed app with no extra effort.
 
 Read more about how Store compares against other libraries in the [FAQ](#faq) section below.
 
@@ -35,7 +34,7 @@ The first step is wrapping the objects containing the state of your app with the
 
 Example usage:
 
-```ts
+```js
 import {store} from 'store';
 
 const CounterApp = {
@@ -59,7 +58,7 @@ Next you'll probably want to listen for changes to your stores, the `onChange` f
 
 This is its interface:
 
-```ts
+```js
 // No selector, listen to all changes
 function onChange ( store: Store, listener: ( data: Store ) => any ): Disposer;
 // With selector, listen to only changes that cause the value returned by the selector to change
@@ -73,7 +72,7 @@ function onChange ( store: Store, selector: ( store: Store ) => Data, listener: 
 
 Example usage:
 
-```ts
+```js
 import {store, onChange} from 'store';
 
 const CounterApp = {
@@ -113,7 +112,7 @@ setTimeout ( CounterApp.increment, 100 ); // This will cause the remaining liste
 
 This is its interface:
 
-```ts
+```js
 type Global = {
   stores: Store[], // Access all stores
   log: () => void // Log all stores
@@ -131,7 +130,7 @@ function debug ( options?: Options ): Global;
 
 Example usage:
 
-```ts
+```js
 import {debug} from 'store';
 
 debug ();
@@ -141,7 +140,7 @@ Once called, `debug` defines a global object named `STORE`, which you can then a
 
 Example usage:
 
-```ts
+```js
 STORE.stores[0].value += 1; // Manually triggering a mutation
 STORE.log (); // Logging all stores to the console
 ```
@@ -155,7 +154,7 @@ STORE.log (); // Logging all stores to the console
 
 Each hook has the following interface:
 
-```ts
+```js
 class Hook {
   subscribe ( listener: Function ): Disposer
 }
@@ -166,7 +165,7 @@ class Hook {
 
 These are all the currently available hooks:
 
-```ts
+```js
 const Hooks = {
   store: {
     change: Hook, // Triggered whenever a store is mutated
@@ -177,7 +176,7 @@ const Hooks = {
 
 Example usage:
 
-```ts
+```js
 import {Hooks} from 'store';
 
 const disposer = Hooks.store.new.subscribe ( store => {
@@ -201,7 +200,7 @@ These extra features, intended to be used with React, are available from a dedic
 
 This is its interface:
 
-```ts
+```js
 // No selector, re-render after any change
 function useStore ( store: Store ): Store;
 // With selector, re-render only after changes that cause the value returned by the selector to change
@@ -215,7 +214,7 @@ function useStore ( store: Store, selector: ( store: Store ) => Data, dependenci
 
 Example usage:
 
-```tsx
+```jsx
 import {store, onChange} from 'store';
 import {useStore} from 'store/x/react';
 
@@ -275,4 +274,4 @@ You might not want to use Store if: the design choices I made don't resonate wit
 
 ## License
 
-MIT © Fabio Spampinato
+MIT
