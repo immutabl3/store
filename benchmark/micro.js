@@ -3,10 +3,8 @@ import baseClone from './perf/clone';
 import baseIsEqual from './perf/isEqual';
 import baseCloneMap from './perf/cloneMap';
 import baseCloneSet from './perf/cloneSet';
-import {
-  clone as storeClone,
-  isEqual as storeIsEqual,
-} from '../src/utils';
+import storeIsEqual from '../src/utils/isEqual';
+import storeClone from '../src/utils/clone';
 import {
   small as obj,
   large as OBJ,

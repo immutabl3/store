@@ -1,7 +1,6 @@
 import event from './event';
-import {
-  get,
-} from './utils';
+import handler from './handler';
+import get from './utils/get';
 import {
   isProjection,
 } from './types';
@@ -13,7 +12,7 @@ const PROJECTION_REDUCER = Symbol('projection_iterator');
 const Dispatcher = function(proxy, onChange, path = []) {
   this.root = query.hash(path);
   this.hasRoot = !!this.root;
-  this.listeners = [];
+  this.emitter = handler();
   this.proxy = proxy;
   this.onChange = onChange;
 };
@@ -85,7 +84,7 @@ Dispatcher.prototype = {
       root,
       proxy,
       hasRoot,
-      listeners,
+      emitter,
     } = this;
 
     if (!hasRoot || (hasRoot && map.has(root))) {
@@ -95,7 +94,7 @@ Dispatcher.prototype = {
       ));
     }
 
-    for (const [selectorFn, fn] of listeners) {
+    for (const [selectorFn, fn] of emitter.list()) {
       const value = selectorFn();
       if (isProjection(value)) {
         this.emitProjection(map, value, fn);
@@ -108,13 +107,7 @@ Dispatcher.prototype = {
   watcher(selector, cursor, fn) {
     const entry = [selector, fn];
     
-    this.listeners.push(entry);
-
-    const disposer = () => {
-      const index = this.listeners.indexOf(entry);
-      if (!~index) return;
-      this.listeners.splice(index, 1);
-    };
+    const disposer = this.emitter.add(entry);
 
     disposer.get = () => {
       const value = selector();

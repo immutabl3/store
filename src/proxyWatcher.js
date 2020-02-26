@@ -1,7 +1,5 @@
-import {
-  isEqual,
-  clone,
-} from './utils';
+import clone from './utils/clone';
+import isEqual from './utils/isEqual';
 import {
   isArray,
   isSymbol,
@@ -20,7 +18,7 @@ import {
 
 // TODO: how to optimize further?
 
-const makeTraps = function(onChange, cache, makeProxy) {  
+const makeTraps = function(onChange, cache) {  
   let paused = false;
 
   const paths = new WeakMap();
@@ -73,7 +71,8 @@ const makeTraps = function(onChange, cache, makeProxy) {
       // TODO: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(value.name)) return value.bind(target);
       setChildPath(target, value, property);
-      return makeProxy(value, onChange, cache, traps);
+      // eslint-disable-next-line no-use-before-define
+      return makeProxy(value, cache, traps);
     },
     set(target, property, val, rec) {
       let value = val;
@@ -140,15 +139,18 @@ const makeTraps = function(onChange, cache, makeProxy) {
   return traps;
 };
 
-const makeProxy = function(object, onChange, cache, traps) {
+const makeProxy = function(object, cache, traps) {
   if (cache.has(object)) return cache.get(object);
 
-  const proxy = new Proxy(object, traps || makeTraps(onChange, cache, makeProxy));
+  const proxy = new Proxy(object, traps);
   cache.set(object, proxy);
   return proxy;
 };
 
 export default function proxyWatcher(object, callback) {
   if (isWithoutMutableMethods(object)) return object;
-  return makeProxy(object, callback, new WeakMap());
+
+  const cache = new WeakMap();
+  const traps = makeTraps(callback, cache);
+  return makeProxy(object, cache, traps);
 };

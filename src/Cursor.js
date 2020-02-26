@@ -1,19 +1,23 @@
 import StoreError from './StoreError';
 import query from './query';
 import Dispatcher from './Dispatcher';
-import {
-  get,
-} from './utils';
+import handler from './handler';
+import get from './utils/get';
 import {
   isArray,
   isFunction,
   isObjectLike,
 } from './types';
 
-const EMIT = Symbol('emit');
-
 const Cursor = function(proxy, lock, schedule, path = []) {
-  const dispatcher = new Dispatcher(proxy, e => this[EMIT](e), path);
+  this.emitter = handler();
+
+  const dispatcher = new Dispatcher(proxy, e => {
+    const arr = this.emitter.list();
+    for (let idx = 0; idx < arr.length; idx++) {
+      arr[idx](e);
+    }
+  }, path);
   schedule.register(dispatcher);
   
   this.lock = lock;
@@ -25,21 +29,8 @@ const Cursor = function(proxy, lock, schedule, path = []) {
 };
 
 Cursor.prototype = {
-  [EMIT](e) {
-    const listeners = this.listeners;
-    for (let idx = 0; idx < listeners.length; idx++) {
-      listeners[idx](e);
-    }
-  },
-
   onChange(fn) {
-    this.listeners.push(fn);
-    return () => {
-      const { listeners } = this;
-      const index = listeners.indexOf(fn);
-      if (!~index) return;
-      listeners.splice(index, 1);
-    };
+    return this.emitter.add(fn);
   },
 
   select(value) {

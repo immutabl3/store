@@ -1,5 +1,5 @@
 import test from 'tape';
-import { permute } from '../src/utils';
+import permute from '../src/utils/permute';
 
 test('permute', assert => {
   assert.plan(4);

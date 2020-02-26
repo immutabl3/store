@@ -1,4 +1,6 @@
 import StoreError from './StoreError';
+import indexOf from './utils/indexOf';
+import indexOfCompare from './utils/indexOfCompare';
 import {
   isArray,
   isString,
@@ -8,18 +10,14 @@ import {
   isObjectLike,
 } from './types';
 import {
-  indexOf,
-  indexOfCompare,
-} from './utils';
-import {
-  PATH_DELIMITER as DELIMITER,
+  PATH_DELIMITER,
 } from './consts';
 
 // hashing the path similar to
 // https://github.com/Yomguithereal/baobab/blob/master/src/helpers.js#L474
 // however, we have a check to see if the path is dynamic 
 // (and to solve) before hashing, so it's simplified
-const hash = path => path.length ? path.join(DELIMITER) : '';
+const hash = path => path.length ? path.join(PATH_DELIMITER) : '';
 
 const isDynamicPath = function(path) {
   for (const value of path) {
@@ -72,6 +70,6 @@ export default {
     return isDynamicPath(selector) ? solvePath(proxy, selector) : selector;
   },
   toString(root, selector) {
-    return root ? `${root}${DELIMITER}${hash(selector)}` : hash(selector);
+    return root ? `${root}${PATH_DELIMITER}${hash(selector)}` : hash(selector);
   },
 };

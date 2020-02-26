@@ -6,6 +6,9 @@ module.exports = {
     debug: './src/debug/index.js',
     react: './src/react/index.js',
   },
+  externals: {
+    react: 'react',
+  },
   output: {
     library: 'store',
     libraryTarget: 'umd',
