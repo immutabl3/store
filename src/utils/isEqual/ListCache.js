@@ -1,5 +1,7 @@
 import {
   DATA,
+} from '../../consts';
+import {
   splice,
   assocIndexOf,
 } from './shared';
@@ -15,11 +17,11 @@ const ListCache = function(entries) {
   }
 };
 
-const listCacheClear = function() {
+ListCache.prototype.clear = function() {
   this[DATA] = [];
 };
 
-const listCacheDelete = function(key) {
+ListCache.prototype.delete = function(key) {
   const data = this[DATA];
   const index = assocIndexOf(data, key);
 
@@ -35,18 +37,18 @@ const listCacheDelete = function(key) {
   return true;
 };
 
-const listCacheGet = function(key) {
+ListCache.prototype.get = function(key) {
   const data = this[DATA];
   const index = assocIndexOf(data, key);
 
   return index < 0 ? undefined : data[index][1];
 };
 
-const listCacheHas = function(key) {
+ListCache.prototype.has = function(key) {
   return assocIndexOf(this[DATA], key) > -1;
 };
 
-const listCacheSet = function(key, value) {
+ListCache.prototype.set = function(key, value) {
   const data = this[DATA];
   const index = assocIndexOf(data, key);
 
@@ -57,12 +59,5 @@ const listCacheSet = function(key, value) {
   }
   return this;
 };
-
-// Add methods to `ListCache`.
-ListCache.prototype.clear = listCacheClear;
-ListCache.prototype.delete = listCacheDelete;
-ListCache.prototype.get = listCacheGet;
-ListCache.prototype.has = listCacheHas;
-ListCache.prototype.set = listCacheSet;
 
 export default ListCache;

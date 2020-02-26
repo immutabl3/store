@@ -1,10 +1,16 @@
-import isPrimitive from 'is-primitive';
 import {
+  MAX_SAFE_INTEGER,
   STRICTLY_IMMUTABLE_METHODS,
   LOOSELY_IMMUTABLE_ARRAY_METHODS,
 } from './consts';
 
-export const isArray = target => Array.isArray(target);
+// https://github.com/jonschlinkert/is-primitive
+export const isPrimitive = function(val) {
+  if (typeof val === 'object') return val === null;
+  return typeof val !== 'function';
+};
+
+export const isArray = value => value && Array.isArray(value);
 
 export const isObject = target => (
   target &&
@@ -16,28 +22,35 @@ export const isObject = target => (
   !(typeof Set === 'function' && target instanceof Set)
 );
 
-export const isFunction = target => typeof target === 'function';
+export const isFunction = value => value && typeof value === 'function';
 
-export const isString = x => typeof x === 'string';
+export const isString = value => typeof value === 'string';
 
-export const isSymbol = x => typeof x === 'symbol';
+export const isSymbol = value => typeof value === 'symbol';
 
-export const isNumber = x => typeof x === 'number';
+export const isNumber = value => typeof value === 'number';
 
-export const isObjectLike = x => typeof x === 'object';
+export const isObjectLike = value => value && typeof value === 'object';
 
-export const isTypedArray = x => {
-  return x instanceof Int8Array || 
-    x instanceof Uint8Array || 
-    x instanceof Uint8ClampedArray || 
-    x instanceof Int16Array || 
-    x instanceof Uint16Array || 
-    x instanceof Int32Array || 
-    x instanceof Uint32Array || 
-    x instanceof Float32Array || 
-    x instanceof Float64Array || 
-    x instanceof BigInt64Array ||
-    x instanceof BigUint64Array;
+export const isLength = value => {
+  return isNumber(value) && value > -1 && value % 1 === 0 && value <= MAX_SAFE_INTEGER;
+};
+
+export const isTypedArray = value => {
+  return isObjectLike(value) && 
+    (
+      value instanceof Int8Array || 
+      value instanceof Uint8Array || 
+      value instanceof Uint8ClampedArray || 
+      value instanceof Int16Array || 
+      value instanceof Uint16Array || 
+      value instanceof Int32Array || 
+      value instanceof Uint32Array || 
+      value instanceof Float32Array || 
+      value instanceof Float64Array || 
+      value instanceof BigInt64Array ||
+      value instanceof BigUint64Array
+    );
 };
 
 export const isBuiltinUnsupported = x => {

@@ -1,8 +1,9 @@
 import {
+  isPrimitive,
   isTypedArray,
 } from '../types';
+// TODO: use npm package
 import cloneDeepWith from 'lodash/cloneDeepWith';
-import isPrimitive from 'is-primitive';
 import {
   $TARGET,
 } from '../consts';
