@@ -2,14 +2,15 @@
   "name": "@immutabl3/store",
   "description": "a simple, modern state management library",
   "version": "0.0.1",
-  "main": "src/index.js",
+  "main": "store.js",
   "scripts": {
     "test": "node -r esm test | tap-spec",
     "debug": "node -r esm --inspect-brk=1234 test",
     "bench:mark": "node -r esm benchmark/benchmark",
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",
-    "debug:compare": "node -r esm --inspect-brk=1234 benchmark/compare"
+    "debug:compare": "node -r esm --inspect-brk=1234 benchmark/compare",
+    "build": "webpack --config build.js"
   },
   "engines": {
     "node": "^13.9.0",
@@ -44,7 +45,7 @@
     "lodash.clonedeepwith": "^4.5.0"
   },
   "peerDependencies": {
-    "react": ">=16.12.0"
+    "react": ">=16.13.0"
   },
   "devDependencies": {
     "@fabiospampinato/store": "^1.1.1",
@@ -58,9 +59,15 @@
     "esm": "^3.2.25",
     "jsdom": "^16.2.0",
     "microtime": "^3.0.0",
+    "plain-object-is-empty": "^1.0.0",
     "react": "^16.12.0",
     "react-dom": "^16.12.0",
     "tap-spec": "^5.0.0",
-    "tape": "^4.9.0"
+    "tape": "^4.9.0",
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "babel-loader": "^8.0.6",
+    "webpack": "^4.41.3",
+    "webpack-cli": "^3.3.6"
   }
 }

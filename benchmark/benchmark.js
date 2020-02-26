@@ -1,7 +1,7 @@
 import Benchmark from 'benchmark';
 import noop from 'lodash/noop';
 import uniqueId from 'lodash/uniqueId';
-import Store from '../src';
+import Store from '../store';
 import { small as obj } from './fixtures';
 
 const suite = new Benchmark.Suite()

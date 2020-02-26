@@ -48,7 +48,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
     paths.set(child, getChildPath(parent, path));
   };
   
-  return {
+  const traps = {
     get(target, property, rec) {
       // target access
       if (property === $TARGET) return target;
@@ -73,8 +73,7 @@ const makeTraps = function(onChange, cache, makeProxy) {
       // TODO: binding here prevents the function to be potentially re-bounded later
       if (isFunction(value) && isStrictlyImmutableMethod(value.name)) return value.bind(target);
       setChildPath(target, value, property);
-      if (cache.has(value)) return cache.get(value);
-      return makeProxy(value, onChange, cache, this);
+      return makeProxy(value, onChange, cache, traps);
     },
     set(target, property, val, rec) {
       let value = val;
@@ -137,9 +136,13 @@ const makeTraps = function(onChange, cache, makeProxy) {
       return result;
     },
   };
+
+  return traps;
 };
 
-const makeProxy = function(object, onChange, cache = new WeakMap(), traps) {
+const makeProxy = function(object, onChange, cache, traps) {
+  if (cache.has(object)) return cache.get(object);
+
   const proxy = new Proxy(object, traps || makeTraps(onChange, cache, makeProxy));
   cache.set(object, proxy);
   return proxy;
@@ -147,5 +150,5 @@ const makeProxy = function(object, onChange, cache = new WeakMap(), traps) {
 
 export default function proxyWatcher(object, callback) {
   if (isWithoutMutableMethods(object)) return object;
-  return makeProxy(object, callback);
+  return makeProxy(object, callback, new WeakMap());
 };

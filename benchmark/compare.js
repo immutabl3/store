@@ -1,5 +1,5 @@
 import Benchmark from 'benchmark';
-import Store from '../src';
+import Store from '../store';
 import BaobabTree from 'baobab';
 import { delay as baseDelay } from '../test/utils';
 import uniqueId from 'lodash/uniqueId';
@@ -12,12 +12,11 @@ import {
 
 const delay = () => baseDelay(0);
 
-// compare baobab without immutability e.g. production
-// mode and in the best light possible
 const Baobab = obj => new BaobabTree(obj, {
+  // compare baobab without immutability e.g. production mode
   immutable: false,
+  // neither store nor fabio persist
   persistent: false,
-  lazyMonkeys: false,
 });
 
 const suite = (name, resolve, reject) => {
@@ -25,7 +24,7 @@ const suite = (name, resolve, reject) => {
     .on('cycle', e => console.log(`${e.target}`))
     .on('start', () => console.log(name))
     .on('complete', function() {
-      console.log(`${name}: fastest: ${this.filter('fastest').map('name')}\n`);
+      console.log(`fastest: ${this.filter('fastest').map('name')}\n`);
       resolve();
     })
     .on('abort', err => {
@@ -47,12 +46,12 @@ const creation = () => new Promise((resolve, reject) => {
 });
 
 const access = () => new Promise((resolve, reject) => {
-  const store = Store(obj());
+  const { data } = Store(obj());
   const baobab = Baobab(obj());
   const fab = fabio(obj());
 
   suite('access', resolve, reject)
-    .add('store', () => store.data.arr[3].foo)
+    .add('store', () => data.arr[3].foo)
     .add('baobab', () => baobab.get(['arr', 3, 'foo']))
     .add('fabio', () => fab.arr[3].foo)
     .run({ async: true });
@@ -78,7 +77,7 @@ const set = () => new Promise((resolve, reject) => {
       store.data.arr[3].foo = 'bar';
     })
     .add('baobab', () => {
-      baobab.set(['arr', 3, 'foo', 'bar']);
+      baobab.set(['arr', 3, 'foo'], 'bar');
     })
     .add('fabio', () => {
       fab.arr[3].foo = 'bar';
@@ -178,7 +177,7 @@ const dispose = () => new Promise((resolve, reject) => {
 
   suite('dispose', resolve, reject)
     .add('store', () => {
-      const disposer = store.watch(['arr', 3, 'foo'], noop);
+      const disposer = store.onChange(noop);
       disposer();
     })
     .add('fabio', () => {
@@ -223,7 +222,7 @@ const select = () => new Promise((resolve, reject) => {
 const complexSelectors = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
-  const path = [
+  const path = () => [
     'arr',
     { foo: 'bar' },
     'baz',
@@ -231,12 +230,8 @@ const complexSelectors = () => new Promise((resolve, reject) => {
   ];
 
   suite('complex selectors', resolve, reject)
-    .add('store', () => {
-      return store.get(path);
-    })
-    .add('baobab', () => {
-      return baobab.get(path);
-    })
+    .add('store', () => store.get(path()))
+    .add('baobab', () => baobab.get(path()))
     .run({ async: true });
 });
 

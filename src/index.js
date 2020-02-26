@@ -1,5 +1,6 @@
 import proxyWatcher from './proxyWatcher';
 import scheduler from './scheduler';
+import locker from './locker';
 import Cursor from './Cursor';
 
 export default function Store(obj, {
@@ -14,8 +15,10 @@ export default function Store(obj, {
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
   const proxy = proxyWatcher(obj, schedule.add);
-  const cursor = new Cursor(proxy, schedule);
-  schedule.proxy(proxy);
+  // allows locking and unlocking the proxy
+  const lock = locker(proxy);
+  const cursor = new Cursor(proxy, lock, schedule);
+  schedule.locker(lock);
   if (debug) schedule.debug(debug(proxy));
   cursor.commit = schedule.commit;
   return cursor;

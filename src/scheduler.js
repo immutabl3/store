@@ -3,16 +3,12 @@ import {
   defer,
   permute,
 } from './utils';
-import {
-  $PAUSE,
-  $RESUME,
-} from './consts';
 import query from './query';
 
 export default function scheduler(asynchronous, autoCommit) {
   let debug;
-  let proxy;
   let processing;
+  let locker;
   
   const paths = [];
   const dispatchers = [];
@@ -33,11 +29,11 @@ export default function scheduler(asynchronous, autoCommit) {
 
     const values = dispatchers.length ? Array.from(map.values()) : [];
 
-    proxy[$PAUSE];
+    locker.lock();
     for (const dispatcher of dispatchers) {
       dispatcher.dispatch(map, values);
     }
-    proxy[$RESUME];
+    locker.unlock();
 
     event.reset();
     paths.length = 0;
@@ -62,8 +58,8 @@ export default function scheduler(asynchronous, autoCommit) {
       debug = bug;
     },
     
-    proxy(obj) {
-      proxy = obj;
+    locker(lock) {
+      locker = lock;
     },
 
     register(dispatcher) {

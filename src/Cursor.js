@@ -12,10 +12,11 @@ import {
 
 const EMIT = Symbol('emit');
 
-const Cursor = function(proxy, schedule, path = []) {
+const Cursor = function(proxy, lock, schedule, path = []) {
   const dispatcher = new Dispatcher(proxy, e => this[EMIT](e), path);
   schedule.register(dispatcher);
   
+  this.lock = lock;
   this.listeners = [];
   this.schedule = schedule;
   this.path = path;
@@ -42,10 +43,21 @@ Cursor.prototype = {
   },
 
   select(value) {
-    const { schedule, path, data } = this;
+    const {
+      schedule,
+      path,
+      data,
+      lock,
+    } = this;
+
     const selector = isArray(value) ? value : [value];
+    
+    lock.lock();
     // eslint-disable-next-line no-use-before-define
-    return new Cursor(get(data, selector), schedule, [...path, ...selector]);
+    const cursor = new Cursor(get(data, selector), lock, schedule, [...path, ...selector]);
+    lock.unlock();
+    
+    return cursor;
   },
 
   watch(listener, fn) {
@@ -57,21 +69,31 @@ Cursor.prototype = {
   projection(path) {
     if (!isObjectLike(path)) throw new StoreError(`projection requires an object`, { value: path });
     if (isArray(path)) return this.get(path);
-    const { data } = this;
-    return Object.fromEntries(
+    const { data, lock } = this;
+    
+    lock.lock();
+    const result = Object.fromEntries(
       Object.entries(path)
         .map(([key, value]) => {
           const selector = query.resolve(data, value);
           return [key, get(data, selector)];
         })
     );
+    lock.unlock();
+
+    return result;
   },
 
   get(value) {
-    const { data } = this;
+    const { data, lock } = this;
     if (!value) return data;
+    
+    lock.lock();
     const selector = query.resolve(data, value);
-    return get(data, selector);
+    const result = get(data, selector);
+    lock.unlock();
+    
+    return result;
   },
 };
 

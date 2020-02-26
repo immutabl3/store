@@ -103,6 +103,19 @@ dist
 # TernJS port file
 .tern-port
 
+# visual studio code configuration
 .vscode
-*.todo
+
+# lcock
 package-lock.json
+
+# built files
+store.js
+store.js.map
+react.js
+react.js.map
+debug.js
+debug.js.map
+
+# todo list
+*.todo

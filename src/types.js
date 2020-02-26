@@ -49,13 +49,16 @@ export const isTypedArray = value => {
 };
 
 export const isUnsupported = x => {
-  return x instanceof Promise || 
+  return x && (
+    x instanceof Promise || 
     x instanceof WeakMap || 
-    x instanceof WeakSet;
+    x instanceof WeakSet
+  );
 };
 
 export const isWithoutMutableMethods = x => {
-  return isPrimitive(x) || 
+  return !x ||
+    isPrimitive(x) || 
     x instanceof RegExp || 
     x instanceof ArrayBuffer || 
     x instanceof Number || 
@@ -64,7 +67,7 @@ export const isWithoutMutableMethods = x => {
 };
 
 export const hasMutableMethods = x => {
-  return !isPrimitive(x) && (
+  return x && !isPrimitive(x) && (
     x instanceof Date || 
     x instanceof Map || 
     x instanceof Set || 

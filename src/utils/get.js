@@ -1,41 +1,35 @@
 import {
   isArray,
-  isFunction,
-  isObjectLike,
 } from '../types';
 import indexOf from './indexOf';
 import indexOfCompare from './indexOfCompare';
 
 export default function get(object, path) {
   let current = object;
-  let idx;
-  let i = 0;
-  const len = path.length;
 
-  for (; i < len; i++) {
+  for (let idx = 0; idx < path.length; idx++) {
     if (!current) return;
+    
+    const chunk = path[idx];
+    const type = typeof chunk;
 
-    if (isFunction(path[i])) {
+    if (type === 'function') {
       if (!isArray(current)) return;
 
-      idx = indexOf(current, path[i]);
-      if (!~idx) return;
+      const index = indexOf(current, chunk);
+      if (!~index) return;
 
-      current = current[idx];
-      continue;
-    }
-    
-    if (isObjectLike(path[i])) {
+      current = current[index];
+    } else if (type === 'object') {
       if (!isArray(current)) return;
 
-      idx = indexOfCompare(current, path[i]);
-      if (!~idx) return;
+      const index = indexOfCompare(current, chunk);
+      if (!~index) return;
 
-      current = current[idx];
-      continue;
+      current = current[index];
+    } else {
+      current = current[chunk];
     }
-    
-    current = current[path[i]];
   }
 
   return current;

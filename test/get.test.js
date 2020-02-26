@@ -47,7 +47,7 @@ test('get: selector', async assert => {
 });
 
 test('get: complex path', async assert => {
-  assert.plan(1);
+  assert.plan(2);
 
   const store = Store({
     arr: [
@@ -60,6 +60,10 @@ test('get: complex path', async assert => {
   const result = store.get(['arr', { foo: 1 }]);
 
   assert.deepEqual(result, { foo: 1 }, `retrieved correct object from array`);
+
+  const empty = store.get(['arr', () => -1, 'bar', 'baz']);
+
+  assert.is(empty, undefined, `won't retrieve if no target for selector`);
 
   assert.end();
 });
