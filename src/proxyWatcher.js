@@ -1,5 +1,6 @@
 import clone from './utils/clone';
 import isEqual from './utils/isEqual';
+// import get from './utils/get';
 import {
   isArray,
   isSymbol,
@@ -41,6 +42,19 @@ const makeTraps = function(onChange, cache) {
     return childPath;
   };
 
+  // const getChildPath = function(parent, fragment) {
+  //   const path = fragmentToPath(parent, fragment);
+  //   if (paths.has(parent)) {
+  //     const parentPath = paths.get(parent);
+  //     // cyclical path
+  //     if (get(parent, parentPath) === parent) return [path];
+  //     // legitimate path
+  //     return [...paths.get(parent), path];
+  //   }
+  //   // no parent path
+  //   return [path];
+  // };
+
   const setChildPath = function(parent, child, fragment) {
     const path = fragmentToPath(parent, fragment);
     paths.set(child, getChildPath(parent, path));
@@ -68,9 +82,11 @@ const makeTraps = function(onChange, cache) {
       // preserving invariants
       if (descriptor && !descriptor.configurable && !descriptor.writable) return value;
       if (isSymbol(property) || isUnsupported(value)) return value;
-      // TODO: binding here prevents the function to be potentially re-bounded later
+      // NOTE: binding here to give function correct context
       if (isFunction(value) && isStrictlyImmutableMethod(value.name)) return value.bind(target);
+      
       setChildPath(target, value, property);
+
       // eslint-disable-next-line no-use-before-define
       return makeProxy(value, cache, traps);
     },
@@ -125,6 +141,7 @@ const makeTraps = function(onChange, cache) {
       let arg = thisArg;
       if (hasMutableMethods(arg)) arg = thisArg[$TARGET];
       if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
+
       const clonedArg = clone(arg);
       const result = Reflect.apply(target, arg, args);
       const changed = !isEqual(clonedArg, arg);

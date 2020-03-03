@@ -163,7 +163,7 @@ test(`proxyWatcher: assignment are also checked for equality`, assert => {
   assert.end();
 });
 
-test('proxyWatcher: structures: basics', assert => {
+test.only('proxyWatcher: structures: basics', assert => {
   assert.plan(16);
 
   const [proxy, watcher] = Watcher({ foo: true });
@@ -231,13 +231,23 @@ test('proxyWatcher: structures: basics', assert => {
 });
 
 test('proxyWatcher: structures: accessors', assert => {
-  assert.plan(3);
+  assert.plan(6);
 
   const [proxy, watcher] = Watcher((function() {
     const obj = {};
 
-    const key = Symbol('accessor');
+    const symbol = Symbol('accessor');
     Object.defineProperty(obj, 'accessor', {
+      set(val) {
+        this[symbol] = val;
+      },
+      get() {
+        return this[symbol];
+      },
+    });
+
+    const key = '_mutator';
+    Object.defineProperty(obj, 'mutator', {
       set(val) {
         this[key] = val;
       },
@@ -252,11 +262,20 @@ test('proxyWatcher: structures: accessors', assert => {
   proxy.accessor = 10;
   proxy.accessor = 10;
 
-  assert.is(proxy.accessor, 10);
-  assert.is(watcher.changes, 1);
+  assert.is(proxy.accessor, 10, `symbol: getter/setter was accessed`);
+  assert.is(watcher.changes, 1, `symbol: one change made`);
   assert.deepEqual(watcher.paths, [
     ['accessor'],
-  ]);
+  ], `symbol: paths do not show internal/hidden state changes`);
+
+  proxy.mutator = 10;
+  proxy.mutator = 10;
+
+  assert.is(proxy.mutator, 10, `key: getter/setter was accessed`);
+  assert.is(watcher.changes, 2, `key: one change made`);
+  assert.deepEqual(watcher.paths, [
+    ['mutator'],
+  ], `key: paths do not show internal/hidden state changes`);
 
   assert.end();
 });
@@ -981,6 +1000,48 @@ test('proxyWatcher: structures: Promise', async assert => {
   proxy.set = Promise.resolve(new Set([1, 2, 3]));
   proxy.deep = Promise.resolve(Promise.resolve({ deep: true }));
   assert.is(watcher.changes, 6);
+
+  assert.end();
+});
+
+test.skip('proxyWatcher: structures: cyclical', assert => {
+  assert.plan(8);
+
+  const [proxy, watcher] = Watcher(function() {
+    const parent = {
+      name: 'parent',
+      children: [],
+    };
+
+    const child = {
+      name: 'child',
+      parent,
+    };
+
+    parent.children.push(child);
+
+    return parent;
+  }());
+
+  // NOTE: important to call this get for tests below
+  assert.is(proxy.children[0].parent.name, 'parent', `can access a cyclical reference`);
+  assert.is(watcher.changes, 0);
+
+  proxy.name = 'p';
+
+  assert.is(proxy.name, 'p', `non-cyclical value set`);
+  assert.is(watcher.changes, 1, `only 1 change made`);
+  assert.deepEqual(watcher.paths, [
+    ['name'],
+  ], `non-cyclical paths`);
+
+  proxy.children[0].parent.name = 'root';
+
+  assert.is(proxy.children[0].parent.name, 'root', `set cyclical value`);
+  assert.is(watcher.changes, 2, `only 1 change made`);
+  assert.deepEqual(watcher.paths, [
+    ['children', 0, 'parent', 'name'],
+  ], `cyclical paths`);
 
   assert.end();
 });

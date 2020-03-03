@@ -10,7 +10,7 @@
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",
     "debug:compare": "node -r esm --inspect-brk=1234 benchmark/compare",
-    "build": "webpack --config build.js"
+    "build": "webpack"
   },
   "engines": {
     "node": "^13.9.0",
@@ -48,8 +48,11 @@
     "react": ">=16.13.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
     "@fabiospampinato/store": "^1.1.1",
     "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.0.6",
     "baobab": "^2.6.0",
     "benchmark": "^2.1.4",
     "enzyme": "^3.11.0",
@@ -64,10 +67,7 @@
     "react-dom": "^16.12.0",
     "tap-spec": "^5.0.0",
     "tape": "^4.9.0",
-    "@babel/core": "^7.8.4",
-    "@babel/preset-env": "^7.8.4",
-    "babel-loader": "^8.0.6",
-    "webpack": "^4.41.3",
+    "webpack": "^5.0.0-beta.14",
     "webpack-cli": "^3.3.6"
   }
 }

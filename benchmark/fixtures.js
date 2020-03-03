@@ -7,7 +7,7 @@ export const small = () => ({
   foo: 123,
   bar: { deep: true },
   baz: 'foo',
-  arr: [1, 2, '3', { foo: 'bar' }],
+  arr: [1, 2, '3', { foo: 'bar', deep: {} }],
   nan: NaN,
   inf: Infinity,
   map: new Map(),

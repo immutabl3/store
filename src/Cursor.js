@@ -41,6 +41,7 @@ Cursor.prototype = {
       lock,
     } = this;
 
+    // TODO: use query
     const selector = isArray(value) ? value : [value];
     
     lock.lock();

@@ -37,14 +37,6 @@ const suite = (name, resolve, reject) => {
     });
 };
 
-const creation = () => new Promise((resolve, reject) => {
-  suite('creation', resolve, reject)
-    .add('store', () => Store(obj()))
-    .add('baobab', () => Baobab(obj()))
-    .add('fabio', () => fabio(obj()))
-    .run({ async: true });
-});
-
 const access = () => new Promise((resolve, reject) => {
   const { data } = Store(obj());
   const baobab = Baobab(obj());
@@ -171,22 +163,6 @@ const watch = () => new Promise((resolve, reject) => {
     .run({ async: true });
 });
 
-const dispose = () => new Promise((resolve, reject) => {
-  const store = Store(obj());
-  const fab = fabio(obj());
-
-  suite('dispose', resolve, reject)
-    .add('store', () => {
-      const disposer = store.onChange(noop);
-      disposer();
-    })
-    .add('fabio', () => {
-      const disposer = fabioOnChange(fab, () => Number.isFinite(fab.arr[3].foo), noop);
-      disposer();
-    })
-    .run({ async: true });
-});
-
 const projection = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
@@ -207,15 +183,11 @@ const projection = () => new Promise((resolve, reject) => {
 const select = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
-  const path = ['arr', 3, 'foo'];
+  const path = () => ['arr', 3, 'foo'];
 
   suite('select', resolve, reject)
-    .add('store', () => {
-      return store.select(path);
-    })
-    .add('baobab', () => {
-      return baobab.select(path);
-    })
+    .add('store', () => store.select(path()))
+    .add('baobab', () => baobab.select(path()))
     .run({ async: true });
 });
 

@@ -110,12 +110,7 @@ dist
 package-lock.json
 
 # built files
-store.js
-store.js.map
-react.js
-react.js.map
-debug.js
-debug.js.map
+dist
 
 # todos
 *.todo
