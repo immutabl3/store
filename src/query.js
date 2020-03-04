@@ -1,6 +1,8 @@
 import StoreError from './StoreError';
-import indexOf from './utils/indexOf';
-import indexOfCompare from './utils/indexOfCompare';
+import {
+  indexOf,
+  indexOfCompare,
+} from './utils';
 import {
   isArray,
   isString,

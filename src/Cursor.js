@@ -2,7 +2,7 @@ import StoreError from './StoreError';
 import query from './query';
 import Dispatcher from './Dispatcher';
 import handler from './handler';
-import get from './utils/get';
+import { get } from './utils';
 import {
   isArray,
   isFunction,

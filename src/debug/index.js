@@ -1,6 +1,8 @@
 import cloneDeep from './cloneDeep';
 import isEmpty from './isEmpty';
-import { detailedDiff } from 'deep-object-diff';
+import * as deepObjectDiff from 'deep-object-diff';
+
+const { detailedDiff } = deepObjectDiff;
 
 const groupLog = (log, collapsed) => {
   return {

@@ -1,6 +1,6 @@
 import event from './event';
 import handler from './handler';
-import get from './utils/get';
+import { get } from './utils';
 import {
   isProjection,
 } from './types';

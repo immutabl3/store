@@ -1,6 +1,8 @@
 import event from './event';
-import permute from './utils/permute';
-import defer from './utils/defer';
+import {
+  permute,
+  defer,
+} from './utils';
 import query from './query';
 
 export default function scheduler(asynchronous, autoCommit) {

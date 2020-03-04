@@ -1,6 +1,8 @@
-import clone from './utils/clone';
-import isEqual from './utils/isEqual';
-// import get from './utils/get';
+import {
+  // get,
+  clone,
+  isEqual,
+} from './utils';
 import {
   isArray,
   isSymbol,

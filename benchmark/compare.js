@@ -3,7 +3,6 @@ import Store from '../store';
 import BaobabTree from 'baobab';
 import { delay as baseDelay } from '../test/utils';
 import uniqueId from 'lodash/uniqueId';
-import noop from 'lodash/noop';
 import { large as obj } from './fixtures';
 import {
   store as fabio,
@@ -208,13 +207,11 @@ const complexSelectors = () => new Promise((resolve, reject) => {
 });
 
 (async function() {
-  await creation();
   await access();
   await get();
   await set();
   await change();
   await watch();
-  await dispose();
   await projection();
   await select();
   await complexSelectors();

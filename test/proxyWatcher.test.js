@@ -163,7 +163,7 @@ test(`proxyWatcher: assignment are also checked for equality`, assert => {
   assert.end();
 });
 
-test.only('proxyWatcher: structures: basics', assert => {
+test('proxyWatcher: structures: basics', assert => {
   assert.plan(16);
 
   const [proxy, watcher] = Watcher({ foo: true });

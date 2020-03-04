@@ -1,6 +1,6 @@
 import StoreError from '../StoreError';
 import Context from './context';
-import isEqual from '../utils/isEqual';
+import { isEqual } from '../utils';
 import React, {
   useContext,
   useState,
