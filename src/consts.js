@@ -3,12 +3,6 @@ export const $TARGET = Symbol('proxy->target');
 export const $PAUSE = Symbol('pause');
 export const $RESUME = Symbol('resume');
 
-// private data key
-export const DATA = Symbol('_data');
-
-// used to stand-in for `undefined` hash values
-export const HASH_UNDEFINED = Symbol('_hash_undefined');
-
 // used to hash paths
 export const PATH_DELIMITER = 'λ';
 

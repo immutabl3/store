@@ -1,5 +1,4 @@
 import {
-  // get,
   clone,
   isEqual,
 } from './utils';
@@ -43,19 +42,6 @@ const makeTraps = function(onChange, cache) {
       [path];
     return childPath;
   };
-
-  // const getChildPath = function(parent, fragment) {
-  //   const path = fragmentToPath(parent, fragment);
-  //   if (paths.has(parent)) {
-  //     const parentPath = paths.get(parent);
-  //     // cyclical path
-  //     if (get(parent, parentPath) === parent) return [path];
-  //     // legitimate path
-  //     return [...paths.get(parent), path];
-  //   }
-  //   // no parent path
-  //   return [path];
-  // };
 
   const setChildPath = function(parent, child, fragment) {
     const path = fragmentToPath(parent, fragment);

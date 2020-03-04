@@ -16,7 +16,7 @@ const Changes = () => {
   };
 };
 
-test('select', async assert => {
+test('select: basics', async assert => {
   assert.plan(11);
 
   const store = Store({
@@ -90,6 +90,27 @@ test('select', async assert => {
     'sub',
     'subsub',
   ], `sub selector caught change with onChange event`);
+
+  assert.end();
+});
+
+test('select: dynamic paths', async assert => {
+  assert.plan(2);
+
+  const store = Store({
+    foo: [
+      { bar: 123 },
+    ],
+  });
+
+  assert.throws(
+    () => store.select(['foo', () => {}]),
+    `cannot generate a selection with function in path`
+  );
+  assert.throws(
+    () => store.select(['foo', { bar: 123 }]),
+    `cannot generate a selection with object in path`
+  );
 
   assert.end();
 });

@@ -41,8 +41,8 @@ Cursor.prototype = {
       lock,
     } = this;
 
-    // TODO: use query
-    const selector = isArray(value) ? value : [value];
+    const selector = query.coerce(value);
+    if (query.isDynamic(selector)) throw new StoreError(`select does not support dynamic paths`, { path: value });
     
     lock.lock();
     // eslint-disable-next-line no-use-before-define
@@ -67,8 +67,7 @@ Cursor.prototype = {
     const result = Object.fromEntries(
       Object.entries(path)
         .map(([key, value]) => {
-          const selector = query.resolve(data, value);
-          return [key, get(data, selector)];
+          return [key, query.get(data, value)];
         })
     );
     lock.unlock();
@@ -81,8 +80,7 @@ Cursor.prototype = {
     if (!value) return data;
     
     lock.lock();
-    const selector = query.resolve(data, value);
-    const result = get(data, selector);
+    const result = query.get(data, value);
     lock.unlock();
     
     return result;

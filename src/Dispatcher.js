@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 import event from './event';
 import handler from './handler';
 import { get } from './utils';
@@ -6,8 +7,22 @@ import {
 } from './types';
 import query from './query';
 
-const GET_MAPPER = Symbol('get_iterator');
-const PROJECTION_REDUCER = Symbol('projection_iterator');
+const getMapper = ({ proxy }) => (
+  ([key, selector]) => [key, get(proxy, selector)]
+);
+
+const projectionReducer = ({
+  proxy,
+  root,
+}) => (memo, [key, value]) => {
+  const { map, paths, entries } = memo;
+  const selector = query.solve(proxy, value);
+  const path = query.toString(root, selector);
+  const hasPath = map.has(path);
+  if (hasPath) paths.push(selector);
+  entries.push([key, selector]);
+  return memo;
+};
 
 const Dispatcher = function(proxy, onChange, path = []) {
   this.root = query.hash(path);
@@ -20,28 +35,12 @@ const Dispatcher = function(proxy, onChange, path = []) {
 Dispatcher.prototype = {
   // lazy instantiation
   get getMapper() {
-    if (this[GET_MAPPER]) return this[GET_MAPPER];
-
-    this[GET_MAPPER] = ([key, selector]) => [key, get(this.proxy, selector)];
-
-    return this[GET_MAPPER];
+    return this._gm || (this._gm = getMapper(this));
   },
 
   // lazy instantiation
   get projectionReducer() {
-    if (this[PROJECTION_REDUCER]) return this[PROJECTION_REDUCER];
-    
-    this[PROJECTION_REDUCER] = (memo, [key, value]) => {
-      const { map, paths, entries } = memo;
-      const selector = query.resolve(this.proxy, value);
-      const path = query.toString(this.root, selector);
-      const hasPath = map.has(path);
-      if (hasPath) paths.push(selector);
-      entries.push([key, selector]);
-      return memo;
-    };
-
-    return this[PROJECTION_REDUCER];
+    return this._pr || (this._pr = projectionReducer(this));
   },
 
   emitProjection(map, value, fn) {
@@ -69,7 +68,7 @@ Dispatcher.prototype = {
       proxy
     } = this;
 
-    const selector = query.resolve(proxy, value);
+    const selector = query.solve(proxy, value);
     const path = query.toString(root, selector);
     if (!map.has(path)) return;
 

@@ -1,3 +1,16 @@
+// NOTE: this is a heavily modified version of lodash/isEqual
+//
+// modifications include:
+// - add support of store's types to address compat issues
+//   e.g. typed array support for BigInt
+// - remove cyclical checking (as store doesn't support 
+//   cyclical entries), removing Stack checks and hashing
+// - add Object.is checking for primitives
+// - refactoring to remove dead code
+//
+// these modifications drastically speed up the code
+// and reduce the size for our usecase 
+
 /* eslint-disable no-restricted-syntax */
 /* eslint-disable no-use-before-define */
 /* eslint-disable eqeqeq */
@@ -7,14 +20,11 @@ import {
   isArray,
   isTypedArray,
   isPrimitive,
-} from '../../types';
+} from '../types';
 import {
   UNORDERED_COMPARE_FLAG,
   PARTIAL_COMPARE_FLAG,
-} from '../../consts';
-import eq from './eq';
-import Stack from './Stack';
-import SetCache from './SetCache';
+} from '../consts';
 
 // `Object#toString` result references
 const argsTag = '[object Arguments]';
@@ -38,36 +48,22 @@ const hasOwnProperty = Object.prototype.hasOwnProperty;
 // Used to convert symbols to primitives and strings
 const symbolValueOf = Symbol.prototype.valueOf;
 
-const some = function(array, predicate) {
-  let index = -1;
-  const length = array ? array.length : 0;
-
-  while (++index < length) {
-    if (predicate(array[index], index)) return true;
-  }
-  return false;
-};
-
 const objectToString = Object.prototype.toString;
 const getTag = value => objectToString.call(value);
 
-const equalArrays = function(array, other, bitmask, stack) {
+const eq = (value, other) => {
+  return value === other || (value !== value && other !== other);
+};
+
+const equalArrays = function(array, other, bitmask) {
   const isPartial = bitmask & PARTIAL_COMPARE_FLAG;
   const arrLength = array.length;
   const othLength = other.length;
 
   if (arrLength !== othLength && !(isPartial && othLength > arrLength)) return false;
-
-  // assume cyclic values are equal
-  const stacked = stack.get(array);
-  if (stacked && stack.get(other)) return stacked == other;
     
   let index = -1;
   let result = true;
-  const seen = (bitmask & UNORDERED_COMPARE_FLAG) ? new SetCache() : undefined;
-
-  stack.set(array, other);
-  stack.set(other, array);
 
   // ignore non-index properties
   while (++index < arrLength) {
@@ -80,37 +76,22 @@ const equalArrays = function(array, other, bitmask, stack) {
       result = false;
       break;
     }
-    // recursively compare arrays (susceptible to call stack limits)
-    if (seen) {
-      if (
-        !some(other, function(othValue, othIndex) {
-          if (
-            !seen.has(othIndex) &&
-            (arrValue === othValue || baseIsEqual(arrValue, othValue, bitmask, stack))
-          ) {
-            return seen.add(othIndex);
-          }
-        })
-      ) {
-        result = false;
-        break;
-      }
-    } else if (
+    // NOTE: removed "seen" checking here as we don't support cyclical entries
+    // this results in removal of stack passing and checking throughout the file
+    if (
       !(
         arrValue === othValue ||
-        baseIsEqual(arrValue, othValue, bitmask, stack)
+        baseIsEqual(arrValue, othValue, bitmask)
       )
     ) {
       result = false;
       break;
     }
   }
-  stack.delete(array);
-  stack.delete(other);
   return result;
 };
 
-const equalByTag = (object, other, tag, bitmask, stack) => {
+const equalByTag = (object, other, tag, bitmask) => {
   let convert;
   switch (tag) {
     case dataViewTag:
@@ -160,16 +141,10 @@ const equalByTag = (object, other, tag, bitmask, stack) => {
       if (!isPartial && object.size !== other.size) return false;
 
       // Assume cyclic values are equal.
-      const stacked = stack.get(object);
-      if (stacked) {
-        return stacked == other;
-      }
       bitmask |= UNORDERED_COMPARE_FLAG;
 
       // Recursively compare objects (susceptible to call stack limits).
-      stack.set(object, other);
-      const result = equalArrays(convert(object), convert(other), bitmask, stack);
-      stack.delete(object);
+      const result = equalArrays(convert(object), convert(other), bitmask);
       return result;
 
     case symbolTag:
@@ -180,7 +155,7 @@ const equalByTag = (object, other, tag, bitmask, stack) => {
   return false;
 };
 
-const equalObjects = (object, other, bitmask, stack) => {
+const equalObjects = (object, other, bitmask) => {
   const isPartial = bitmask & PARTIAL_COMPARE_FLAG;
   const objProps = Object.keys(object);
   const objLength = objProps.length;
@@ -196,14 +171,9 @@ const equalObjects = (object, other, bitmask, stack) => {
       return false;
     }
   }
-  // assume cyclic values are equal
-  const stacked = stack.get(object);
-  if (stacked && stack.get(other)) return (stacked == other);
   
   let result = true;
-  stack.set(object, other);
-  stack.set(other, object);
-
+  
   let skipCtor = isPartial;
   while (++index < objLength) {
     const key = objProps[index];
@@ -215,7 +185,7 @@ const equalObjects = (object, other, bitmask, stack) => {
     if (
       !(
         compared === undefined
-          ? (objValue === othValue || baseIsEqual(objValue, othValue, bitmask, stack))
+          ? (objValue === othValue || baseIsEqual(objValue, othValue, bitmask))
           : compared
       )
     ) {
@@ -240,12 +210,10 @@ const equalObjects = (object, other, bitmask, stack) => {
       result = false;
     }
   }
-  stack.delete(object);
-  stack.delete(other);
   return result;
 };
 
-const baseIsEqualDeep = function(object, other, bitmask, stack) {
+const baseIsEqualDeep = function(object, other, bitmask) {
   const objIsArr = isArray(object);
   const othIsArr = isArray(other);
   let objTag = arrayTag;
@@ -264,10 +232,9 @@ const baseIsEqualDeep = function(object, other, bitmask, stack) {
   const isSameTag = objTag === othTag;
 
   if (isSameTag && !objIsObj) {
-    stack || (stack = new Stack());
     return (objIsArr || isTypedArray(object))
-      ? equalArrays(object, other, bitmask, stack)
-      : equalByTag(object, other, objTag, bitmask, stack);
+      ? equalArrays(object, other, bitmask)
+      : equalByTag(object, other, objTag, bitmask);
   }
   if (!(bitmask & PARTIAL_COMPARE_FLAG)) {
     const objIsWrapped = objIsObj && hasOwnProperty.call(object, '__wrapped__');
@@ -277,24 +244,22 @@ const baseIsEqualDeep = function(object, other, bitmask, stack) {
       const objUnwrapped = objIsWrapped ? object.value() : object;
       const othUnwrapped = othIsWrapped ? other.value() : other;
 
-      stack || (stack = new Stack());
-      return baseIsEqual(objUnwrapped, othUnwrapped, bitmask, stack);
+      return baseIsEqual(objUnwrapped, othUnwrapped, bitmask);
     }
   }
 
   if (!isSameTag) return false;
     
-  stack || (stack = new Stack());
-  return equalObjects(object, other, bitmask, stack);
+  return equalObjects(object, other, bitmask);
 };
 
-const baseIsEqual = function(value, other, bitmask, stack) {
+const baseIsEqual = function(value, other, bitmask) {
   if (value === other) return true;
   
   // eslint-disable-next-line eqeqeq
   if (value == null || other == null) return value !== value && other !== other;
 
-  return baseIsEqualDeep(value, other, bitmask, stack);
+  return baseIsEqualDeep(value, other, bitmask);
 };
 
 export default function isEqual(value, other) {

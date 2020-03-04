@@ -1004,8 +1004,8 @@ test('proxyWatcher: structures: Promise', async assert => {
   assert.end();
 });
 
-test.skip('proxyWatcher: structures: cyclical', assert => {
-  assert.plan(8);
+test('proxyWatcher: structures: cyclical', assert => {
+  assert.plan(9);
 
   const [proxy, watcher] = Watcher(function() {
     const parent = {
@@ -1023,25 +1023,25 @@ test.skip('proxyWatcher: structures: cyclical', assert => {
     return parent;
   }());
 
-  // NOTE: important to call this get for tests below
+  assert.ok(!!proxy, `can create a proxy with cyclical reference`);
   assert.is(proxy.children[0].parent.name, 'parent', `can access a cyclical reference`);
   assert.is(watcher.changes, 0);
-
+  
   proxy.name = 'p';
 
   assert.is(proxy.name, 'p', `non-cyclical value set`);
   assert.is(watcher.changes, 1, `only 1 change made`);
-  assert.deepEqual(watcher.paths, [
+  assert.isNotDeepEqual(watcher.paths, [
     ['name'],
-  ], `non-cyclical paths`);
+  ], `cyclical paths wont report the correct access path`);
 
   proxy.children[0].parent.name = 'root';
 
   assert.is(proxy.children[0].parent.name, 'root', `set cyclical value`);
   assert.is(watcher.changes, 2, `only 1 change made`);
-  assert.deepEqual(watcher.paths, [
+  assert.isNotDeepEqual(watcher.paths, [
     ['children', 0, 'parent', 'name'],
-  ], `cyclical paths`);
+  ], `cyclical paths wont report the correct access path`);
 
   assert.end();
 });

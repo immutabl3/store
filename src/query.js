@@ -1,5 +1,7 @@
 import StoreError from './StoreError';
 import {
+  get,
+  dynamicGet,
   indexOf,
   indexOfCompare,
 } from './utils';
@@ -9,7 +11,6 @@ import {
   isNumber,
   isFunction,
   isObject,
-  isObjectLike,
 } from './types';
 import {
   PATH_DELIMITER,
@@ -21,8 +22,18 @@ import {
 // (and to solve) before hashing, so it's simplified
 const hash = path => path.length ? path.join(PATH_DELIMITER) : '';
 
-const isDynamicPath = function(path) {
+const coerce = value => {
+  if (isArray(value)) return value;
+
+  const selector = isString(value) || isNumber(value) ? [value] : value;
+  if (!isArray(selector)) throw new StoreError(`invalid selector`, { selector: value });
+  
+  return selector;
+};
+
+const isDynamic = function(path) {
   for (const value of path) {
+    // TODO: should be able to simplify
     if (isFunction(value) || isObject(value)) return true;
   }
   return false;
@@ -32,32 +43,33 @@ const solvePath = (object, path) => {
   const solvedPath = [];
 
   let current = object;
-  let idx;
-  let i = 0;
-  const len = path.length;
 
-  for (; i < len; i++) {
-    if (!current) return solvedPath.concat(path.slice(i));
+  for (let idx = 0; idx < path.length; idx++) {
+    // eslint-disable-next-line eqeqeq
+    if (current == null) return solvedPath.concat(path.slice(idx));
 
-    if (isFunction(path[i])) {
+    const chunk = path[idx];
+    const type = typeof chunk;
+
+    if (type === 'function') {
       if (!isArray(current)) return [];
 
-      idx = indexOf(current, path[i]);
-      if (!~idx) return [];
+      const index = indexOf(current, chunk);
+      if (!~index) return [];
 
-      solvedPath.push(idx);
-      current = current[idx];
-    } else if (isObjectLike(path[i])) {
+      solvedPath.push(index);
+      current = current[index];
+    } else if (type === 'object') {
       if (!isArray(current)) return [];
 
-      idx = indexOfCompare(current, path[i]);
-      if (!~idx) return [];
+      const index = indexOfCompare(current, chunk);
+      if (!~index) return [];
 
-      solvedPath.push(idx);
-      current = current[idx];
+      solvedPath.push(index);
+      current = current[index];
     } else {
-      solvedPath.push(path[i]);
-      current = current[path[i]];
+      solvedPath.push(chunk);
+      current = current[chunk];
     }
   }
 
@@ -66,10 +78,15 @@ const solvePath = (object, path) => {
 
 export default {
   hash,
-  resolve(proxy, value) {
-    const selector = isString(value) || isNumber(value) ? [value] : value;
-    if (!isArray(selector)) throw new StoreError(`invalid selector`, { selector: value });
-    return isDynamicPath(selector) ? solvePath(proxy, selector) : selector;
+  coerce,
+  isDynamic,
+  solve(proxy, value) {
+    const selector = coerce(value);
+    return isDynamic(selector) ? solvePath(proxy, selector) : selector;
+  },
+  get(proxy, value) {
+    const selector = coerce(value);
+    return isDynamic(selector) ? dynamicGet(proxy, selector) : get(proxy, selector);
   },
   toString(root, selector) {
     return root ? `${root}${PATH_DELIMITER}${hash(selector)}` : hash(selector);

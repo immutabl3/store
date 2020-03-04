@@ -45,6 +45,7 @@ export const useBranch = function(value) {
   const ref = useRef(value);
 
   // TODO: try to find a way around this to get a faster equality check
+  // TODO: this should use its own equality checker (instead of utils)
   const isDirty = !isEqual(value, ref.current);
 
   if (isDirty) ref.current = value;
@@ -65,6 +66,8 @@ export const useBranch = function(value) {
     return dispose;
   }, [cursors]);
 
+  // TODO: this doesn't solve the useEffect mapping being incorrect if
+  // the mapping has changed
   if (isDirty) {
     const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
     return store.projection(mapping);
