@@ -9,12 +9,22 @@ import query from './query';
 export default function Dispatcher(emitter) {
   const emitChange = (map, list, root, proxy, fn) => {
     const hasRoot = !!root;
-    if (!hasRoot || (hasRoot && map.has(root))) {
-      fn({
+    
+    // no root, emit all changes
+    if (!hasRoot) {
+      return fn({
         transactions: list,
         target: proxy,
       });
     }
+
+    // not a root, check for transactions
+    if (!map.has(root)) return;
+    const transactions = map.get(root);
+    fn({
+      transactions,
+      target: proxy,
+    });
   };
 
   const getMapper = function([key, selector]) {

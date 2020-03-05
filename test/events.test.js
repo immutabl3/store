@@ -347,3 +347,138 @@ test('events: watch', async assert => {
 
   assert.end();
 });
+
+test('events: targeting', async assert => {
+  assert.plan(6);
+
+  const store = Store({
+    foo: { bar: { baz: true } },
+  });
+
+  store.onChange(e => {
+    assert.deepEqual(
+      e.target,
+      store.data,
+      `store: onChange`
+    );
+  });
+  store.watch({
+    hello: ['foo', 'bar'],
+  }, e => {
+    assert.deepEqual(
+      e.target, 
+      store.data,
+      `store: projection`  
+    );
+  });
+  store.watch(['foo', 'bar'], e => {
+    assert.deepEqual(
+      e.target, 
+      store.data,
+      `store: watch`  
+    );
+  });
+
+  const selection = store.select(['foo', 'bar']);
+  selection.onChange(e => {
+    assert.deepEqual(
+      e.target,
+      store.data.foo.bar,
+      `selection: onChange`
+    );
+  });
+  selection.watch({ hello: ['baz'] }, e => {
+    assert.deepEqual(
+      e.target,
+      store.data.foo.bar,
+      `selection: projection`
+    );
+  });
+  selection.watch(['baz'], e => {
+    assert.deepEqual(
+      e.target,
+      store.data.foo.bar,
+      `selection: watch`
+    );
+  });
+
+  store.data.foo.bar.baz = false;
+
+  await delay();
+
+  assert.end();
+});
+
+test('events: transaction order', async assert => {
+  assert.plan(3);
+
+  const store = Store({
+    one: 1,
+    foo: {
+      two: 2,
+      bar: {
+        three: 3,
+      },
+    },
+  });
+
+  store.onChange(e => {
+    assert.deepEqual(
+      e.transactions,
+      [
+        {
+          type: 'set',
+          path: ['one'],
+          value: [1],
+        },
+        {
+          type: 'set',
+          path: ['foo', 'two'],
+          value: [2],
+        },
+        {
+          type: 'set',
+          path: ['foo', 'bar', 'three'],
+          value: [3],
+        },
+      ],
+      `store transactions`
+    );
+  });
+  
+  store.watch(['foo', 'bar'], e => {
+    assert.deepEqual(
+      e.transactions, 
+      [
+        {
+          type: 'set',
+          path: ['foo', 'bar', 'three'],
+          value: [3],
+        },
+      ],
+      `watch transactions`  
+    );
+  });
+
+  store.select(['foo', 'bar']).onChange(e => {
+    assert.deepEqual(
+      e.transactions,
+      [
+        {
+          type: 'set',
+          path: ['foo', 'bar', 'three'],
+          value: [3],
+        },
+      ],
+      `selection transactions`
+    );
+  });
+
+  store.data.one = [1];
+  store.data.foo.two = [2];
+  store.data.foo.bar.three = [3];
+
+  await delay();
+
+  assert.end();
+});
