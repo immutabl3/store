@@ -8,6 +8,11 @@ import {
   isProjection,
 } from './types';
 
+const watchGet = function() {
+  const value = this.selector();
+  return isProjection(value) ? this.cursor.projection(value) : this.cursor.get(value);
+};
+
 const Cursor = function(proxy, lock, emitter, path) {
   this.path = path !== undefined ? query.coerce(path) : [];
   this.hash = this.path !== undefined ? query.hash(this.path) : '';
@@ -45,10 +50,8 @@ Cursor.prototype = {
 
     const disposer = this.emitter.add(fn, this.hash, this.data, selector);
 
-    disposer.get = () => {
-      const value = selector();
-      return isProjection(value) ? this.projection(value) : this.get(value);
-    };
+    disposer.get = watchGet;
+    disposer.cursor = this;
 
     return disposer;
   },
