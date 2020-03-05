@@ -18,9 +18,12 @@ export const Data = function(object) {
       return this;
     },
     watch(path = []) {
-      store.watch(path, ({ paths: changedPaths }) => {
+      store.watch(path, ({ transactions }) => {
         changes++;
-        paths = [...paths, ...changedPaths];
+        paths = [
+          ...paths,
+          ...transactions.map(({ path }) => path)
+        ];
       });
       return this;
     },
@@ -45,7 +48,7 @@ export const Data = function(object) {
 };
 
 test('watch: event data', async assert => {
-  assert.plan(2);
+  assert.plan(6);
 
   const store = Store({
     foo: 123,
@@ -55,10 +58,26 @@ test('watch: event data', async assert => {
   });
 
   store.watch(['foo'], e => {
-    assert.is(e.data, store.data.foo);
+    assert.deepEqual(e.target, store.data, `foo: target passed`);
+    assert.deepEqual(e.data, store.data.foo, `foo: data passed`);
+    assert.deepEqual(e.transactions, [
+      {
+        type: 'set',
+        path: ['foo'],
+        value: 1234,
+      }
+    ], `foo: transaction passed`);
   });
   store.watch(['bar'], e => {
-    assert.deepEqual(e.data, store.data.bar);
+    assert.deepEqual(e.target, store.data, `bar: target passed`);
+    assert.deepEqual(e.data, store.data.bar, `bar: data passed`);
+    assert.deepEqual(e.transactions, [
+      {
+        type: 'set',
+        path: ['bar', 'foo'],
+        value: true,
+      }
+    ], `bar: transaction passed`);
   });
 
   store.data.foo = 1234;
@@ -195,7 +214,7 @@ test('watch: complex selector', async assert => {
 
   assert.is(fixture.changes, 1);
   assert.deepEqual(fixture.paths, [
-    ['arr', 1],
+    ['arr', 1, 'bar'],
   ], `call made, selected object changed`);
 
   store.data.arr[1].foo = 0;
@@ -248,7 +267,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   assert.is(fixture.changes, 2);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'foo'],
   ]);
 
   store.data.bar.deep.push(4);
@@ -257,7 +276,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   assert.is(fixture.changes, 3);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'deep'],
   ]);
 
   store.data.bar.deep[0] = 2;
@@ -266,7 +285,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   assert.is(fixture.changes, 5, `2 watchers counts 2 changes`);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'deep', 0],
     ['bar', 'deep', 0],
   ], `found changes for both watchers`);
 
@@ -389,7 +408,7 @@ test(`watch: deep projection`, async assert => {
 
   assert.is(fixture.changes, 2);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'foo'],
   ]);
 
   store.data.bar.deep.push(4);
@@ -398,7 +417,7 @@ test(`watch: deep projection`, async assert => {
 
   assert.is(fixture.changes, 3);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'deep'],
   ]);
 
   store.data.bar.deep[0] = 2;
@@ -407,7 +426,7 @@ test(`watch: deep projection`, async assert => {
 
   assert.is(fixture.changes, 5);
   assert.deepEqual(fixture.paths, [
-    ['bar'],
+    ['bar', 'deep', 0],
     ['bar', 'deep', 0],
   ]);
 
@@ -428,6 +447,24 @@ test('watch: project on invalid paths', async assert => {
   await delay();
 
   assert.pass(`no change event fired`);
+
+  assert.end();
+});
+
+test('watch: passive values', async assert => {
+  const store = Store({
+    arr: [1],
+  });
+
+  store.watch(['arr', 'length'], () => {
+    assert.fail(`cannot watch a passively changing value`);
+  });
+
+  store.data.arr.push(2);
+
+  await delay();
+  
+  assert.pass(`a passive value does not trigger a change event`);
 
   assert.end();
 });

@@ -22,6 +22,7 @@ import {
 
 const makeTraps = function(onChange, cache) {  
   let paused = false;
+  let locked = false;
 
   const paths = new WeakMap();
   
@@ -47,7 +48,7 @@ const makeTraps = function(onChange, cache) {
     const path = fragmentToPath(parent, fragment);
     paths.set(child, getChildPath(parent, path));
   };
-  
+
   const traps = {
     get(target, property, rec) {
       // target access
@@ -91,7 +92,7 @@ const makeTraps = function(onChange, cache) {
       const changed = result && ((isValueUndefined && !didPropertyExist) || !isEqual(prev, value));
       if (!changed) return result;
       
-      onChange(getChildPath(target, property));
+      !locked && onChange(getChildPath(target, property), 'set', value, prev);
 
       return result;
     },
@@ -110,18 +111,19 @@ const makeTraps = function(onChange, cache) {
       };
       if (isEqual(prev, next)) return true;
       
-      onChange(getChildPath(target, property));
+      !locked && onChange(getChildPath(target, property), 'define', descriptor, prev);
 
       return changed;
     },
     deleteProperty(target, property) {
       if (!Reflect.has(target, property)) return true;
-      
+
+      const prev = Reflect.get(target, property);     
       const changed = Reflect.deleteProperty(target, property);
       if (isSymbol(property)) return changed;
       if (!changed) return changed;
       
-      onChange(getChildPath(target, property));
+      !locked && onChange(getChildPath(target, property), 'delete', undefined, prev);
 
       return changed;
     },
@@ -131,11 +133,29 @@ const makeTraps = function(onChange, cache) {
       if (isLooselyImmutableMethod(arg, target)) return Reflect.apply(target, thisArg, args);
 
       const clonedArg = clone(arg);
-      const result = Reflect.apply(target, arg, args);
+      
+      locked = true;
+      let result;
+      try {
+        result = Reflect.apply(target, arg, args);
+      } catch (err) {
+        locked = false;
+        throw err;
+      }
+      locked = false;
+
       const changed = !isEqual(clonedArg, arg);
       if (!changed) return result;
 
-      onChange(getParentPath(arg[$TARGET] || arg));
+      const val = arg[$TARGET] || arg;
+      const path = getParentPath(val);
+      onChange(
+        path,
+        target.name,
+        val,
+        clonedArg,
+        args
+      );
 
       return result;
     },

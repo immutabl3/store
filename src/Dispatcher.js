@@ -1,104 +1,86 @@
-import event from './event';
-import handler from './handler';
+// TODO: use Event
+// import Event from './Event';
 import { get } from './utils';
 import {
   isProjection,
 } from './types';
 import query from './query';
 
-const Dispatcher = function(proxy, onChange, path = []) {
-  const root = this.root = query.hash(path);
-  this.hasRoot = !!root;
-  this.emitter = handler();
-  this.proxy = proxy;
-  this.onChange = onChange;
+export default function Dispatcher(emitter) {
+  const emitChange = (map, list, root, proxy, fn) => {
+    const hasRoot = !!root;
+    if (!hasRoot || (hasRoot && map.has(root))) {
+      fn({
+        transactions: list,
+        target: proxy,
+      });
+    }
+  };
 
-  this.getMapper = ([key, selector]) => [key, get(proxy, selector)];
+  const getMapper = function([key, selector]) {
+    return [key, get(this, selector)];
+  };
   
-  this.projectionReducer = (memo, [key, value]) => {
-    const { map, paths, entries } = memo;
+  const projectionReducer = (memo, [key, value]) => {
+    const { root, proxy, map, transactions, entries } = memo;
     const selector = query.solve(proxy, value);
-    const path = query.toString(root, selector);
-    const hasPath = map.has(path);
-    if (hasPath) paths.push(selector);
+    const hash = query.toString(root, selector);
+    if (map.has(hash)) transactions.push(...map.get(hash));
     entries.push([key, selector]);
     return memo;
   };
-};
 
-Dispatcher.prototype = {
-  emitProjection(map, value, fn) {
+  const emitProjection = (map, root, proxy, value, fn) => {
     const {
-      paths,
+      transactions,
       entries,
     } = Object.entries(value)
-      .reduce(this.projectionReducer, {
+      .reduce(projectionReducer, {
         map,
-        paths: [],
+        root,
+        proxy,
+        transactions: [],
         entries: [],
       });
     
-    if (!paths.length) return;
+    if (!transactions.length) return;
 
-    fn(event(
-      paths,
-      Object.fromEntries(entries.map(this.getMapper))
-    ));
-  },
+    fn({
+      target: proxy,
+      transactions,
+      data: Object.fromEntries(entries.map(getMapper, proxy)),
+    });
+  };
 
-  emitSelection(map, value, fn) {
-    const {
-      root,
-      proxy
-    } = this;
-
+  const emitSelection = (map, root, proxy, value, fn) => {
     const selector = query.solve(proxy, value);
-    const path = query.toString(root, selector);
-    if (!map.has(path)) return;
+    const hash = query.toString(root, selector);
+    if (!map.has(hash)) return;
 
-    fn(event(
-      [selector],
-      get(proxy, selector)
-    ));
-  },
+    fn({
+      target: proxy,
+      transactions: map.get(hash),
+      data: get(proxy, selector),
+    });
+  };
 
-  dispatch(map, values) {
-    const {
-      root,
-      proxy,
-      hasRoot,
-      emitter,
-    } = this;
+  return transactions => {
+    const map = transactions.map();
+    const list = transactions.list();
 
-    if (!hasRoot || (hasRoot && map.has(root))) {
-      this.onChange(event(
-        values,
-        proxy,
-      ));
-    }
-
-    for (const [selectorFn, fn] of emitter.list()) {
-      const value = selectorFn();
-      if (isProjection(value)) {
-        this.emitProjection(map, value, fn);
+    for (const { fn, selector, proxy, root } of emitter.list()) {
+      if (!selector) {
+        emitChange(map, list, root, proxy, fn);
       } else {
-        this.emitSelection(map, value, fn);
+        const value = selector();
+        if (isProjection(value)) {
+          emitProjection(map, root, proxy, value, fn);
+        } else {
+          emitSelection(map, root, proxy, value, fn);
+        }
       }
     }
-  },
 
-  watcher(selector, cursor, fn) {
-    const entry = [selector, fn];
-    
-    const disposer = this.emitter.add(entry);
-
-    disposer.get = () => {
-      const value = selector();
-      return isProjection(value) ? cursor.projection(value) : cursor.get(value);
-    };
-
-    return disposer;
-  },
+    // TODO: clear event
+  };
 };
-
-export default Dispatcher;

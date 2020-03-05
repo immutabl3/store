@@ -1,41 +1,29 @@
 import StoreError from './StoreError';
 import query from './query';
-import Dispatcher from './Dispatcher';
-import handler from './handler';
 import { get } from './utils';
 import {
   isArray,
   isFunction,
   isObjectLike,
+  isProjection,
 } from './types';
 
-const Cursor = function(proxy, lock, schedule, path = []) {
-  this.emitter = handler();
-
-  const dispatcher = new Dispatcher(proxy, e => {
-    const arr = this.emitter.list();
-    for (let idx = 0; idx < arr.length; idx++) {
-      arr[idx](e);
-    }
-  }, path);
-  schedule.register(dispatcher);
-  
+const Cursor = function(proxy, lock, emitter, path) {
+  this.path = path !== undefined ? query.coerce(path) : [];
+  this.hash = this.path !== undefined ? query.hash(this.path) : '';
+  this.emitter = emitter;
   this.lock = lock;
-  this.listeners = [];
-  this.schedule = schedule;
-  this.path = path;
-  this.dispatcher = dispatcher;
   this.data = proxy;
 };
 
 Cursor.prototype = {
   onChange(fn) {
-    return this.emitter.add(fn);
+    return this.emitter.add(fn, this.hash, this.data);
   },
 
   select(value) {
     const {
-      schedule,
+      emitter,
       path,
       data,
       lock,
@@ -46,16 +34,23 @@ Cursor.prototype = {
     
     lock.lock();
     // eslint-disable-next-line no-use-before-define
-    const cursor = new Cursor(get(data, selector), lock, schedule, [...path, ...selector]);
+    const cursor = new Cursor(get(data, selector), lock, emitter, [...path, ...selector]);
     lock.unlock();
     
     return cursor;
   },
 
   watch(listener, fn) {
-    const { dispatcher } = this;
     const selector = isFunction(listener) ? listener : () => listener;
-    return dispatcher.watcher(selector, this, fn);
+
+    const disposer = this.emitter.add(fn, this.hash, this.data, selector);
+
+    disposer.get = () => {
+      const value = selector();
+      return isProjection(value) ? this.projection(value) : this.get(value);
+    };
+
+    return disposer;
   },
 
   projection(path) {

@@ -1,44 +1,21 @@
-import event from './event';
 import {
-  permute,
   defer,
 } from './utils';
-import query from './query';
+import Transactions from './Transactions';
 
-export default function scheduler(asynchronous, autoCommit) {
+export default function scheduler(dispatcher, asynchronous, autoCommit) {
   let debug;
   let processing;
-  let locker;
   
-  const paths = [];
-  const dispatchers = [];
-  const map = new Map();
+  const transactions = Transactions();
   
   const process = () => {
-    if (!paths.length) return (processing = false);
+    if (!transactions.size()) return (processing = false);
 
-    for (const path of paths) {
-      const initialPath = query.hash(path);
-      if (map.has(initialPath)) continue;
-      
-      const permutations = permute(path);
-      for (const path of permutations) {
-        map.set(query.hash(path), path);
-      }
-    }
+    dispatcher(transactions);
 
-    const values = dispatchers.length ? Array.from(map.values()) : [];
-
-    locker.lock();
-    for (const dispatcher of dispatchers) {
-      dispatcher.dispatch(map, values);
-    }
-    locker.unlock();
-
-    event.reset();
-    paths.length = 0;
+    transactions.clear();
     processing = false;
-    map.clear();
     debug && debug();
   };
 
@@ -57,17 +34,9 @@ export default function scheduler(asynchronous, autoCommit) {
     debug(bug) {
       debug = bug;
     },
-    
-    locker(lock) {
-      locker = lock;
-    },
 
-    register(dispatcher) {
-      dispatchers.push(dispatcher);
-    },
-
-    add(path) {
-      paths.push(path);
+    add(path, type, current, previous, args) {
+      transactions.add(path, type, current, previous, args);
       autoCommit && commit();
     },   
   };

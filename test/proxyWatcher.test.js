@@ -681,50 +681,16 @@ test('proxyWatcher: structures: Array', assert => {
   proxy.arr.splice(0, 1, 2);
   proxy.arr.unshift(5);
 
-  assert.is(watcher.changes, 44);
+  assert.is(watcher.changes, 10);
   assert.deepEqual(watcher.paths, [
-    ['arr', 0],
     ['arr'],
-    ['arr', 0],
-    ['arr', 1],
-    ['arr', 2],
-    ['arr', 3],
-    ['arr', 4],
-    ['arr', 5],
-    ['arr', 6],
-    ['arr', 7],
-    ['arr', 8],
-    ['arr', 9],
     ['arr'],
-    ['arr', 9],
-    ['arr', 'length'],
     ['arr'],
-    ['arr', 9],
-    ['arr', 10],
-    ['arr', 11],
     ['arr'],
-    ['arr', 0],
-    ['arr', 11],
-    ['arr', 1],
-    ['arr', 10],
-    ['arr', 2],
-    ['arr', 9],
     ['arr'],
-    ['arr', 0],
-    ['arr', 1],
-    ['arr', 2],
-    ['arr', 11],
-    ['arr', 'length'],
     ['arr'],
-    ['arr', 0],
-    ['arr', 1],
     ['arr'],
-    ['arr', 0],
     ['arr'],
-    ['arr', 11],
-    ['arr', 2],
-    ['arr', 1],
-    ['arr', 0],
     ['arr'],
   ]);
 
@@ -1042,6 +1008,183 @@ test('proxyWatcher: structures: cyclical', assert => {
   assert.isNotDeepEqual(watcher.paths, [
     ['children', 0, 'parent', 'name'],
   ], `cyclical paths wont report the correct access path`);
+
+  assert.end();
+});
+
+test('proxyWatcher: event meta', async assert => {
+  const tests = {
+    set() {
+      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+        assert.deepEqual(path, ['foo'], `set: path`);
+        assert.is(type, 'set', `set: type`);
+        assert.is(value, 'baz', `set: value`);
+        assert.is(previousValue, 'bar', `set: previousValue`);
+      });
+
+      proxy.foo = 'baz';
+    },
+    delete() {
+      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+        assert.deepEqual(path, ['foo'], `delete: path`);
+        assert.is(type, 'delete', `delete: type`);
+        assert.is(value, undefined, `delete: value`);
+        assert.is(previousValue, 'bar', `delete: previousValue`);
+      });
+
+      delete proxy.foo;
+    },
+    defineNew() {
+      const proxy = watch({}, (path, type, value, previousValue) => {
+        assert.deepEqual(path, ['foo'], `defineNew: path`);
+        assert.is(type, 'define', `defineNew: type`);
+        assert.deepEqual(value, {
+          configurable: true,
+          value: true,
+        }, `defineNew: value`);
+        assert.is(previousValue, undefined, `defineNew: previousValue`);
+      });
+
+      Object.defineProperty(proxy, 'foo', {
+        configurable: true,
+        value: true,
+      });
+    },
+    defineExisting() {
+      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+        assert.deepEqual(path, ['foo'], `defineExisting: path`);
+        assert.is(type, 'define', `defineExisting: type`);
+        assert.deepEqual(value, {
+          configurable: true,
+          value: 'baz',
+        }, `defineExisting: value`);
+        assert.deepEqual(previousValue, {
+          configurable: true,
+          enumerable: true,
+          value: 'bar',
+          writable: true,
+        }, `defineExisting: previousValue`);
+      });
+
+      Object.defineProperty(proxy, 'foo', {
+        configurable: true,
+        value: 'baz',
+      });
+    },
+    pop() {
+      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `pop: path`);
+        assert.is(type, 'pop', `pop: type`);
+        assert.deepEqual(value, [], `pop: value`);
+        assert.deepEqual(previousValue, [1], `pop: previousValue`);
+        assert.deepEqual(args, [], `pop: arguments`);
+      });
+
+      proxy.foo.pop();
+    },
+    shift() {
+      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `shift: path`);
+        assert.is(type, 'shift', `shift: type`);
+        assert.deepEqual(value, [], `shift: value`);
+        assert.deepEqual(previousValue, [1], `shift: previousValue`);
+        assert.deepEqual(args, [], `shift: arguments`);
+      });
+
+      proxy.foo.shift();
+    },
+    sort() {
+      const proxy = watch({ foo: [3, 5, 1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `sort: path`);
+        assert.is(type, 'sort', `sort: type`);
+        assert.deepEqual(value, [1, 3, 5], `sort: value`);
+        assert.deepEqual(previousValue, [3, 5, 1], `sort: previousValue`);
+        assert.deepEqual(args, [], `sort: arguments`);
+      });
+
+      proxy.foo.sort();
+    },
+    reverse() {
+      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `reverse: path`);
+        assert.is(type, 'reverse', `reverse: type`);
+        assert.deepEqual(value, [3, 2, 1], `reverse: value`);
+        assert.deepEqual(previousValue, [1, 2, 3], `reverse: previousValue`);
+        assert.deepEqual(args, [], `reverse: arguments`);
+      });
+
+      proxy.foo.reverse();
+    },
+    splice() {
+      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `splice: path`);
+        assert.is(type, 'splice', `splice: type`);
+        assert.deepEqual(value, [2, 2, 3], `splice: value`);
+        assert.deepEqual(previousValue, [1, 2, 3], `splice: previousValue`);
+        assert.deepEqual(args, [0, 1, 2], `splice: arguments`);
+      });
+
+      proxy.foo.splice(0, 1, 2);
+    },
+    unshift() {
+      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `unshift: path`);
+        assert.is(type, 'unshift', `unshift: type`);
+        assert.deepEqual(value, [5, 1], `unshift: value`);
+        assert.deepEqual(previousValue, [1], `unshift: previousValue`);
+        assert.deepEqual(args, [5], `unshift: arguments`);
+      });
+
+      proxy.foo.unshift(5);
+    },
+    pushSingle() {
+      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `pushSingle: path`);
+        assert.is(type, 'push', `pushSingle: type`);
+        assert.deepEqual(value, [1, 5], `pushSingle: value`);
+        assert.deepEqual(previousValue, [1], `pushSingle: previousValue`);
+        assert.deepEqual(args, [5], `pushSingle: arguments`);
+      });
+
+      proxy.foo.push(5);
+    },
+    pushMultiple() {
+      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `pushMultiple: path`);
+        assert.is(type, 'push', `pushMultiple: type`);
+        assert.deepEqual(value, [1, -1, -2, -3], `pushMultiple: value`);
+        assert.deepEqual(previousValue, [1], `pushMultiple: previousValue`);
+        assert.deepEqual(args, [-1, -2, -3], `pushMultiple: arguments`);
+      });
+
+      proxy.foo.push(-1, -2, -3);
+    },
+    add() {
+      const proxy = watch({ foo: new Set([1]) }, (path, type, value, previousValue, args) => {
+        assert.deepEqual(path, ['foo'], `add: path`);
+        assert.is(type, 'add', `add: type`);
+        assert.deepEqual(value.size, 2, `add: value`);
+        assert.deepEqual(previousValue.size, 1, `add: previousValue`);
+        assert.deepEqual(args, [2], `add: arguments`);
+      });
+
+      proxy.foo.add(2);
+    },
+    clear() {
+      const proxy = watch({ foo: new Map([['1', 1]]) }, (path, type, value, previousValue, args) => {
+        debugger;
+        assert.deepEqual(path, ['foo'], `clear: path`);
+        assert.is(type, 'clear', `clear: type`);
+        assert.deepEqual(value.size, 0, `clear: value`);
+        assert.deepEqual(previousValue.size, 1, `clear: previousValue`);
+        assert.deepEqual(args, [], `clear: arguments`);
+      });
+
+      proxy.foo.clear();
+    },
+  };
+
+  Object.values(tests).forEach(fn => fn());
 
   assert.end();
 });

@@ -3,7 +3,7 @@ import Store from '../src';
 import { delay } from './utils';
 
 test('change: fires a change event when a mutation is made', async assert => {
-  assert.plan(39);
+  assert.plan(55);
 
   const noMutation = [
     proxy => (proxy.foo = 123),
@@ -63,7 +63,8 @@ test('change: fires a change event when a mutation is made', async assert => {
 
     // eslint-disable-next-line no-loop-func
     store.onChange(e => {
-      assert.deepEqual(e.data, store.data, `data passed`);
+      assert.ok(!!e.transactions.length, `transaction made`);
+      assert.deepEqual(e.target, store.data, `target passed`);
       calls++;
     });
 

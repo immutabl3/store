@@ -33,7 +33,6 @@ const coerce = value => {
 
 const isDynamic = function(path) {
   for (const value of path) {
-    // TODO: should be able to simplify
     if (isFunction(value) || isObject(value)) return true;
   }
   return false;

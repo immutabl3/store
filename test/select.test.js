@@ -17,7 +17,7 @@ const Changes = () => {
 };
 
 test('select: basics', async assert => {
-  assert.plan(11);
+  assert.plan(13);
 
   const store = Store({
     foo: 123,
@@ -36,12 +36,31 @@ test('select: basics', async assert => {
   store.onChange(() => changes.push('main'));
   
   const selection = store.select(['bar', 'deep']);
-  selection.onChange(e => {
-    assert.deepEqual(e.data, store.data.bar.deep, `selection change`);
+  const bazChange = e => {
+    assert.deepEqual(e.target, store.data.bar.deep, `selection: onChange: target`);
+    assert.deepEqual(e.transactions, [
+      {
+        type: 'set',
+        path: ['bar', 'deep', 'baz'],
+        value: -1,
+      }
+    ], `selection: onChange: transactions`);
     changes.push('sub');
-  });
+  };
+  const bizChange = e => {
+    assert.deepEqual(e.target, store.data.bar.deep, `selection: onChange: target`);
+    assert.deepEqual(e.transactions, [
+      {
+        type: 'set',
+        path: ['bar', 'deep', 'biz', 'deepest'],
+        value: -1,
+      }
+    ], `selection: onChange: transactions`);
+    changes.push('sub');
+  };
+  const disposer = selection.onChange(bazChange);
   selection.watch(['baz'], e => {
-    assert.deepEqual(e.data, store.data.bar.deep.baz, `selection watch`);
+    assert.deepEqual(e.target, store.data.bar.deep, `selection: watch: target`);
     changes.push('watch');
   });
 
@@ -75,9 +94,12 @@ test('select: basics', async assert => {
   const postGet = selection.get(['baz']);
   assert.is(postGet, -1, `post mutation get`);
 
+  disposer();
+  selection.onChange(bizChange);
+
   const subSelection = selection.select(['biz']);
   subSelection.onChange(e => {
-    assert.deepEqual(e.data, store.data.bar.deep.biz, `sub selection change`);
+    assert.deepEqual(e.target, store.data.bar.deep.biz, `sub selection change`);
     changes.push('subsub');
   });
 
