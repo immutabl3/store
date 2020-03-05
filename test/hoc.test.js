@@ -111,7 +111,7 @@ test('branch: projection', async assert => {
 test('branch: dynamic', async assert => {
   dom();
 
-  assert.plan(9);
+  assert.plan(12);
 
   const App = branch({
     index: 'value',
@@ -154,6 +154,14 @@ test('branch: dynamic', async assert => {
   assert.is(api.store.data.value, 1, `store decremented to 1`);
   assert.is(getValue(), 'bar', `rendered value is arr[1]`);
   assert.is(api.renders, 3, `only 1 render occurred`);
+
+  api.store.data.value = 2;
+
+  await delay();
+
+  assert.is(api.store.data.value, 2, `store value assigned 2`);
+  assert.is(getValue(), 'baz', `rendered value is arr[2]`);
+  assert.is(api.renders, 4, `only 1 render occurred`);
 
   assert.end();
 });

@@ -18,10 +18,12 @@ import {
   $RESUME,
 } from './consts';
 
-// TODO: how to optimize further?
-
 const makeTraps = function(onChange, cache) {  
+  // paused comed from the outside to optimize gets
   let paused = false;
+  // locks comes from internal (from using Reflect.apply)
+  // to prevent multiple changes from being fired for a 
+  // single application of values
   let locked = false;
 
   const paths = new WeakMap();

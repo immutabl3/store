@@ -44,10 +44,9 @@ export const useBranch = function(value) {
   // https://blog.logrocket.com/rethinking-hooks-memoization/
   const ref = useRef(value);
 
-  // TODO: try to find a way around this to get a faster equality check
-  // TODO: this should use its own equality checker (instead of utils)
+  // we need to check if the stored values have changed
+  // and refresh the data accordingly
   const isDirty = !isEqual(value, ref.current);
-
   if (isDirty) ref.current = value;
 
   const { current: cursors } = ref;
@@ -64,10 +63,10 @@ export const useBranch = function(value) {
     });
 
     return dispose;
-  }, [cursors]);
+  }, [
+    cursors,
+  ]);
 
-  // TODO: this doesn't solve the useEffect mapping being incorrect if
-  // the mapping has changed
   if (isDirty) {
     const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
     return store.projection(mapping);

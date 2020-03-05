@@ -8,5 +8,5 @@ import './debug.test';
 import './get.test';
 import './select.test';
 import './store.test';
-// import './hooks.test';
-// import './hoc.test';
+import './hooks.test';
+import './hoc.test';
