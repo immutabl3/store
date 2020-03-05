@@ -1,6 +1,12 @@
-# Store
+# @immutabl3/store
 
-a simple, modern state management library
+Store is a modern, [Proxy-based](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) JavaScript data tree supporting cursors and enabling developers to easily navigate and monitor nested data though events
+
+It's a combination and evolution of the work done in [fabiospampinato/store](https://github.com/fabiospampinato/store) and [Yomguithereal/baobab](https://github.com/Yomguithereal/baobab) with a focus on performance and size with a loosely coupled API
+
+It aims at providing a centralized model holding an application's state and can be paired with [**React**](#react) easily through [hooks](#react-hooks) and [higher order components](#react-hoc)
+
+
 
 ## Install
 
@@ -8,269 +14,766 @@ a simple, modern state management library
 npm install @immutabl3/store
 ```
 
-## Features
+`store` is ~`5.1`kb minified and gzipped 
 
-- **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to our usage of [`Proxy`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)s you just have to wrap your state with [`store`](#store), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`onChange`](#onchange) or [`useStore`](#usestore).
-- **Framework-agnostic**: Store doesn't make any assuptions about your UI framework of choice, in fact it can also be used without one.
-- **React support**: an hook for React is provided, because that's the UI framework I'm using. Support for other UI frameworks can be added easily, PRs are very welcome.
 
-Read more about how Store compares against other libraries in the [FAQ](#faq) section below.
+
+## Quick Start
+
+```js
+import Store from '@immutabl3/store'
+
+// initialize the store
+const store = Store({
+  palette: {
+    colors: ['green', 'red'],
+    name: 'Glorious colors'
+  }
+});
+
+// listen to all changes in the store
+store.onChange(({ transactions }) => {
+  console.log('the store has been updated!', transactions);
+});
+
+// data is the object passed to Store, wrapped in a Proxy
+const { data } = store;
+
+// manipulate the data as plain-old-javascript
+data.palette.colors.push('blue');
+> ['green', 'red', 'blue']
+  
+// type checks work as well
+Array.isArray(data.palette.colors);
+> true
+```
+
+
+
+## Summary
+
+- [Usage](#usage)
+  - [instantiation](#instantiation)
+  - [cursors](#cursors)
+  - [onChange](#onChange)
+  - [watch](#watch)
+  - [projection](#projection)
+  - [events](#events)
+    - [target](#target)
+    - [data](#data)
+    - [transactions](#transactions)
+  - [debug](#debug)
+- [React](#react)
+  - [Hooks](#hooks)
+  - [HOC](#hoc)
+- [Features](#features)
+- [Philosophy](#philosophy)
+- [Notes](#notes)
+- [Test](#test)
+- [Benchmark](#benchmark)
+- [Contribution](#contribution)
+- [License](#license)
+
+
 
 ## Usage
 
-- Core
-  - [`store`](#store)
-  - [`onChange`](#onchange)
-  - [`debug`](#debug)
-  - [`Hooks`](#hooks)
-- Extra/React
-  - [`useStore`](#usestore)
+### instantiation
 
-### Core
-
-#### `store`
-
-The first step is wrapping the objects containing the state of your app with the `store` function, this way Store will be able to transparently detect when mutations occur.
-
-Example usage:
+Creating a store is as simple as instantiating _Store_ with an initial data set.
 
 ```js
-import {store} from 'store';
+import Store from '@immutabl3/store';
 
-const CounterApp = {
-  store: store ({ value: 0 }),
-  increment: () => CounterApp.store.value += 1,
-  decrement: () => CounterApp.store.value -= 1
-};
+const store = Store({ hello: 'world' });
+
+// data is your store's data
+store.data
+> {hello: "world"}
 ```
 
-- ℹ️ The object passed to `store` can contain a variety of values:
-  - These are fully supported: [primitives](https://developer.mozilla.org/en-US/docs/Glossary/Primitive), [functions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions), [getters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/get), [setters](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/set), [Dates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date), [RegExps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp), [Objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object), [Arrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array), [ArrayBuffers](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer), [TypedArrays](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray), [Maps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map) and [Sets](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set).
-  - These are partially supported: [Promises](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise), [WeakMaps](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakMap) and [WeakSets](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakSet). Basically mutations happening inside them won't be detected, however setting any of these as a value will be detected as a mutation.
-- ℹ️ `store` will wrap your object with a [`Proxy`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Proxy), which will detect mutations, and return a proxied object.
-- ℹ️ Never mutate the raw object passed to `store` directly, as those mutations won't be detected, always go through the proxied object returned by `store` instead. I'd suggest you to wrap your raw objects with `store` immediately so you won't even keep a reference to them.
-- ℹ️ In order to trigger a change simply mutate the proxied object returned by `store` as if it was a regular object.
-- ℹ️ Mutations happening at locations that need to be reached via a [Symbol](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol) aren't detected (e.g. `{ [Symbol ()]: { undetected: true }`).
 
-#### `onChange`
 
-Next you'll probably want to listen for changes to your stores, the `onChange` function is how you do that in a framework-agnostic way.
+An `options` object can be passed as a second parameter to the store to change behavior:
 
-This is its interface:
+- asynchronous, default:  `true` - whether events should be fired asynchonously
+- autoCommit, default: `true` - whether the store should automatically trigger changes when the data is changed
+- debug, default: `undefined` - the [logger](#debug) for tracking changes
 
-```js
-// No selector, listen to all changes
-function onChange ( store: Store, listener: ( data: Store ) => any ): Disposer;
-// With selector, listen to only changes that cause the value returned by the selector to change
-function onChange ( store: Store, selector: ( store: Store ) => Data, listener: ( data: Data ) => any ): Disposer;
-```
 
-- The `store` argument is a proxied object retuned by the [`store`](#store) function.
-- The `listener` argument is the function that will be called when a change to the store occurs. It will be called with the value returned by the `selector`, if a selector was provided, or with the entire store otherwise.
-- The `selector` optional argument is a function that computes some value that will be passed to the listener as its first argument. It's called with the store as its first argument.
-- The return value is a disposer, a function that when called will terminate this specific listening operation.
 
-Example usage:
+### cursors
+
+You can create cursors to easily access nested data in your tree and listen to changes concerning the part of the tree selected
 
 ```js
-import {store, onChange} from 'store';
-
-const CounterApp = {
-  store: store ({ value: 0 }),
-  increment: () => CounterApp.store.value += 1,
-  decrement: () => CounterApp.store.value -= 1
-};
-
-// No selector
-
-const disposer1 = onChange ( CounterApp.store, store => {
-  console.log ( 'Value changed, new value:', store.value );
-  disposer1 (); // Preventing this listener to be called again
+// considering the following store
+const store = Store({
+  palette: {
+    name: 'fancy',
+    colors: ['blue', 'yellow', 'green'],
+  },
 });
 
-// With selector
+// creating a cursor on the palette
+var paletteCursor = tree.select(['palette']);
+paletteCursor.get();
+> {name: 'fancy', colors: ['blue', 'yellow', 'green']}
 
-const disposer2 = onChange ( CounterApp.store, store => store.value % 2 === 0, isEven => {
-  console.log ( 'Is the new value even?', isEven );
+// creating a cursor on the palette's colors
+var colorsCursor = tree.select(['palette', 'colors']);
+colorsCursor.get();
+> ['blue', 'yellow', 'green']
+
+// creating a cursor on the palette's third color
+var thirdColorCursor = tree.select(['palette', 'colors', 2]);
+thirdColorCursor.get();
+> 'green'
+
+// note that you can also perform subselections if needed
+const colorCursor = paletteCursor.select('colors');
+```
+
+
+
+### onChange
+
+A store can be watched for changes
+
+```js
+const store = Store({
+  user: {
+    name: 'John',
+  },
 });
 
-CounterApp.increment (); // This will cause a mutation, causing the listeners to be called
-CounterApp.increment (); // This will cause another mutation, but the listeners will still be called once as these mutations are occurring in a single event loop tick
+const { data } = store;
 
-setTimeout ( CounterApp.increment, 100 ); // This will cause the remaining listener to be called again
-```
-
-- ℹ️ Using a selector that retrieves only parts of the store will improve performance.
-- ℹ️ It's possible that the listener will be called even if the object returned by the selector, or the entire store, didn't actually change.
-- ℹ️ Calls to `listener`s are automatically coalesced and batched together for performance, so if you synchronously, i.e. within a single event loop tick, mutate a store multiple times and there's a listener listening for those changes that listener will only be called once.
-
-#### `debug`
-
-`debug` provides a simple way to access your stores and see at a glance how and when they change from the DevTools.
-
-![Debug](resources/debug.png)
-
-This is its interface:
-
-```js
-type Global = {
-  stores: Store[], // Access all stores
-  log: () => void // Log all stores
-};
-
-type Options = {
-  collapsed: true, // Whether the logged groups should be collapsed
-  logStoresNew: false, // Whether to log new store that have been created
-  logChangesDiff: true, // Whether to log diffs (added, updated, removed) state changes
-  logChangesFull: false // Whether to log the previous and current state in their entirity
-};
-
-function debug ( options?: Options ): Global;
-```
-
-Example usage:
-
-```js
-import {debug} from 'store';
-
-debug ();
-```
-
-Once called, `debug` defines a global object named `STORE`, which you can then access from the DevTools, and returns it.
-
-Example usage:
-
-```js
-STORE.stores[0].value += 1; // Manually triggering a mutation
-STORE.log (); // Logging all stores to the console
-```
-
-- ℹ️ It's important to call `debug` before creating any stores.
-- ℹ️ It's important to call `debug` only during development, as it may perform some potentially slow computations.
-
-#### `Hooks`
-
-`Hooks` provides a simple way to "hook" into Store's internal events.
-
-Each hook has the following interface:
-
-```js
-class Hook {
-  subscribe ( listener: Function ): Disposer
-}
-```
-
-- `subscribe` registers a function for being called every time that hook is triggered.
-  - The returned value is a disposer, a function that when called will terminate this specific subscription.
-
-These are all the currently available hooks:
-
-```js
-const Hooks = {
-  store: {
-    change: Hook, // Triggered whenever a store is mutated
-    new: Hook // Triggered whenever a new store is created. This hook is used internally for implementing `debug`
-  }
-};
-```
-
-Example usage:
-
-```js
-import {Hooks} from 'store';
-
-const disposer = Hooks.store.new.subscribe ( store => {
-  console.log ( 'New store:', store );
+// will fire when the store changes
+store.onChange(() => {
+	console.log(`user's name is ${data.user.name}`);
+  > `user's name is Jane`
 });
 
-disposer ();
+data.user.name = 'Jane';
 ```
 
-If you need some more hooks for your Store plugin let me know and I'll make sure to add them.
 
-We currently don't have an official "Store DevTools Extension", but it would be super cool to have one. Perhaps it could provide a GUI for [`debug`](#debug)'s functionalities, and/or implement other features like time-travel debugging. If you're interesting in developing this please do get in touch! 😃
 
-### Extra/React
-
-These extra features, intended to be used with React, are available from a dedicated subpackage.
-
-#### `useStore`
-
-`useStore` is a React [hook](https://reactjs.org/docs/hooks-intro.html) for accessing a store's values from within a functional component in a way that makes the component re-render whenever those values change.
-
-This is its interface:
+[cursors](#cursors) can be watched as well. A cursor's change event will only fire if the target object has changed
 
 ```js
-// No selector, re-render after any change
-function useStore ( store: Store ): Store;
-// With selector, re-render only after changes that cause the value returned by the selector to change
-function useStore ( store: Store, selector: ( store: Store ) => Data, dependencies: ReadonlyArray<any> = [] ): Data;
+const store = Store({
+  user: {
+    name: 'John',
+  },
+});
+
+// listen to the user
+const userCursor = store.select(['user']);
+userCursor.onChange(() => {
+  console.log(`user's name is ${userCursor.data.name}`);
+  > `user's name is Jane`
+});
+
+// listen to a specific value
+store.select(['user', 'name'])
+  .onChange(() => {
+    console.log(`user's name is ${store.data.user.name}`);
+		> `user's name is Jane`
+  });
+
+// change the data at the cursor level
+cursor.data.name = 'Jane';
+// or at the store level
+store.data.user.name = 'Jane';
 ```
 
-- The `store` argument is a proxied object retuned by the [`store`](#store) function.
-- The `selector` optional argument if a function that computes some value that will be the return value of the hook. It's called with the store as its first argument.
-- The `dependencies` optional argument is an array of dependencies used to inform React about any objects your selector function will reference from outside of its innermost scope, ensuring the selector gets called again if any of those change.
-- The return value is whatever `selector` returns, if a selector was provided, or the entire store otherwise.
 
-Example usage:
+
+`onChange` returns a disposer. When called, the disposer will unbind the function
+
+```js
+const store = Store({ counter: 1 });
+
+const dispose = store.onChange(() => {
+  console.log(store.data.counter);
+});
+
+store.data.counter = 2;
+> 2
+
+dispose();
+
+store.data.counter = 3;
+// event is not called
+```
+
+
+
+###watch
+
+`watch` is similar to `onChange`, but allows you to watch one or more values
+
+```js
+const store = Store({
+  user: {
+    name: 'John',
+  },
+});
+
+// listen to the name change
+store.watch(['user', 'name'], () => {
+  console.log(`user's name is ${store.data.user.name}`);
+  > `user's name is Jane`
+});
+
+store.data.user.name = 'Jane';
+```
+
+
+
+An object can be used to listen to multiple values. Each key of the object will be mapped to the changed data (for more info, see [Events](#events))
+
+```js
+const store = Store({
+  user: {
+    name: 'John',
+    age: 50,
+  },
+});
+
+
+store.watch({
+  person: ['user', 'name'],
+  years: ['user', 'age'],
+// event will fire when either user.name or user.age change
+}, e => {
+  console.log(`${e.data.person} is ${e.data.years} years old`);
+  > `Jane is 30 years old`
+});
+
+store.data.user.name = 'Jane';
+```
+
+
+
+`watch` returns a disposer. When called, the disposer will unbind the function
+
+```js
+const store = Store({ counter: 1 });
+
+const dispose = store.watch(['counter'], e => {
+  console.log(e.data);
+});
+
+store.data.counter = 2;
+> 2
+
+dispose();
+
+store.data.counter = 3;
+// event is not called
+```
+
+
+
+###projection
+
+`projection` takes an object with paths and saturates the object with the current state of the store
+
+```js
+const store = Store({
+  user: {
+    name: 'John',
+    age: 50,
+  },
+});
+
+
+const result = store.projection({
+  person: ['user', 'name'],
+  years: ['user', 'age'],
+});
+
+console.log(`${result.person} is ${result.years} years old`);
+> `Jane is 30 years old`
+```
+
+
+
+### events
+
+Every listener is passed an event object. The event contains:
+
+#### target
+
+The proxy target for the event
+
+```js
+const store = Store({ foo: { bar: 'baz' } });
+
+store.onChange(e => {
+	e.target === store.data
+  > true
+});
+
+store.watch(['foo'], e => {
+  e.target === store.data.foo
+  > true
+});
+
+const cursor = store.select(['foo']);
+cursor.onChange(e => {
+	e.target === cursor.data
+  > true
+});
+
+store.data.foo.bar = 'buz';
+```
+
+
+
+#### data
+
+Contains the data for the selector passed - pertinent if using [`watch`](#watch)
+
+```js
+const store = Store({ hello: 'universe' });
+
+store.watch(['hello'], e => {
+	e.data === 'world'
+  > true
+});
+
+store.data.hello = 'world;
+```
+
+For an [`onChange`](#onChange) event, this is the same as `target`
+
+
+
+#### transactions
+
+A list of all changes made to the object (and its children) since the last event. Each transaction tracks the mutations made to the object sequentially, tracking the type of operation, the path of the change and the value/args used to make the change.
+
+```js
+const store = Store({
+  val: 0,
+  arr: [0],
+});
+
+store.watch(['hello'], e => {
+	console.log(e.transactions);
+	/* 
+  [
+    {
+      type: 'set',
+      path: ['val'],
+      value: 1,
+    },
+    {
+      type: 'push',
+      path: ['arr'],
+      value: [1],
+    }
+  ]
+  */
+});
+
+store.data.val = 1;
+store.data.arr.push(1);
+```
+
+Using a [cursor](#cursor) or [watching](#watch) values will only report transactions pertinent to that position in the store
+
+
+
+### debug
+
+The debugger is a separate module that can be configured and passed to the store to enable debugging. It will log updates, additions and deletions between the previous and new state on commit.
+
+It's not recommended to use `debug` in production, as it clones the store state on every commit and increases code size.
+
+```js
+import Store from '@immutabl3/store';
+import debug from '@immutabl3/store/debug';
+```
+
+`debug` can be passed on options object:
+
+- diffs, default: `true` - whether to log the diffs between the old and new state
+- full, default: `false` - whether to log the entirety of the old and new state
+- collapsed, default: `true` - will call `log.groupCollapsed` when `true`, `log.group` when `false`
+- log, default: `console` - what to use to log the debug statements. Overwriting this will need to implement the following console methods: `log`, `group`, `groupCollapsed` and `groupEnd`
+
+
+
+## React
+
+React integration can be done with [hooks](#hooks) or [higher-order components](#hoc). Note that higher-order components implements hooks under-the-hood. See `peerDependencies` in the [package.json](./package.json) for supported React versions
+
+### Hooks
+
+####Creating the app's state
+
+Let's create a **store** for our colors:
+
+*state.js*
+
+```js
+import Store from '@immutabl3/store';
+
+export default Store({
+  colors: ['yellow', 'blue', 'orange']
+});
+```
+
+####Rooting the store
+
+Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
+
+Under the hood, this component will simply propagate the store to its descendants using React's context so that "branched" components may subscribe to updates of parts of the store afterwards.
+
+*main.jsx*
 
 ```jsx
-import {store, onChange} from 'store';
-import {useStore} from 'store/x/react';
+import React from 'react';
+import { render } from 'react-dom';
+import { useRoot } from '@immutabl3/store/react';
+import store from './state';
 
-const CounterApp = {
-  store: store ({ value: 0 }),
-  increment: () => CounterApp.store.value += 1,
-  decrement: () => CounterApp.store.value -= 1
-};
+// we will write this component later
+import List from './list.jsx';
 
-// No selector
-
-const CounterComponent1 = () => {
-  const {value} = useStore ( ConunterApp.store );
+// creating our top-level component
+const App = function({ store }) {
+  // useRoot takes the store and provides a component bound to the store
+  const Root = useRoot(store);
   return (
-    <div>
-      <div>{value}</div>
-      <button onClick={CounterApp.increment}>Increment</button>
-      <button onClick={CounterApp.decrement}>Decrement</button>
-    </div>
-  )
+    <Root>
+      <List />
+    </Root>
+  );
 };
 
-// With selector
-
-const CounterComponent2 = () => {
-  const isEven = useStore ( ConunterApp.store, store => store.value % 2 === 0 );
-  return (
-    <div>
-      <div>Is the value even? {isEven}</div>
-      <button onClick={CounterApp.increment}>Increment</button>
-      <button onClick={CounterApp.decrement}>Decrement</button>
-    </div>
-  )
-};
+// render the app
+render(<App store={ store } />, document.querySelector('#mount'));
 ```
 
-- ℹ️ You basically just need to wrap the parts of your component that access any value from any store in a `useStore` hook, in order to make the component re-render whenever any of the retireved values change.
-- ℹ️ You don't need to use `useStore` for accessing methods that mutate the store, you can just reference them directly.
-- ℹ️ Using a selector that retrieves only parts of the store will improve performance.
-- ℹ️ It's possible that the component will be re-rendered even if the object returned by the selector, or the entire store, didn't actually change.
-- ℹ️ Re-renders are automatically coalesced and batched together for performance, so if synchronously, i.e. within a single event loop tick, the stores you're listening to are mutated multiple times the related components will only be re-rendered once.
+####Branch a component
 
-## FAQ
+Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
 
-### Why not using [Redux](https://github.com/reduxjs/redux), [Unstated](https://github.com/jamiebuilds/unstated), [Overstated](https://github.com/fabiospampinato/overstated), [react-easy-state](https://github.com/RisingStack/react-easy-state) etc.?
+*list.jsx*
 
-I'll personally use this library over more popular ones for a few reasons:
+```jsx
+import React from 'react';
+import { useBranch } from '@immutabl3/store/react';
 
-- **Simpler APIs**: almost all other state management libraries I've encountered have APIs that don't resonate with me, often they feel unnecessarily bloated. I don't want to write "actions", I don't want to write "reducers", I don't want to litter my code with decorators or unnecessary boilerplate.
-- **Fewer footguns**: many other libraries I've encountered have multiple footguns to be aware of, some which may cause hard-to-debug bugs. With Store you won't update your stores incorrectly once you have wrapped them with [`store`](#store), you won't have to deal with asynchronous updates, and you won't have to carefully update your stores in an immutable fashion.
-- **Fewer restrictions**: most other libraries require you to structure your stores in a specific way, update them with library-specific APIs, perhaps require the usage of classes, and/or are tied to a specific UI framework. Store is more flexible in this regard: your stores are just proxied objects, you can manipulate them however you like, adopt a more functional coding style if you prefer, and the library isn't tied to any specific UI framework, in fact you can use it to manage your purely server-side state too.
-- **Easy type-safety**: some libraries don't play very well with TypeScript and/or require you to manually write some types, Store just works with no extra effort.
+const List = function() {
+  // branch by mapping the desired data to cursors
+  let { colors } = useBranch({
+    colors: ['colors'],
+  });
+  
+  // or get a speific value using a single cursor
+	colors = useBranch(['colors']);
 
-### Why not using Store?
+  const renderItem = color=> <li key={color}>{color}</li>;
 
-You might not want to use Store if: the design choices I made don't resonate with you, you need something more battle-tested, you need to support platforms where [`Proxy` isn't available](https://caniuse.com/#search=proxy), or you need the absolute maximum performance from your state management library since you know that will be your bottleneck.
+  return <ul>{colors.map(renderItem)}</ul>;
+}
+
+export default List;
+```
+
+Our app would now render something of the kind:
+
+```html
+<div>
+  <ul>
+    <li>yellow</li>
+    <li>blue</li>
+    <li>orange</li>
+  </ul>
+</div>
+```
+
+But let's add a new color to the list:
+
+```js
+import store from './state';
+store.data.colors.push('purple');
+```
+
+And the list component will automatically update and to render the following:
+
+```html
+<div>
+  <ul>
+    <li>yellow</li>
+    <li>blue</li>
+    <li>orange</li>
+    <li>purple</li>
+  </ul>
+</div>
+```
+
+
+
+###HOC
+
+####Creating the app's state
+
+Let's create a **store** for our colors:
+
+*state.js*
+
+```js
+import Store from '@immutabl3/store';
+
+export default Store({
+  colors: ['yellow', 'blue', 'orange']
+});
+```
+
+####Rooting the store
+
+Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
+
+Under the hood, this component will simply propagate the store to its descendants using React's context so that "branched" components may subscribe to updates of parts of the store afterwards.
+
+*main.jsx*
+
+```jsx
+import React from 'react';
+import { render } from 'react-dom';
+import { root } from '@immutabl3/store/react';
+import store from './state';
+
+// we will write this component later
+import List from './list.jsx';
+
+// creating our top-level component
+const App = () => <List />;
+
+// lets's bind the component to the store through the `root` higher-order component
+const RootedApp = root(store, App);
+
+// render the app
+render(<RootedApp />, document.querySelector('#mount'));
+```
+
+####Branch a component
+
+Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
+
+*list.jsx*
+
+```jsx
+import React from 'react';
+import { branch } from '@immutabl3/store/react';
+
+// thanks to the branch, our colors will be passed as props to the component
+const List = function({ colors }) {
+  const renderItem = color => <li key={color}>{color}</li>;
+
+  return <ul>{colors.map(renderItem)}</ul>;
+};
+
+// branch the component by mapping the desired data to cursors
+export default branch({
+  colors: ['colors'],
+}, List);
+```
+
+Our app would now render something of the kind:
+
+```html
+<div>
+  <ul>
+    <li>yellow</li>
+    <li>blue</li>
+    <li>orange</li>
+  </ul>
+</div>
+```
+
+But let's add a new color to the list:
+
+```js
+import store from './state';
+store.data.colors.push('purple');
+```
+
+And the list component will automatically update and to render the following:
+
+```html
+<div>
+  <ul>
+    <li>yellow</li>
+    <li>blue</li>
+    <li>orange</li>
+    <li>purple</li>
+  </ul>
+</div>
+```
+
+####Dynamically set the list's path using props
+
+Sometimes, you might find yourself needing cursors paths changing along with your component's props.
+
+For instance, given the following state:
+
+*state.js*
+
+```js
+import Store from '@immutabl3/store';
+
+export default Store({
+  colors: ['yellow', 'blue', 'orange'],
+  alternativeColors: ['purple', 'orange', 'black']
+});
+```
+
+You might want to have a list rendering either one of the colors' lists.
+
+Fortunately, you can do so by passing a function taking the props of the components and returning a valid mapping:
+
+*list.jsx*
+
+```jsx
+import React from 'react';
+import { branch } from '@immutabl3/store/react';
+
+const List = function({ colors }) {
+  const renderItem = color => <li key={color}>{color}</li>;
+
+  return <ul>{colors.map(renderItem)}</ul>;
+};
+
+// using a function so that your cursors' path can use the component's props
+export default branch(props => {
+  return {
+    colors: [props.alternative ? 'alternativeColors' : 'colors'],
+  };
+}, List);
+```
+
+## Features
+
+- **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to the usage of [`Proxys`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) you just have to wrap your state with [`store`](#instantiation), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`onChange`](#events) 
+
+- **Framework-agnostic**: Store doesn't make any assuptions about your UI framework of choice and can be used without one
+
+- **[React support](#react)**:  both hooks and HOCs are provided for React (in a separate entry point)
+
+
+
+## Philosophy
+
+**Simple APIs**
+
+Because the data is proxied, it doesn't need boilerplate, to confirm to a specific object shape, a class or add a dispatcher to your data. Store just wraps the data and allows you to watch for changes. Simple.
+
+**More than just data**
+
+While many stores only support JSON data or need to comform to a certain structure, the shortcomings of that strategy become transparent: [observables](https://mobx.js.org/refguide/observable.html), [setState](https://github.com/jamiebuilds/unstated#introducing-unstated), [computed data](https://github.com/Yomguithereal/baobab#computed-data-or-monkey-business) etc... Store supports every valid JavaScript object without needing to alter the data/wrapper to accommodate: use getters, functions, maps, promises etc... Everything short of circular references is supported.
+
+**Pure functions**
+
+Functional gets and sets are provided for easy and consistent access to the data - but are entirely optional. 
+
+**Why not using [Baobab](https://github.com/Yomguithereal/baobab), [Redux](https://github.com/reduxjs/redux), [Unstated](https://github.com/jamiebuilds/unstated), [react-easy-state](https://github.com/RisingStack/react-easy-state) etc...?**
+
+No reason. Pick whatever library suites your tastes. We try to keep store as [fast](#benchmarks) and [battle-tested](#tests) as possible.
+
+**Why not using Store?**
+
+If you're targeting older browsers, if Proxy isn't available or you don't want to polyfill your environment.
+
+
+
+## Notes
+
+There are two scenarios that store cannot currently handle:
+
+- Circular References: the objects references mutate, however, the watchers may not fire and transactions will likely have incorrect pathing. If you know a way of solving this issue, please send a pull request!
+- Array Length: watching an array's length won't trigger updates when the array changes. This may be fixed in a future version
+
+
+
+## Test
+
+To run tests:
+
+1. Ensure your environment is up-to-date with the `engines` defined in the [package.json](./package.json)
+
+2. Clone and install the repo
+
+   ```sh
+   git clone git@github.com:immutabl3/store.git
+   cd store
+   npm install
+   ```
+
+3. Run the tests
+
+   ```sh
+   npm test
+   ```
+
+   
+
+## Benchmark
+
+```sh
+creation x 1,028,023 ops/sec ±1.29% (91 runs sampled)
+get: access x 223,980 ops/sec ±2.28% (89 runs sampled)
+get: path x 4,513,476 ops/sec ±1.22% (89 runs sampled)
+sets: access x 145,386 ops/sec ±1.14% (89 runs sampled)
+onChange x 132,098 ops/sec ±1.15% (87 runs sampled)
+watch x 79,049 ops/sec ±0.93% (89 runs sampled)
+projection x 1,124,888 ops/sec ±0.53% (90 runs sampled)
+select x 1,934,267 ops/sec ±0.54% (94 runs sampled)
+```
+
+
+
+To setup for the benchmarks:
+
+1. Ensure your environment is up-to-date with the `engines` defined in the [package.json](./package.json)
+
+2. Clone and install the repo
+
+   ```sh
+   git clone git@github.com:immutabl3/store.git
+   cd store
+   npm install
+   ```
+
+3. Run the build
+
+   ```sh
+   npm run build
+   ```
+
+
+
+There are three benchmark scripts:
+
+- `npm run bench:mark` - Runs benchmarks for store operations and is used to track performance degradation when implementing features
+- `npm run bench:compare` - Compares store against similar features in other libraries and was used to test if the store was competitive to alternatives in its early stages. Additions or corrections are welcome.
+- `npm run bench:micro` - microbenchmarks for competing implementations and optimizing hotpaths
+
+
+
+##Contribution
+
+See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+
 
 ## License
 

@@ -95,6 +95,24 @@ test(`proxyWatcher: trap errors don't break things`, assert => {
   assert.end();
 });
 
+test(`proxyWatcher: types are preserved`, assert => {
+  assert.plan(3);
+
+  const [proxy] = Watcher({
+    arr: [1, 2, 3],
+    int: 1,
+    str: '',
+  });
+
+  // these are just sanity checks, as we're getting values out of 
+  // a proxy, everything is A-ok
+  assert.ok(Array.isArray(proxy.arr), `arr: type is preserved`);
+  assert.ok(Number.isInteger(proxy.int), `num: type is preserved`);
+  assert.is(typeof proxy.str, 'string', `str: type is preserved`);
+
+  assert.end();
+});
+
 test(`proxyWatcher: watching immutable primitives doesn't throw an error`, assert => {
   assert.plan(14);
 

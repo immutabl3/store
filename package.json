@@ -10,10 +10,11 @@
     "bench:mark": "node -r esm benchmark/benchmark",
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",
-    "build": "rollup --config"
+    "build": "rollup -c",
+    "bundle": "rollup -c rollup.bundle.js"
   },
   "engines": {
-    "node": "^13.9.0",
+    "node": "^13.10.1",
     "npm": "^6.14.2"
   },
   "bugs": {
@@ -63,7 +64,9 @@
     "react": "^16.13.0",
     "react-dom": "^16.13.0",
     "rollup": "^1.32.0",
+    "rollup-plugin-babel-minify": "^9.1.1",
     "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-gzip": "^2.3.0",
     "rollup-plugin-node-resolve": "^5.2.0",
     "tap-spec": "^5.0.0",
     "tape": "^4.9.0"

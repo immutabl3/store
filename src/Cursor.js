@@ -37,10 +37,8 @@ Cursor.prototype = {
     const selector = query.coerce(value);
     if (query.isDynamic(selector)) throw new StoreError(`select does not support dynamic paths`, { path: value });
     
-    lock.lock();
     // eslint-disable-next-line no-use-before-define
     const cursor = new Cursor(get(data, selector), lock, emitter, [...path, ...selector]);
-    lock.unlock();
     
     return cursor;
   },
@@ -82,6 +80,16 @@ Cursor.prototype = {
     lock.unlock();
     
     return result;
+  },
+
+  toJSON() {
+    const { data, lock } = this;
+
+    lock.lock();
+    const json = JSON.stringify(data);
+    lock.unlock();
+
+    return json;
   },
 };
 
