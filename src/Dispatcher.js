@@ -1,5 +1,4 @@
-// TODO: use Event
-// import Event from './Event';
+import event, { clearEvent } from './event';
 import { get } from './utils';
 import {
   isProjection,
@@ -12,19 +11,21 @@ export default function Dispatcher(emitter) {
     
     // no root, emit all changes
     if (!hasRoot) {
-      return fn({
-        transactions: list,
-        target: proxy,
-      });
+      return fn(event(
+        proxy,
+        proxy,
+        list,
+      ));
     }
 
     // not a root, check for transactions
     if (!map.has(root)) return;
     const transactions = map.get(root);
-    fn({
+    fn(event(
+      proxy,
+      proxy,
       transactions,
-      target: proxy,
-    });
+    ));
   };
 
   const getMapper = function([key, selector]) {
@@ -55,11 +56,11 @@ export default function Dispatcher(emitter) {
     
     if (!transactions.length) return;
 
-    fn({
-      target: proxy,
+    fn(event(
+      proxy,
+      Object.fromEntries(entries.map(getMapper, proxy)),
       transactions,
-      data: Object.fromEntries(entries.map(getMapper, proxy)),
-    });
+    ));
   };
 
   const emitSelection = (map, root, proxy, value, fn) => {
@@ -67,18 +68,18 @@ export default function Dispatcher(emitter) {
     const hash = query.toString(root, selector);
     if (!map.has(hash)) return;
 
-    fn({
-      target: proxy,
-      transactions: map.get(hash),
-      data: get(proxy, selector),
-    });
+    fn(event(
+      proxy,
+      get(proxy, selector),
+      map.get(hash),
+    ));
   };
 
   return transactions => {
     const map = transactions.map();
     const list = transactions.list();
 
-    for (const { fn, selector, proxy, root } of emitter.list()) {
+    for (const { fn, selector, proxy, root } of emitter.values()) {
       if (!selector) {
         emitChange(map, list, root, proxy, fn);
       } else {
@@ -91,6 +92,6 @@ export default function Dispatcher(emitter) {
       }
     }
 
-    // TODO: clear event
+    clearEvent();
   };
 };

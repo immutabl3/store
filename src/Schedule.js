@@ -1,9 +1,7 @@
-import {
-  defer,
-} from './utils';
+import { defer } from './utils';
 import Transactions from './Transactions';
 
-export default function scheduler(dispatcher, asynchronous, autoCommit) {
+export default function Schedule(dispatcher, asynchronous, autoCommit) {
   let debug;
   let processing;
   

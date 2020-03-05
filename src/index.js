@@ -1,5 +1,5 @@
 import proxyWatcher from './proxyWatcher';
-import scheduler from './scheduler';
+import Schedule from './Schedule';
 import Dispatcher from './Dispatcher';
 import locker from './locker';
 import Cursor from './Cursor';
@@ -15,7 +15,7 @@ export default function Store(obj, {
 } = {}) {
   const emitter = Emitter();
   const dispatcher = Dispatcher(emitter);
-  const schedule = scheduler(dispatcher, asynchronous, autoCommit);
+  const schedule = Schedule(dispatcher, asynchronous, autoCommit);
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
   const proxy = proxyWatcher(obj, schedule.add);
