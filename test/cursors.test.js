@@ -2,7 +2,7 @@ import test from 'tape';
 import Store from '../src';
 import { delay } from './utils';
 
-test('get', async assert => {
+test('cursors: get', async assert => {
   assert.plan(2);
 
   const store = Store({
@@ -24,7 +24,7 @@ test('get', async assert => {
   assert.end();
 });
 
-test('get: selector', async assert => {
+test('cursors: get: selector', async assert => {
   assert.plan(2);
 
   const store = Store({
@@ -46,7 +46,7 @@ test('get: selector', async assert => {
   assert.end();
 });
 
-test('get: complex path', async assert => {
+test('cursors: get: complex path', assert => {
   assert.plan(2);
 
   const store = Store({
@@ -68,14 +68,33 @@ test('get: complex path', async assert => {
   assert.end();
 });
 
-test('get: invalid path', async assert => {
+test('cursors: get: invalid path', assert => {
   assert.plan(1);
 
   const store = Store({});
 
   const result = store.get(['bar', 'deep', 0]);
 
-  assert.is(result, undefined);
+  assert.is(result, undefined, `invalid path returns undefined`);
+
+  assert.end();
+});
+
+test('cursors: methods', assert => {
+  const tests = {
+    set() {
+      
+    },
+    unset() {},
+    push() {},
+    concat() {},
+    pop() {},
+    shift() {},
+    splice() {},
+    merge() {},
+  };
+
+  Object.values(tests).forEach(fn => fn());
 
   assert.end();
 });

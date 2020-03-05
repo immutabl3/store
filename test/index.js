@@ -1,11 +1,11 @@
 import './utils.test';
 import './proxyWatcher.test';
+import './cursors.test';
 import './change.test';
 import './watch.test';
 import './projection.test';
 import './events.test';
 import './debug.test';
-import './get.test';
 import './select.test';
 import './store.test';
 import './hooks.test';

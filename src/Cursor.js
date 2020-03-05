@@ -8,6 +8,7 @@ import {
   isProjection,
 } from './types';
 
+
 const watchGet = function() {
   const value = this.selector();
   return isProjection(value) ? this.cursor.projection(value) : this.cursor.get(value);
@@ -71,15 +72,128 @@ Cursor.prototype = {
     return result;
   },
 
-  get(value) {
+  get(path) {
     const { data, lock } = this;
-    if (!value) return data;
+    if (!path) return data;
     
     lock.lock();
-    const result = query.get(data, value);
+    const result = query.get(data, path);
     lock.unlock();
     
     return result;
+  },
+
+  set(path, value) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+
+    const target = this.get(basePath);
+    target[accessor] = value;
+
+    return this;
+  },
+
+  unset(path) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+
+    const target = this.get(basePath);
+    if (isArray(target)) target.splice(accessor, 1);
+    delete target[accessor];
+
+    return this;
+  },
+
+  push(path, ...args) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const target = this.get(path);
+
+    if (!isArray(target)) throw new StoreError(`push: target is not an array`, { target });
+
+    target.push(...args);
+
+    return this;
+  },
+
+  concat(path, arr) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+    const target = basePath[accessor];
+
+    if (!isArray(target)) throw new StoreError(`concat: target is not an array`, { target });
+
+    basePath[accessor] = target.concat(arr);
+
+    return this;
+  },
+
+  pop(path) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+    const target = basePath[accessor];
+
+    if (!isArray(target)) throw new StoreError(`pop: target is not an array`, { target });
+
+    const popped = target.pop();
+
+    return popped;
+  },
+  shift(path) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+    const target = basePath[accessor];
+
+    if (!isArray(target)) throw new StoreError(`shift: target is not an array`, { target });
+
+    const shifted = target.shift();
+
+    return shifted;
+  },
+  splice(path, ...args) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+    const target = basePath[accessor];
+
+    if (!isArray(target)) throw new StoreError(`splice: target is not an array`, { target });
+
+    const spliced = target.splice(...args);
+
+    return spliced;
+  },
+  merge(path, value) {
+    // TODO: abstract
+    // TODO: assumes path is an array
+    // TODO: assumes path is static
+    const basePath = path.slice(0, path.length - 1);
+    const accessor = path[path.length - 1];
+    const target = basePath[accessor];
+
+    basePath[accessor] = {
+      ...target,
+      ...value,
+    };
+
+    return this;
   },
 
   toJSON() {
