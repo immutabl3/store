@@ -7,6 +7,7 @@ import dynamicGet from './dynamicGet';
 import indexOf from './indexOf';
 import indexOfCompare from './indexOfCompare';
 import permute from './permute';
+import exists from './exists';
 
 export {
   isEqual,
@@ -18,4 +19,5 @@ export {
   indexOf,
   indexOfCompare,
   permute,
+  exists,
 };

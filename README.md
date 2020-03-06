@@ -703,7 +703,6 @@ There are two scenarios that store cannot currently handle:
 - Array Length: watching an array's length won't trigger updates when the array changes. This may be fixed in a future version
 
 
-
 ## Test
 
 To run tests:

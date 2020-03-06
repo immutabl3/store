@@ -2,7 +2,7 @@ import test from 'tape';
 import Store from '../src';
 import { delay } from './utils';
 
-test('store: wraps an object', async assert => {
+test('store: initialization', async assert => {
   assert.plan(3);
 
   const dataInitial = {
@@ -31,3 +31,6 @@ test('store: wraps an object', async assert => {
 
   assert.end();
 });
+
+test(`store: synchronous`, () => {});
+test(`store: autoCommit`, () => {});

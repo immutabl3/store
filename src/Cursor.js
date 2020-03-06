@@ -1,13 +1,19 @@
 import StoreError from './StoreError';
 import query from './query';
-import { get } from './utils';
+import update from './update';
+import {
+  get,
+  exists,
+  clone,
+} from './utils';
 import {
   isArray,
   isFunction,
   isObjectLike,
   isProjection,
+  isNumber,
+  isObject,
 } from './types';
-
 
 const watchGet = function() {
   const value = this.selector();
@@ -83,117 +89,14 @@ Cursor.prototype = {
     return result;
   },
 
-  set(path, value) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-
-    const target = this.get(basePath);
-    target[accessor] = value;
-
-    return this;
+  exists(path) {
+    if (path === undefined) return this.data !== undefined;
+    return exists(this.data, query.coerce(path));
   },
 
-  unset(path) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-
-    const target = this.get(basePath);
-    if (isArray(target)) target.splice(accessor, 1);
-    delete target[accessor];
-
-    return this;
-  },
-
-  push(path, ...args) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const target = this.get(path);
-
-    if (!isArray(target)) throw new StoreError(`push: target is not an array`, { target });
-
-    target.push(...args);
-
-    return this;
-  },
-
-  concat(path, arr) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-    const target = basePath[accessor];
-
-    if (!isArray(target)) throw new StoreError(`concat: target is not an array`, { target });
-
-    basePath[accessor] = target.concat(arr);
-
-    return this;
-  },
-
-  pop(path) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-    const target = basePath[accessor];
-
-    if (!isArray(target)) throw new StoreError(`pop: target is not an array`, { target });
-
-    const popped = target.pop();
-
-    return popped;
-  },
-  shift(path) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-    const target = basePath[accessor];
-
-    if (!isArray(target)) throw new StoreError(`shift: target is not an array`, { target });
-
-    const shifted = target.shift();
-
-    return shifted;
-  },
-  splice(path, ...args) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-    const target = basePath[accessor];
-
-    if (!isArray(target)) throw new StoreError(`splice: target is not an array`, { target });
-
-    const spliced = target.splice(...args);
-
-    return spliced;
-  },
-  merge(path, value) {
-    // TODO: abstract
-    // TODO: assumes path is an array
-    // TODO: assumes path is static
-    const basePath = path.slice(0, path.length - 1);
-    const accessor = path[path.length - 1];
-    const target = basePath[accessor];
-
-    basePath[accessor] = {
-      ...target,
-      ...value,
-    };
-
-    return this;
+  clone(path) {
+    if (path === undefined) return clone(this.data);
+    return clone(this.get(path));
   },
 
   toJSON() {
@@ -206,5 +109,60 @@ Cursor.prototype = {
     return json;
   },
 };
+
+const makeSetter = function(name, arity, typeChecker) {
+  Cursor.prototype[name] = function(pth, val) {
+    const length = arguments.length;
+
+    let path = pth;
+    let value = val;
+
+    // we should warn the user if he applies to many arguments to the function
+    if (length > arity) throw new StoreError(`${name}: too many arguments`);
+
+    // handling arities
+    if (arity === 2 && length === 1) {
+      value = path;
+      path = [];
+    }
+
+    // coerce path
+    path = path === undefined ? [] : query.coerce(path);
+
+    // checking the value's validity
+    if (typeChecker && !typeChecker(value)) throw new StoreError(`${name}: invalid value`, { path, value });
+
+    const solvedPath = path.length ? query.solve(this.data, path) : path;
+    if (path.length !== solvedPath.length) throw new StoreError(`${name}: invalid path`, { path, value });
+
+    // don't unset irrelevant paths
+    if (name === 'unset') {
+      if (!solvedPath.length) return (this.data = undefined);
+      if (!this.exists(solvedPath)) return;
+    }
+
+    // applying the update
+    return update(
+      this.data,
+      solvedPath,
+      name,
+      value,
+    );
+  };
+};
+
+makeSetter('set', 2);
+makeSetter('unset', 1);
+makeSetter('push', 2);
+makeSetter('concat', 2, isArray);
+makeSetter('unshift', 2);
+makeSetter('pop', 1);
+makeSetter('shift', 1);
+makeSetter('splice', 2, function(target) {
+  if (!isArray(target) || target.length < 1) return false;
+  if (target.length > 1 && isNaN(+target[1])) return false;
+  return isNumber(target[0]) || isFunction(target[0]) || isObject(target[0]);
+});
+makeSetter('merge', 2, isObject);
 
 export default Cursor;
