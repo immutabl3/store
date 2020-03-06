@@ -30,7 +30,7 @@ test('debug: logs details', async assert => {
 
   await delay();
 
-  assert.deepEqual(messages, [
+  assert.same(messages, [
     ['updated', { foo: 'baz' }]
   ]);
   

@@ -27,7 +27,7 @@ test('cursors: get', assert => {
   assert.same(store.get(['bar']), store.data.bar, `can retrieve mutated data with basic selector`);
   assert.is(store.get(['bar', 'deep', 0]), 0, `can retrieve mutated data with numeric selector`);
 
-  assert.deepEqual(store.get(['arr', { foo: 1 }]), { foo: 1 }, `can retrieve data with a complex selector`);
+  assert.same(store.get(['arr', { foo: 1 }]), { foo: 1 }, `can retrieve data with a complex selector`);
   assert.doesNotThrow(() => store.get(['arr', () => -1, 'bar', 'baz']), `does not throw on an invalid selector`);
   assert.is(store.get(['arr', () => -1, 'bar', 'baz']), undefined, `won't retrieve if no target for selector`);
 
@@ -45,9 +45,9 @@ test('cursors: getters: clone', assert => {
   const colorCursor = store.select(['one', 'subtwo', 'colors']);
   const clonedData = colorCursor.clone();
 
-  assert.deepEquals(clonedData, colorCursor.get());
-  assert.deepEquals(clonedData, colorCursor.clone());
-  assert.deepEquals(store.clone().one, store.data.one);
+  assert.same(clonedData, colorCursor.get());
+  assert.same(clonedData, colorCursor.clone());
+  assert.same(store.clone().one, store.data.one);
 
   assert.end();
 });
@@ -77,6 +77,7 @@ test('cursors: setters', assert => {
     items: [{ id: 1 }],
     hello: 'world',
     falsypath: { list: ['hey'], dict: {} },
+    replacement: { hello: 'world' },
   });
 
   store.set(['list', { id: 10 }, 'one', 'two'], 'monde');
@@ -141,10 +142,22 @@ test('cursors: setters', assert => {
   falsyCursor.select('dict').set('', 'hello');
   falsyCursor.select('list').set(0, 'ho');
 
-  assert.deepEqual(
+  assert.same(
     falsyCursor.data,
     { list: ['ho'], dict: { '': 'hello' } },
     `should be possible to set values using a falsy path`
+  );
+
+  store.select('replacement').set(0);
+  assert.is(
+    store.data.replacement,
+    0,
+    `should be possible to set the value of a cursor`
+  );
+
+  assert.throws(
+    () => store.set(0),
+    `cannot overwrite the store`
   );
 
   assert.end();
@@ -160,7 +173,7 @@ test('cursors: merge', assert => {
   const cursor = store.select('o');
 
   store.onChange(() => {
-    assert.deepEqual(
+    assert.same(
       store.data.o,
       { hello: 'jarl' },
       `should be possible to shallow merge two objects`
@@ -188,11 +201,12 @@ test('cursors: unset', assert => {
     list: [1, 2, 3],
     nullValue: null,
     undefinedValue: undefined,
+    replacement: { hello: 'world' },
   });
 
   const deepCursor = store.select('deep');
   deepCursor.unset('two');
-  assert.deepEqual(
+  assert.same(
     deepCursor.data,
     { one: 1 },
     `should be possible to remove keys from a cursor`
@@ -208,7 +222,7 @@ test('cursors: unset', assert => {
   
   const listCursor = store.select('list');
   listCursor.unset(1);
-  assert.deepEqual(
+  assert.same(
     listCursor.data,
     [1, 3],
     `should be possible to unset an array's item`
@@ -220,7 +234,7 @@ test('cursors: unset', assert => {
   );
 
   store.unset(['empty', 'one', 'two']);
-  assert.deepEqual(
+  assert.same(
     store.data.empty,
     {},
     `should do nothing to unset an inexistant key`
@@ -240,6 +254,19 @@ test('cursors: unset', assert => {
     `should be possible to unset undefined`
   );
 
+
+  store.select('replacement').unset();
+  assert.is(
+    store.data.replacement,
+    undefined,
+    `should be possible to set the value of a cursor`
+  );
+
+  assert.throws(
+    () => store.unset(),
+    `cannot unset the store`
+  );
+
   assert.end();
 });
 
@@ -248,7 +275,7 @@ test('cursors: push', assert => {
 
   store.push(2);
 
-  assert.deepEqual(
+  assert.same(
     store.data,
     [1, 2],
     `should be able to push an array`
@@ -262,7 +289,7 @@ test('cursors: unshift', assert => {
 
   store.unshift(1);
   
-  assert.deepEqual(
+  assert.same(
     store.data,
     [1, 2],
     `should be able to unshift an array`
@@ -276,7 +303,7 @@ test('cursors: concat', assert => {
 
   store.concat([3, 4]);
 
-  assert.deepEqual(
+  assert.same(
     store.data,
     [3, 4],
     `should be able to concat an array`
@@ -291,7 +318,7 @@ test('cursors: splice', assert => {
   store.splice([0, 1]);
   store.splice([1, 1, 4]);
 
-  assert.deepEqual(
+  assert.same(
     store.data,
     [2, 4],
     `should be possible to splice an array`
@@ -310,7 +337,7 @@ test('cursors: pop', assert => {
   
   store.pop('list');
 
-  assert.deepEqual(
+  assert.same(
     store.get('list'),
     [1, 2],
     `should be possible to pop an array`
@@ -324,7 +351,7 @@ test(`cursors: shift`, assert => {
 
   store.shift('list');
 
-  assert.deepEqual(
+  assert.same(
     store.get('list'),
     [2, 3],
     `should be possible to shift an array`

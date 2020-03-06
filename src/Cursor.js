@@ -20,7 +20,9 @@ const watchGet = function() {
   return isProjection(value) ? this.cursor.projection(value) : this.cursor.get(value);
 };
 
-const Cursor = function(proxy, lock, emitter, path) {
+const Cursor = function(root, proxy, lock, emitter, path) {
+  this.root = root;
+  this.isRoot = root === proxy;
   this.path = path !== undefined ? query.coerce(path) : [];
   this.hash = this.path !== undefined ? query.hash(this.path) : '';
   this.emitter = emitter;
@@ -45,7 +47,7 @@ Cursor.prototype = {
     if (query.isDynamic(selector)) throw new StoreError(`select does not support dynamic paths`, { path: value });
     
     // eslint-disable-next-line no-use-before-define
-    const cursor = new Cursor(get(data, selector), lock, emitter, [...path, ...selector]);
+    const cursor = new Cursor(this.root, get(data, selector), lock, emitter, [...path, ...selector]);
     
     return cursor;
   },
@@ -135,19 +137,35 @@ const makeSetter = function(name, arity, typeChecker) {
     const solvedPath = path.length ? query.solve(this.data, path) : path;
     if (path.length !== solvedPath.length) throw new StoreError(`${name}: invalid path`, { path, value });
 
-    // don't unset irrelevant paths
     if (name === 'unset') {
-      if (!solvedPath.length) return (this.data = undefined);
+      // unsetting the cursor
+      if (!solvedPath.length) {
+        if (this.isRoot) throw new StoreError(`cannot unset store`);
+        return (this.data = update(
+          this.root,
+          this.path,
+          name,
+          value
+        ));
+      }
+
+      // don't unset irrelevant paths
       if (!this.exists(solvedPath)) return;
+    }
+    
+    if (name === 'set' && !solvedPath.length) {
+      if (this.isRoot) throw new StoreError(`cannot set store`);
+      // setting the cursor
+      return (this.data = update(
+        this.root,
+        this.path,
+        name,
+        value
+      ));
     }
 
     // applying the update
-    return update(
-      this.data,
-      solvedPath,
-      name,
-      value,
-    );
+    return update(this.data, solvedPath, name, value);
   };
 };
 

@@ -58,9 +58,9 @@ test('watch: event data', async assert => {
   });
 
   store.watch(['foo'], e => {
-    assert.deepEqual(e.target, store.data, `foo: target passed`);
-    assert.deepEqual(e.data, store.data.foo, `foo: data passed`);
-    assert.deepEqual(e.transactions, [
+    assert.same(e.target, store.data, `foo: target passed`);
+    assert.same(e.data, store.data.foo, `foo: data passed`);
+    assert.same(e.transactions, [
       {
         type: 'set',
         path: ['foo'],
@@ -69,9 +69,9 @@ test('watch: event data', async assert => {
     ], `foo: transaction passed`);
   });
   store.watch(['bar'], e => {
-    assert.deepEqual(e.target, store.data, `bar: target passed`);
-    assert.deepEqual(e.data, store.data.bar, `bar: data passed`);
-    assert.deepEqual(e.transactions, [
+    assert.same(e.target, store.data, `bar: target passed`);
+    assert.same(e.data, store.data.bar, `bar: data passed`);
+    assert.same(e.transactions, [
       {
         type: 'set',
         path: ['bar', 'foo'],
@@ -108,7 +108,7 @@ test('watch: selector types', async assert => {
   await delay();
 
   assert.is(fixture.changes, 4);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['foo'],
     ['foo'],
     ['foo'],
@@ -137,7 +137,7 @@ test('watch: static selector', async assert => {
     calls.push(1);
   });
   store.watch(['bar'], e => {
-    assert.deepEqual(e.data, store.data.bar);
+    assert.same(e.data, store.data.bar);
     calls.push(2);
   });
 
@@ -147,7 +147,7 @@ test('watch: static selector', async assert => {
 
   await delay();
 
-  assert.deepEqual(calls, [1, 2]);
+  assert.same(calls, [1, 2]);
 
   assert.end();
 });
@@ -169,7 +169,7 @@ test('watch: deep static selector', async assert => {
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['arr', 3, 'foo'],
   ]);
   
@@ -178,7 +178,7 @@ test('watch: deep static selector', async assert => {
   await delay();
 
   assert.is(fixture.changes, 2);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['arr', 3, 'foo'],
   ]);
 
@@ -187,7 +187,7 @@ test('watch: deep static selector', async assert => {
   await delay();
 
   assert.is(fixture.changes, 3);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['arr', 3, 'foo'],
   ]);
 
@@ -213,7 +213,7 @@ test('watch: complex selector', async assert => {
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['arr', 1, 'bar'],
   ], `call made, selected object changed`);
 
@@ -222,7 +222,7 @@ test('watch: complex selector', async assert => {
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.deepEqual(fixture.paths, [], `no call made, selector changed`);
+  assert.same(fixture.paths, [], `no call made, selector changed`);
 
   assert.end();
 });
@@ -250,14 +250,14 @@ test(`watch: same data assignments don't emit changes`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 0);
-  assert.deepEqual(fixture.paths, []);
+  assert.same(fixture.paths, []);
 
   store.data.foo = 1234;
 
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['foo'],
   ]);
 
@@ -266,7 +266,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 2);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'foo'],
   ]);
 
@@ -275,7 +275,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 3);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'deep'],
   ]);
 
@@ -284,7 +284,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 5, `2 watchers counts 2 changes`);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'deep', 0],
     ['bar', 'deep', 0],
   ], `found changes for both watchers`);
@@ -309,14 +309,14 @@ test('watch: is disposable', async assert => {
 
   await delay();
 
-  assert.deepEqual(calls, [1], `made a call on data change`);
+  assert.same(calls, [1], `made a call on data change`);
 
   // dispose
   watcher();
 
   store.data.arr[3].foo = 1;
 
-  assert.deepEqual(calls, [1], `did not make a call after disposed`);
+  assert.same(calls, [1], `did not make a call after disposed`);
 
   assert.end();
 });
@@ -391,14 +391,14 @@ test(`watch: deep projection`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 0);
-  assert.deepEqual(fixture.paths, []);
+  assert.same(fixture.paths, []);
 
   store.data.foo = 1234;
 
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['foo'],
   ]);
 
@@ -407,7 +407,7 @@ test(`watch: deep projection`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 2);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'foo'],
   ]);
 
@@ -416,7 +416,7 @@ test(`watch: deep projection`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 3);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'deep'],
   ]);
 
@@ -425,7 +425,7 @@ test(`watch: deep projection`, async assert => {
   await delay();
 
   assert.is(fixture.changes, 5);
-  assert.deepEqual(fixture.paths, [
+  assert.same(fixture.paths, [
     ['bar', 'deep', 0],
     ['bar', 'deep', 0],
   ]);

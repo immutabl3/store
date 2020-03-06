@@ -37,8 +37,8 @@ test('select: basics', async assert => {
   
   const selection = store.select(['bar', 'deep']);
   const bazChange = e => {
-    assert.deepEqual(e.target, store.data.bar.deep, `selection: onChange: target`);
-    assert.deepEqual(e.transactions, [
+    assert.same(e.target, store.data.bar.deep, `selection: onChange: target`);
+    assert.same(e.transactions, [
       {
         type: 'set',
         path: ['bar', 'deep', 'baz'],
@@ -48,8 +48,8 @@ test('select: basics', async assert => {
     changes.push('sub');
   };
   const bizChange = e => {
-    assert.deepEqual(e.target, store.data.bar.deep, `selection: onChange: target`);
-    assert.deepEqual(e.transactions, [
+    assert.same(e.target, store.data.bar.deep, `selection: onChange: target`);
+    assert.same(e.transactions, [
       {
         type: 'set',
         path: ['bar', 'deep', 'biz', 'deepest'],
@@ -60,7 +60,7 @@ test('select: basics', async assert => {
   };
   const disposer = selection.onChange(bazChange);
   selection.watch(['baz'], e => {
-    assert.deepEqual(e.target, store.data.bar.deep, `selection: watch: target`);
+    assert.same(e.target, store.data.bar.deep, `selection: watch: target`);
     changes.push('watch');
   });
 
@@ -74,7 +74,7 @@ test('select: basics', async assert => {
 
   await delay();
 
-  assert.deepEqual(changes.paths, [
+  assert.same(changes.paths, [
     'main'
   ], `changing top-level data does not affect selector`);
 
@@ -82,7 +82,7 @@ test('select: basics', async assert => {
 
   await delay();
   
-  assert.deepEqual(changes.paths, [
+  assert.same(changes.paths, [
     'main',
     'sub',
     'watch',
@@ -99,7 +99,7 @@ test('select: basics', async assert => {
 
   const subSelection = selection.select(['biz']);
   subSelection.onChange(e => {
-    assert.deepEqual(e.target, store.data.bar.deep.biz, `sub selection change`);
+    assert.same(e.target, store.data.bar.deep.biz, `sub selection change`);
     changes.push('subsub');
   });
 
@@ -107,7 +107,7 @@ test('select: basics', async assert => {
 
   await delay();
 
-  assert.deepEqual(changes.paths, [
+  assert.same(changes.paths, [
     'main',
     'sub',
     'subsub',

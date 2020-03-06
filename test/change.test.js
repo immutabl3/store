@@ -64,7 +64,7 @@ test('change: fires a change event when a mutation is made', async assert => {
     // eslint-disable-next-line no-loop-func
     store.onChange(e => {
       assert.ok(!!e.transactions.length, `transaction made`);
-      assert.deepEqual(e.target, store.data, `target passed`);
+      assert.same(e.target, store.data, `target passed`);
       calls++;
     });
 

@@ -21,7 +21,7 @@ test('events: call order', async assert => {
 
   await delay();
 
-  assert.deepEqual(order, [1, 2, 3], `events are called in subscription order`);
+  assert.same(order, [1, 2, 3], `events are called in subscription order`);
 
   assert.end();
 });
@@ -57,14 +57,14 @@ test('events: projection', async assert => {
     baz: ['foo'],
     goodbye: ['hello'],
   }, e => {
-    assert.deepEqual(e.transactions, [
+    assert.same(e.transactions, [
       {
         type: 'set',
         path: ['foo'],
         value: 1,
       }
     ]);
-    assert.deepEqual(e.data, {
+    assert.same(e.data, {
       baz: 1,
       goodbye: 'world',
     });
@@ -85,7 +85,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `set: target`);
         assert.is(data, store.data.foo, `set: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'set',
             path: ['foo'],
@@ -103,7 +103,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `delete: target`);
         assert.is(data, store.data.foo, `delete: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'delete',
             path: ['foo'],
@@ -121,7 +121,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `defineNew: target`);
         assert.is(data, store.data.foo, `defineNew: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'define',
             path: ['foo'],
@@ -144,7 +144,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `defineExisting: target`);
         assert.is(data, store.data.foo, `defineExisting: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'define',
             path: ['foo'],
@@ -167,7 +167,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `pop: target`);
         assert.is(data, store.data.foo, `pop: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'pop',
             path: ['foo'],
@@ -185,7 +185,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `shift: target`);
         assert.is(data, store.data.foo, `shift: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'shift',
             path: ['foo'],
@@ -203,7 +203,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `sort: target`);
         assert.is(data, store.data.foo, `sort: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'sort',
             path: ['foo'],
@@ -221,7 +221,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `reverse: target`);
         assert.is(data, store.data.foo, `reverse: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'reverse',
             path: ['foo'],
@@ -239,7 +239,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `splice: target`);
         assert.is(data, store.data.foo, `splice: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'splice',
             path: ['foo'],
@@ -257,7 +257,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `unshift: target`);
         assert.is(data, store.data.foo, `unshift: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'unshift',
             path: ['foo'],
@@ -275,7 +275,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `pushSingle: target`);
         assert.is(data, store.data.foo, `pushSingle: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'push',
             path: ['foo'],
@@ -293,7 +293,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `pushMultiple: target`);
         assert.is(data, store.data.foo, `pushMultiple: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'push',
             path: ['foo'],
@@ -311,7 +311,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `add: target`);
         assert.is(data, store.data.foo, `add: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'add',
             path: ['foo'],
@@ -329,7 +329,7 @@ test('events: watch', async assert => {
       store.watch(['foo'], ({ target, data, transactions }) => {
         assert.is(target, store.data, `clear: target`);
         assert.is(data, store.data.foo, `clear: data`);
-        assert.deepEqual(transactions, [
+        assert.same(transactions, [
           {
             type: 'clear',
             path: ['foo'],
@@ -356,7 +356,7 @@ test('events: targeting', async assert => {
   });
 
   store.onChange(e => {
-    assert.deepEqual(
+    assert.same(
       e.target,
       store.data,
       `store: onChange`
@@ -365,14 +365,14 @@ test('events: targeting', async assert => {
   store.watch({
     hello: ['foo', 'bar'],
   }, e => {
-    assert.deepEqual(
+    assert.same(
       e.target, 
       store.data,
       `store: projection`  
     );
   });
   store.watch(['foo', 'bar'], e => {
-    assert.deepEqual(
+    assert.same(
       e.target, 
       store.data,
       `store: watch`  
@@ -381,21 +381,21 @@ test('events: targeting', async assert => {
 
   const selection = store.select(['foo', 'bar']);
   selection.onChange(e => {
-    assert.deepEqual(
+    assert.same(
       e.target,
       store.data.foo.bar,
       `selection: onChange`
     );
   });
   selection.watch({ hello: ['baz'] }, e => {
-    assert.deepEqual(
+    assert.same(
       e.target,
       store.data.foo.bar,
       `selection: projection`
     );
   });
   selection.watch(['baz'], e => {
-    assert.deepEqual(
+    assert.same(
       e.target,
       store.data.foo.bar,
       `selection: watch`
@@ -423,7 +423,7 @@ test('events: transaction order', async assert => {
   });
 
   store.onChange(e => {
-    assert.deepEqual(
+    assert.same(
       e.transactions,
       [
         {
@@ -447,7 +447,7 @@ test('events: transaction order', async assert => {
   });
   
   store.watch(['foo', 'bar'], e => {
-    assert.deepEqual(
+    assert.same(
       e.transactions, 
       [
         {
@@ -461,7 +461,7 @@ test('events: transaction order', async assert => {
   });
 
   store.select(['foo', 'bar']).onChange(e => {
-    assert.deepEqual(
+    assert.same(
       e.transactions,
       [
         {

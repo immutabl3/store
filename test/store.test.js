@@ -20,7 +20,7 @@ test('store: initialization', async assert => {
   const store = Store(dataInitial);
 
   assert.false(dataInitial === store.data);
-  assert.deepEqual(dataInitial, store.data);
+  assert.same(dataInitial, store.data);
 
   store.data.baz = true;
   store.data.bar.push(3);
@@ -28,7 +28,7 @@ test('store: initialization', async assert => {
 
   await delay();
 
-  assert.deepEqual(dataFinal, store.data);
+  assert.same(dataFinal, store.data);
 
   assert.end();
 });
