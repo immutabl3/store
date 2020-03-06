@@ -361,11 +361,23 @@ test(`cursors: shift`, assert => {
 });
   
 test('cursors: setter: upper reference resolution', assert => {
-  assert.plan(1);
+  assert.plan(2);
 
   const store = createStore({
     hello: { color: 'blue' }
   });
+
+  const disposer = store.onChange(() => {
+    assert.is(
+      store.data.hello.color,
+      'yellow',
+      `should reflect the change`
+    );
+  });
+
+  store.select(['hello', 'color']).set('yellow');
+
+  disposer();
 
   store.onChange(() => {
     assert.is(
@@ -375,7 +387,6 @@ test('cursors: setter: upper reference resolution', assert => {
     );
   });
 
-  store.select(['hello', 'color']).set('yellow');
   store.set('hello', 'purple');
 
   assert.end();
