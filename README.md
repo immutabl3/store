@@ -165,7 +165,7 @@ const { data } = store;
 
 // will fire when the store changes
 store.onChange(() => {
-	console.log(`user's name is ${data.user.name}`);
+  console.log(`user's name is ${data.user.name}`);
   > `user's name is Jane`
 });
 
@@ -225,7 +225,7 @@ store.data.counter = 3;
 
 
 
-###watch
+### watch
 
 `watch` is similar to `onChange`, but allows you to watch one or more values
 
@@ -292,7 +292,7 @@ store.data.counter = 3;
 
 
 
-###projection
+### projection
 
 `projection` takes an object with paths and saturates the object with the current state of the store
 
@@ -328,7 +328,7 @@ The proxy target for the event
 const store = Store({ foo: { bar: 'baz' } });
 
 store.onChange(e => {
-	e.target === store.data
+  e.target === store.data
   > true
 });
 
@@ -339,7 +339,7 @@ store.watch(['foo'], e => {
 
 const cursor = store.select(['foo']);
 cursor.onChange(e => {
-	e.target === cursor.data
+  e.target === cursor.data
   > true
 });
 
@@ -356,7 +356,7 @@ Contains the data for the selector passed - pertinent if using [`watch`](#watch)
 const store = Store({ hello: 'universe' });
 
 store.watch(['hello'], e => {
-	e.data === 'world'
+  e.data === 'world'
   > true
 });
 
@@ -378,8 +378,8 @@ const store = Store({
 });
 
 store.watch(['hello'], e => {
-	console.log(e.transactions);
-	/* 
+  console.log(e.transactions);
+  /* 
   [
     {
       type: 'set',
@@ -407,7 +407,7 @@ Using a [cursor](#cursor) or [watching](#watch) values will only report transact
 
 Store comes with convenient pure functions for accessing nested data from the store.
 
-####get
+#### get
 
 Gets the value from the store
 
@@ -453,7 +453,7 @@ store.exists(['hello', 'message']);
 
 
 
-####clone
+#### clone
 
 Shallow clone the cursor's data. The method takes an optional nested path.
 
@@ -482,7 +482,7 @@ Store comes with a set of convenient pure functions for updating data. These upd
 
 
 
-####set
+#### set
 
 Replaces value at the given path. Will also work if you want to replace a list's item.
 
@@ -499,7 +499,7 @@ const value = cursor.set(newValue);
 
 
 
-####unset
+#### unset
 
 Unsets the given key. Will also work if you want to delete a list's item.
 
@@ -516,7 +516,7 @@ cursor.unset();
 
 
 
-####push
+#### push
 
 Pushes a value into the selected list. Will fail if the selected node is not a list.
 
@@ -533,7 +533,7 @@ const list = cursor.push(newValue);
 
 
 
-####unshift
+#### unshift
 
 Unshifts a value into the selected list. Will fail if the selected node is not a list.
 
@@ -550,7 +550,7 @@ const list = cursor.unshift(newValue);
 
 
 
-####concat
+#### concat
 
 Concatenates a list into the selected list. Will fail if the selected node is not a list.
 
@@ -567,7 +567,7 @@ const list = cursor.concat(list);
 
 
 
-####pop
+#### pop
 
 Removes the last item of the selected list. Will fail if the selected node is not a list.
 
@@ -584,7 +584,7 @@ const value = cursor.pop();
 
 
 
-####shift
+#### shift
 
 Removes the first item of the selected list. Will fail if the selected node is not a list.
 
@@ -601,7 +601,7 @@ const value = cursor.shift();
 
 
 
-####splice
+#### splice
 
 Splices the selected list. Will fail if the selected node is not a list.
 
@@ -624,13 +624,12 @@ const list = cursor.splice('key', [1, 1]);
 
 // splicing list at path
 const list = cursor.splice(['one', 'two'], [1, 1]);
-const list = cursor.select('one', 'two').splice([1, 1]);
 const list = cursor.select('one').splice('two', [1, 1]);
 ```
 
 
 
-####merge
+#### merge
 
 Shallow merges the selected object with another one. This will fail if the selected node is not an object.
 
@@ -674,7 +673,7 @@ React integration can be done with [hooks](#hooks) or [higher-order components](
 
 ### Hooks
 
-####Creating the app's state
+#### Creating the app's state
 
 Let's create a **store** for our colors:
 
@@ -688,7 +687,7 @@ export default Store({
 });
 ```
 
-####Rooting the store
+#### Rooting the store
 
 Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
 
@@ -720,7 +719,7 @@ const App = function({ store }) {
 render(<App store={ store } />, document.querySelector('#mount'));
 ```
 
-####Branch a component
+#### Branch a component
 
 Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
 
@@ -781,9 +780,9 @@ And the list component will automatically update and to render the following:
 
 
 
-###HOC
+### HOC
 
-####Creating the app's state
+#### Creating the app's state
 
 Let's create a **store** for our colors:
 
@@ -797,7 +796,7 @@ export default Store({
 });
 ```
 
-####Rooting the store
+#### Rooting the store
 
 Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
 
@@ -824,7 +823,7 @@ const RootedApp = root(store, App);
 render(<RootedApp />, document.querySelector('#mount'));
 ```
 
-####Branch a component
+#### Branch a component
 
 Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
 
@@ -879,7 +878,7 @@ And the list component will automatically update and to render the following:
 </div>
 ```
 
-####Dynamically set the list's path using props
+#### Dynamically set the list's path using props
 
 Sometimes, you might find yourself needing cursors paths changing along with your component's props.
 
@@ -1029,7 +1028,7 @@ There are three benchmark scripts:
 
 
 
-##Contribution
+## Contribution
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
 
