@@ -36,42 +36,50 @@ const suite = (name, resolve, reject) => {
     });
 };
 
-const access = () => new Promise((resolve, reject) => {
+const getAccess = () => new Promise((resolve, reject) => {
   const { data } = Store(obj());
-  const baobab = Baobab(obj());
   const fab = fabio(obj());
 
-  suite('access', resolve, reject)
+  suite('get: access', resolve, reject)
     .add('store', () => data.arr[3].foo)
-    .add('baobab', () => baobab.get(['arr', 3, 'foo']))
     .add('fabio', () => fab.arr[3].foo)
     .run({ async: true });
 });
 
-const get = () => new Promise((resolve, reject) => {
+const getPath = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
 
-  suite('get', resolve, reject)
+  suite('get: path', resolve, reject)
     .add('store', () => store.get(['arr', 3, 'foo']))
     .add('baobab', () => baobab.get(['arr', 3, 'foo']))
     .run({ async: true });
 });
 
-const set = () => new Promise((resolve, reject) => {
+const setAccess = () => new Promise((resolve, reject) => {
   const store = Store(obj());
-  const baobab = Baobab(obj());
   const fab = fabio(obj());
 
-  suite('set', resolve, reject)
+  suite('set: access', resolve, reject)
     .add('store', () => {
       store.data.arr[3].foo = 'bar';
     })
-    .add('baobab', () => {
-      baobab.set(['arr', 3, 'foo'], 'bar');
-    })
     .add('fabio', () => {
       fab.arr[3].foo = 'bar';
+    })
+    .run({ async: true });
+});
+
+const setPath = () => new Promise((resolve, reject) => {
+  const store = Store(obj());
+  const baobab = Baobab(obj());
+
+  suite('set: path', resolve, reject)
+    .add('store', () => {
+      store.set(['arr', 3, 'foo'], 'bar');
+    })
+    .add('baobab', () => {
+      baobab.set(['arr', 3, 'foo'], 'bar');
     })
     .run({ async: true });
 });
@@ -207,9 +215,10 @@ const complexSelectors = () => new Promise((resolve, reject) => {
 });
 
 (async function() {
-  await access();
-  await get();
-  await set();
+  await getAccess();
+  await getPath();
+  await setAccess();
+  await setPath();
   await change();
   await watch();
   await projection();

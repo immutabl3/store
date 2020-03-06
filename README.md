@@ -2,7 +2,7 @@
 
 Store is a modern, [Proxy-based](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) JavaScript data tree supporting cursors and enabling developers to easily navigate and monitor nested data though events
 
-It's a combination and evolution of the work done in [fabiospampinato/store](https://github.com/fabiospampinato/store) and [Yomguithereal/baobab](https://github.com/Yomguithereal/baobab) with a focus on performance and size with a loosely coupled API
+It's a combination and evolution of the work done in [fabiospampinato/store](https://github.com/fabiospampinato/store) and [Yomguithereal/baobab](https://github.com/Yomguithereal/baobab) with a focus on performance (especially pertaining to data changes) and size with a loosely coupled API
 
 It aims at providing a centralized model holding an application's state and can be paired with [**React**](#react) easily through [hooks](#react-hooks) and [higher order components](#react-hoc)
 
@@ -14,7 +14,7 @@ It aims at providing a centralized model holding an application's state and can 
 npm install @immutabl3/store
 ```
 
-`store` is ~`5.1`kb minified and gzipped 
+`store` is ~`5.8`kb minified and gzipped 
 
 
 
@@ -58,6 +58,20 @@ Array.isArray(data.palette.colors);
   - [onChange](#onChange)
   - [watch](#watch)
   - [projection](#projection)
+  - [gets](#gets)
+    - [get](#get)
+    - [exists](#exists)
+    - [clone](#clone)
+  - [updates](#updates)
+    - [set](#set)
+    - [unset](#unset)
+    - [push](#push)
+    - [unshift](#unshift)
+    - [concat](#concat)
+    - [pop](#pop)
+    - [shift](#shift)
+    - [splice](#splice)
+    - [merge](#merge)
   - [events](#events)
     - [target](#target)
     - [data](#data)
@@ -389,6 +403,251 @@ Using a [cursor](#cursor) or [watching](#watch) values will only report transact
 
 
 
+### gets
+
+Store comes with convenient pure functions for accessing nested data from the store.
+
+####get
+
+Gets the value from the store
+
+```js
+const store = Store({
+  palette: {
+    name: 'fancy',
+    colors: ['blue'],
+    list: [{ item: 1, value: ['black'] }],
+  },
+});
+
+// getting a path
+store.get(['palette']);
+> {name: 'fancy', colors: ['blue']}
+
+// getting a cursor
+store.select(['palette']).get();
+> {name: 'fancy', colors: ['blue']}
+
+// the path can be dynamic
+store.get(['palette', 'list', { item: 1 }, 'value', 0]);
+> 'black'
+```
+
+
+
+#### exists
+
+Check whether a specific path exists within the data.
+
+```js
+// true
+store.exists();
+
+// does the cursor point at an existing path?
+cursor.exists();
+
+// can also take a path
+store.exists('hello');
+store.exists(['hello', 'message']);
+```
+
+
+
+####clone
+
+Shallow clone the cursor's data. The method takes an optional nested path.
+
+```js
+const store = Store({ user: {name: 'John' } }),
+const cursor = store.select('user');
+
+assert(cursor.get() !== cursor.clone());
+```
+
+
+
+### updates
+
+Store comes with a set of convenient pure functions for updating data. These updates write to the data synchronously, even if `onChange` and `watch` events update asynchronously.
+
+* [set](#set)
+* [unset](#unset)
+* [push](#push)
+* [unshift](#unshift)
+* [concat](#concat)
+* [pop](#pop)
+* [shift](#shift)
+* [splice](#splice)
+* [merge](#merge)
+
+
+
+####set
+
+Replaces value at the given path. Will also work if you want to replace a list's item.
+
+```js
+// setting a value
+const value = cursor.set('key', newValue);
+
+// can also use a dynamic path
+const value = cursor.set(['one', { id: 'two'}, 0], newValue);
+
+// setting a cursor
+const value = cursor.set(newValue);
+```
+
+
+
+####unset
+
+Unsets the given key. Will also work if you want to delete a list's item.
+
+```js
+// removing a value
+cursor.unset(['one', 'two']);
+
+// can also use a dynamic path
+cursor.unset(['one', { id: 'two'}, 0]);
+
+// removing data at cursor
+cursor.unset();
+```
+
+
+
+####push
+
+Pushes a value into the selected list. Will fail if the selected node is not a list.
+
+```js
+// pushing a value
+const list = cursor.push(['arr'], newValue);
+
+// can also use a dynamic path
+const list = cursor.push(['one', { id: 'two'}, 'arr'], newValue);
+
+// pushing a cursor
+const list = cursor.push(newValue);
+```
+
+
+
+####unshift
+
+Unshifts a value into the selected list. Will fail if the selected node is not a list.
+
+```js
+// unshift a value
+const list = cursor.unshift(['arr'], newValue);
+
+// can also use a dynamic path
+const list = cursor.unshift(['one', { id: 'two'}, 'arr'], newValue);
+
+// unshift a cursor
+const list = cursor.unshift(newValue);
+```
+
+
+
+####concat
+
+Concatenates a list into the selected list. Will fail if the selected node is not a list.
+
+```js
+// concatenating a list at the given path
+const list = cursor.concat(['key'], list);
+
+// can also use a dynamic path
+const list = cursor.unshift(['one', { id: 'two'}, 'arr'], list);
+
+// concatenating a cursor
+const list = cursor.concat(list);
+```
+
+
+
+####pop
+
+Removes the last item of the selected list. Will fail if the selected node is not a list.
+
+```js
+// popping a list at the given path
+const value = cursor.pop(['key']);
+
+// can also use a dynamic path
+const value = cursor.pop(['one', { id: 'two'}, 'arr']);
+
+// popping a cursor
+const value = cursor.pop();
+```
+
+
+
+####shift
+
+Removes the first item of the selected list. Will fail if the selected node is not a list.
+
+```js
+// shifting a list at the given path
+const value = cursor.shift(['key']);
+
+// can also use a dynamic path
+const value = cursor.shift(['one', { id: 'two'}, 'arr']);
+
+// shifting a cursor
+const value = cursor.shift();
+```
+
+
+
+####splice
+
+Splices the selected list. Will fail if the selected node is not a list.
+
+The `splice` specifications works the same as for [`Array.prototype.splice`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Objets_globaux/Array/splice).
+There is one exception though: Per specification, splice deletes no values if the `deleteCount` argument is not parseable as a number. Instead store throws an error if the given `deleteCount` argument could not be parsed.
+
+```js
+// splicing the list
+const list = cursor.splice([1, 1]);
+
+// omitting the deleteCount argument makes splice delete no elements
+const list = cursor.splice([1]);
+
+// inserting an item
+const list = cursor.splice([1, 0, 'newItem']);
+const list = cursor.splice([1, 0, 'newItem1', 'newItem2']);
+
+// splicing the list at key
+const list = cursor.splice('key', [1, 1]);
+
+// splicing list at path
+const list = cursor.splice(['one', 'two'], [1, 1]);
+const list = cursor.select('one', 'two').splice([1, 1]);
+const list = cursor.select('one').splice('two', [1, 1]);
+```
+
+
+
+####merge
+
+Shallow merges the selected object with another one. This will fail if the selected node is not an object.
+
+```js
+// Merging
+const newList = cursor.merge({ name: 'John' });
+
+// Merging at key
+const newList = cursor.merge('key', { name: 'John' });
+
+// Merging at path
+const newList = cursor.merge(['one', 'two'], {name: 'John'});
+const newList = cursor.select('one').merge('two', {name: 'John'});
+```
+
+
+
 ### debug
 
 The debugger is a separate module that can be configured and passed to the store to enable debugging. It will log updates, additions and deletions between the previous and new state on commit.
@@ -703,6 +962,7 @@ There are two scenarios that store cannot currently handle:
 - Array Length: watching an array's length won't trigger updates when the array changes. This may be fixed in a future version
 
 
+
 ## Test
 
 To run tests:
@@ -728,14 +988,15 @@ To run tests:
 ## Benchmark
 
 ```sh
-creation x 1,028,023 ops/sec ±1.29% (91 runs sampled)
-get: access x 223,980 ops/sec ±2.28% (89 runs sampled)
-get: path x 4,513,476 ops/sec ±1.22% (89 runs sampled)
-sets: access x 145,386 ops/sec ±1.14% (89 runs sampled)
-onChange x 132,098 ops/sec ±1.15% (87 runs sampled)
-watch x 79,049 ops/sec ±0.93% (89 runs sampled)
-projection x 1,124,888 ops/sec ±0.53% (90 runs sampled)
-select x 1,934,267 ops/sec ±0.54% (94 runs sampled)
+creation x 1,111,229 ops/sec ±0.79% (94 runs sampled)
+gets: direct access x 249,717 ops/sec ±0.83% (89 runs sampled)
+gets: path x 4,976,057 ops/sec ±0.58% (94 runs sampled)
+sets: direct access x 145,549 ops/sec ±1.35% (88 runs sampled)
+sets: path x 97,955 ops/sec ±0.66% (94 runs sampled)
+onChange x 135,090 ops/sec ±1.15% (93 runs sampled)
+watch x 83,291 ops/sec ±1.20% (89 runs sampled)
+projection x 1,221,940 ops/sec ±0.55% (94 runs sampled)
+select x 206,447 ops/sec ±0.66% (94 runs sampled)
 ```
 
 

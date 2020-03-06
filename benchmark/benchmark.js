@@ -19,7 +19,7 @@ const suite = new Benchmark.Suite()
 
 (function() {
   const store = Store(obj(), { asynchronous: false });
-  suite.add('get: access', () => {
+  suite.add('gets: direct access', () => {
     const foo = store.data.arr[3].foo;
     return foo;
   });
@@ -28,7 +28,7 @@ const suite = new Benchmark.Suite()
 (function() {
   const store = Store(obj(), { asynchronous: false });
   const path = ['arr', 3, 'foo'];
-  suite.add('get: path', () => {
+  suite.add('gets: path', () => {
     const foo = store.get(path);
     return foo;
   });
@@ -36,18 +36,18 @@ const suite = new Benchmark.Suite()
 
 (function() {
   const store = Store(obj(), { asynchronous: false });
-  suite.add('sets: access', () => {
+  suite.add('sets: direct access', () => {
     store.data.arr[3].foo = uniqueId();
   });
 }());
 
-// (function() {
-//   const store = Store(obj(), { asynchronous: false });
-//   const path = ['arr', 3, 'foo'];
-//   suite.add('sets: path', () => {
-//     store.set(path, uniqueId());
-//   });
-// }());
+(function() {
+  const store = Store(obj(), { asynchronous: false });
+  const path = ['arr', 3, 'foo'];
+  suite.add('sets: path', () => {
+    store.set(path, uniqueId());
+  });
+}());
 
 (function() {
   const store = Store(obj(), { asynchronous: false });
