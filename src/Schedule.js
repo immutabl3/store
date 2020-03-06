@@ -29,6 +29,8 @@ export default function Schedule(dispatcher, asynchronous, autoCommit) {
   };
 
   return {
+    commit, 
+    
     debug(bug) {
       debug = bug;
     },

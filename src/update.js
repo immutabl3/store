@@ -5,89 +5,80 @@ import {
   isPrimitive,
 } from './types';
 
+const operations = new Map([
+  ['set', (target, key, value) => (target[key] = value)],
+
+  ['push', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`push`, { path });
+    return target[key].push(value);
+  }],
+
+  ['unshift', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`unshift`, { path });
+    return target[key].unshift(value);
+  }],
+
+  ['concat', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`concat`, { path });
+    return target[key].push(...value);
+  }],
+
+  ['splice', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`splice`, { path });
+    return target[key].splice(...value);
+  }],
+
+  ['pop', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`pop`, { path });  
+    return target[key].pop();
+  }],
+
+  ['shift', (target, key, value, path) => {
+    if (!isArray(target[key])) throw new StoreError(`shift`, { path });
+    return target[key].shift();
+  }],
+
+  ['unset', (target, key) => {
+    if (isArray(target)) return target.splice(key, 1);
+    delete target[key];
+  }],
+
+  ['merge', (target, key, value, path) => {
+    if (!isObject(target[key])) throw new StoreError(`merge`, { path });
+    return (target[key] = Object.assign(target[key], value));
+  }],
+]);
+
 export default function update(data, path, type, value) {
   // dummy root, so we can shift and alter the root
   const dummy = { root: data };
   const dummyPath = ['root', ...path];
-  const currentPath = [];
 
-  // Walking the path
-  let p = dummy;
-  let i;
-  let l;
-  let s;
+  // walking the path
+  let current = dummy;
+  let key;
 
-  for (i = 0, l = dummyPath.length; i < l; i++) {
+  let idx = 0;
+  const { length } = dummyPath;
+  for (; idx < length; idx++) {
     // Current item's reference is therefore p[s]
     // The reason why we don't create a variable here for convenience
     // is because we actually need to mutate the reference.
-    s = dummyPath[i];
+    key = dummyPath[idx];
 
-    // If we reached the end of the path, we apply the operation
-    if (i === l - 1) {
-      // set
-      if (type === 'set') {
-        p[s] = value;
-      
-      // push
-      } else if (type === 'push') {
-        if (!isArray(p[s])) throw new StoreError(`push`, { currentPath });
-
-        p[s].push(value);
-      
-      // unshift
-      } else if (type === 'unshift') {
-        if (!isArray(p[s])) throw new StoreError(`unshift`, { currentPath });
-
-        p[s].unshift(value);
-      
-      // concat
-      } else if (type === 'concat') {
-        if (!isArray(p[s])) throw new StoreError(`concat`, { currentPath });
-        
-        p[s].push.apply(p[s], value);
-      
-      // splice
-      } else if (type === 'splice') {
-        if (!isArray(p[s])) throw new StoreError(`splice`, { currentPath });
-
-        p[s].splice.apply(p[s], value);
-
-      // pop
-      } else if (type === 'pop') {
-        if (!isArray(p[s])) throw new StoreError(`pop`, { currentPath });
-        
-        p[s].pop();
-      
-      // shift
-      } else if (type === 'shift') {
-        if (!isArray(p[s])) throw new StoreError(`shift`, { currentPath });
-
-        p[s].shift();
-      
-      // unset
-      } else if (type === 'unset') {
-        if (isArray(p)) p.splice(s, 1);
-        if (isObject(p)) delete p[s];
-        // TODO: what's the failure if neither?
-      
-      // merge
-      } else if (type === 'merge') {
-        if (!isObject(p[s])) throw new StoreError(`merge`, { currentPath });
-
-        p[s] = Object.assign(p[s], value);
-      }
-
-      break;
+    // if we reached the end of the path, we apply the operation
+    if (idx === length - 1) {
+      return operations.get(type)(current, key, value, path);
+    }
     
-    // If we reached a leaf, we override by setting an empty object
-    } else if (isPrimitive(p[s])) {
-      p[s] = {};
+    // if we reached a leaf, we override by setting an empty object
+    if (isPrimitive(current[key])) {
+      current[key] = {};
     }
 
-    p = p[s];
+    current = current[key];
   }
 
   // returning new data object
-  return p[s];
+  return current[key];
 };

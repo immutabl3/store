@@ -1,5 +1,6 @@
 import test from 'tape';
 import Store from '../src';
+import debug from '../src/debug';
 import { delay } from './utils';
 
 test('store: initialization', async assert => {
@@ -32,5 +33,64 @@ test('store: initialization', async assert => {
   assert.end();
 });
 
-test(`store: synchronous`, () => {});
-test(`store: autoCommit`, () => {});
+test(`store: asynchronous`, assert => {
+  assert.plan(2);
+
+  assert.doesNotThrow(
+    () => Store({}, { asynchronous: false }),
+    `should be able to create a store that's synchronous`
+  );
+
+  const store = Store({
+    hello: 'world',
+  }, { asynchronous: false });
+
+  store.onChange(() => {
+    assert.ok(true, `should autoCommit changes synchronously`);
+  });
+
+  store.data.hello = 'goodbye';
+
+  assert.end();
+});
+
+test(`store: autoCommit`, assert => {
+  assert.plan(2);
+
+  assert.doesNotThrow(
+    () => Store({}, { autoCommit: false }),
+    `should be able to create a store without autoComit`
+  );
+
+  const store = Store({
+    hello: 'world',
+  }, { autoCommit: false, asynchronous: false });
+
+  const disposer = store.onChange(() => {
+    assert.fail(`should not autoCommit changes`);
+  });
+
+  store.data.hello = 'goodbye';
+
+  disposer();
+
+  store.onChange(() => {
+    assert.ok(true, `should be able to manually commit changes`);
+  });
+
+  store.data.hello = 1;
+  store.commit();
+
+  assert.end();
+});
+
+test(`store: debug`, assert => {
+  assert.doesNotThrow(
+    () => Store({}, { debug }),
+    `should be able to create a store with a debug`
+  );
+
+  // for more debug tests, see debug.test.js
+  
+  assert.end();
+});

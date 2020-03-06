@@ -111,11 +111,11 @@ Cursor.prototype = {
 };
 
 const makeSetter = function(name, arity, typeChecker) {
-  Cursor.prototype[name] = function(pth, val) {
+  Cursor.prototype[name] = function(first, second) {
     const length = arguments.length;
 
-    let path = pth;
-    let value = val;
+    let path = first;
+    let value = second;
 
     // we should warn the user if he applies to many arguments to the function
     if (length > arity) throw new StoreError(`${name}: too many arguments`);
