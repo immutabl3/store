@@ -1,6 +1,7 @@
 import StoreError from '../StoreError';
 import query from '../query';
 import makeMethod from './makeMethod';
+import getableDisposer from './getableDisposer';
 import methodDefinitions from './methodDefinitions';
 import {
   get,
@@ -11,13 +12,7 @@ import {
   isArray,
   isFunction,
   isObjectLike,
-  isProjection,
 } from '../types';
-
-const watchGet = function() {
-  const value = this.selector();
-  return isProjection(value) ? this.cursor.projection(value) : this.cursor.get(value);
-};
 
 export default function Cursor(root, proxy, locker, emitter, path = []) {
   const hash = query.hash(path);
@@ -55,12 +50,10 @@ export default function Cursor(root, proxy, locker, emitter, path = []) {
     watch(listener, fn) {
       const selector = isFunction(listener) ? listener : () => listener;
 
-      const disposer = emitter.add(fn, hash, api.data, selector);
-
-      disposer.get = watchGet;
-      disposer.cursor = api;
-
-      return disposer;
+      return getableDisposer(
+        api,
+        emitter.add(fn, hash, api.data, selector)
+      );
     },
 
     projection: lockable(path => {
