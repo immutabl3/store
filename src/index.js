@@ -21,7 +21,7 @@ export default function Store(obj, {
   const proxy = proxyWatcher(obj, schedule.add);
   // allows locking and unlocking the proxy
   const lock = locker(proxy);
-  const cursor = new Cursor(proxy, proxy, lock, emitter);
+  const cursor = Cursor(proxy, proxy, lock, emitter);
   if (debug) schedule.debug(debug(proxy));
   cursor.commit = schedule.commit;
   return cursor;

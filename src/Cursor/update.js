@@ -1,9 +1,9 @@
-import StoreError from './StoreError';
+import StoreError from '../StoreError';
 import {
   isArray,
   isObject,
   isPrimitive,
-} from './types';
+} from '../types';
 
 const operations = new Map([
   ['set', (target, key, value) => (target[key] = value)],
