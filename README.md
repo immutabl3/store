@@ -988,15 +988,15 @@ To run tests:
 ## Benchmark
 
 ```sh
-creation x 1,111,229 ops/sec ±0.79% (94 runs sampled)
-gets: direct access x 249,717 ops/sec ±0.83% (89 runs sampled)
-gets: path x 4,976,057 ops/sec ±0.58% (94 runs sampled)
-sets: direct access x 145,549 ops/sec ±1.35% (88 runs sampled)
-sets: path x 97,955 ops/sec ±0.66% (94 runs sampled)
-onChange x 135,090 ops/sec ±1.15% (93 runs sampled)
-watch x 83,291 ops/sec ±1.20% (89 runs sampled)
-projection x 1,221,940 ops/sec ±0.55% (94 runs sampled)
-select x 206,447 ops/sec ±0.66% (94 runs sampled)
+creation x 647,719 ops/sec ±0.73% (92 runs sampled)
+gets: direct access x 257,818 ops/sec ±0.36% (97 runs sampled)
+gets: path x 4,860,006 ops/sec ±0.35% (95 runs sampled)
+sets: direct access x 159,482 ops/sec ±1.02% (91 runs sampled)
+sets: path x 102,501 ops/sec ±0.79% (91 runs sampled)
+onChange x 141,635 ops/sec ±0.96% (91 runs sampled)
+watch x 88,262 ops/sec ±0.79% (92 runs sampled)
+projection x 1,243,192 ops/sec ±0.50% (93 runs sampled)
+select x 190,039 ops/sec ±0.40% (97 runs sampled)
 ```
 
 
