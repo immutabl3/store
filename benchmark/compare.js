@@ -162,7 +162,7 @@ const watch = () => new Promise((resolve, reject) => {
         deferred.resolve();
       };
       fabioOnChange(fab, () => {
-        return fab.arr[3].foo !== 'bar';
+        return fab.arr[3].foo;
       }, callback);
       await delay();
       fab.arr[3].foo = uniqueId();
