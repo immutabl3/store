@@ -63,31 +63,31 @@ export default function clone(item) {
 
   // Object
   if (isObject(item)) {
-    const o = {};
+    const obj = {};
     const props = Object.getOwnPropertyNames(item);
-    for (let i = 0, l = props.length; i < l; i++) {
-      const name = props[i];
-      const k = Object.getOwnPropertyDescriptor(item, name);
-      if (k.enumerable === true) {
-        if (k.get && k.get.isLazyGetter) {
-          Object.defineProperty(o, name, {
-            get: k.get,
+    for (let idx = 0; idx < props.length; idx++) {
+      const name = props[idx];
+      const descriptor = Object.getOwnPropertyDescriptor(item, name);
+      if (descriptor.enumerable === true) {
+        if (descriptor.get && descriptor.get.isLazyGetter) {
+          Object.defineProperty(obj, name, {
+            get: descriptor.get,
             enumerable: true,
             configurable: true
           });
         } else {
-          o[name] = item[name];
+          obj[name] = item[name];
         }
-      } else if (k.enumerable === false) {
-        Object.defineProperty(o, name, {
-          value: k.value,
+      } else if (descriptor.enumerable === false) {
+        Object.defineProperty(obj, name, {
+          value: descriptor.value,
           enumerable: false,
           writable: true,
           configurable: true
         });
       }
     }
-    return o;
+    return obj;
   }
 
   return item;
