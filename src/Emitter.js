@@ -5,14 +5,13 @@ export default function Emitter() {
     values() {
       return events.values();
     },
-    add(fn, hash, /*proxy, */selector) {
+    add(fn, selector, projection = false) {
       const entry = function() {
         events.has(entry) && events.delete(entry);
       };
       
       entry.fn = fn;
-      entry.hash = hash;
-      // entry.proxy = proxy;
+      entry.projection = projection;
       entry.selector = selector;
 
       events.add(entry);
