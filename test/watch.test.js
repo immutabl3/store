@@ -1,6 +1,5 @@
 import test from 'tape';
 import isFunction from 'lodash/isFunction';
-import noop from 'lodash/noop';
 import Store from '../src';
 import { delay } from './utils';
 
@@ -14,9 +13,9 @@ export const Data = function(object) {
 
   const fixture = {
     err(fn) {
-      // store.watch(['noop'], () => {
-      //   fn(`watching an invalid value shouldn't trigger`);
-      // });
+      store.watch(['noop'], () => {
+        fn(`watching an invalid value shouldn't trigger`);
+      });
       return this;
     },
     watch(path = []) {
