@@ -32,7 +32,7 @@ const store = Store({
 });
 
 // listen to all changes in the store
-store.onChange(({ transactions }) => {
+store.watch(({ transactions }) => {
   console.log('the store has been updated!', transactions);
 });
 
@@ -55,7 +55,6 @@ Array.isArray(data.palette.colors);
 - [Usage](#usage)
   - [instantiation](#instantiation)
   - [cursors](#cursors)
-  - [onChange](#onChange)
   - [watch](#watch)
   - [project](#project)
   - [gets](#gets)
@@ -150,7 +149,7 @@ const colorCursor = paletteCursor.select('colors');
 
 
 
-### onChange
+### watch
 
 A store can be watched for changes
 
@@ -164,7 +163,7 @@ const store = Store({
 const { data } = store;
 
 // will fire when the store changes
-store.onChange(() => {
+store.watch(() => {
 	console.log(`user's name is ${data.user.name}`);
   > `user's name is Jane`
 });
@@ -185,14 +184,14 @@ const store = Store({
 
 // listen to the user
 const userCursor = store.select(['user']);
-userCursor.onChange(() => {
+userCursor.watch(() => {
   console.log(`user's name is ${userCursor.data.name}`);
   > `user's name is Jane`
 });
 
 // listen to a specific value
 store.select(['user', 'name'])
-  .onChange(() => {
+  .watch(() => {
     console.log(`user's name is ${store.data.user.name}`);
 		> `user's name is Jane`
   });
@@ -205,12 +204,12 @@ store.data.user.name = 'Jane';
 
 
 
-`onChange` returns a disposer. When called, the disposer will unbind the function
+`watch` returns a disposer. When called, the disposer will unbind the function
 
 ```js
 const store = Store({ counter: 1 });
 
-const dispose = store.onChange(() => {
+const dispose = store.watch(() => {
   console.log(store.data.counter);
 });
 
@@ -225,9 +224,7 @@ store.data.counter = 3;
 
 
 
-### watch
-
-`watch` is similar to `onChange`, but allows you to watch one or more values
+`watch` can take a selector to watch one or more values
 
 ```js
 const store = Store({
@@ -337,7 +334,7 @@ store.watch(['hello'], e => {
 store.data.hello = 'world;
 ```
 
-For an [`onChange`](#onChange) event, this is the same as `target`
+For an [`watch`](#watch) event, this is the same as `target`
 
 
 
@@ -442,7 +439,7 @@ assert(cursor.get() !== cursor.clone());
 
 ### updates
 
-Store comes with a set of convenient pure functions for updating data. These updates write to the data synchronously, even if `onChange` and `watch` events update asynchronously.
+Store comes with a set of convenient pure functions for updating data. These updates write to the data synchronously, even if `watch` events update asynchronously.
 
 * [set](#set)
 * [unset](#unset)
@@ -894,7 +891,7 @@ export default branch(props => {
 
 ## Features
 
-- **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to the usage of [`Proxys`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) you just have to wrap your state with [`store`](#instantiation), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`onChange`](#events) 
+- **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to the usage of [`Proxys`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) you just have to wrap your state with [`store`](#instantiation), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`watch`](#watch) 
 
 - **Framework-agnostic**: Store doesn't make any assuptions about your UI framework of choice and can be used without one
 
@@ -965,7 +962,6 @@ gets: direct access x 257,818 ops/sec ±0.36% (97 runs sampled)
 gets: path x 4,860,006 ops/sec ±0.35% (95 runs sampled)
 sets: direct access x 159,482 ops/sec ±1.02% (91 runs sampled)
 sets: path x 102,501 ops/sec ±0.79% (91 runs sampled)
-onChange x 141,635 ops/sec ±0.96% (91 runs sampled)
 watch x 88,262 ops/sec ±0.79% (92 runs sampled)
 project x 1,243,192 ops/sec ±0.50% (93 runs sampled)
 select x 190,039 ops/sec ±0.40% (97 runs sampled)

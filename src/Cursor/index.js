@@ -11,6 +11,7 @@ import {
 } from '../utils';
 import {
   isArray,
+  isFunction,
   isObjectLike,
   isProjection,
 } from '../types';
@@ -47,16 +48,14 @@ export default function Cursor(root, locker, emitter, basePath = []) {
       return get(root, basePath);
     },
 
-    onChange(fn) {
-      return emitter.add(fn, basePath);
-    },
-
     select(value) {
       const selector = coerce(value);
       return Cursor(root, locker, emitter, [...basePath, ...selector]);
     },
 
     watch(listener, fn) {
+      if (isFunction(listener)) return emitter.add(listener, basePath);
+
       const isProj = isProjection(listener);
       const selector = isProj ?
         expandProjection(listener, basePath) :
@@ -69,6 +68,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
       if (!isObjectLike(path)) throw new StoreError(`project requires an object`, { value: path });
       if (isArray(path)) return api.get(path);
       
+      // TODO: optimize
       const result = Object.fromEntries(
         Object.entries(path)
           .map(([key, value]) => {

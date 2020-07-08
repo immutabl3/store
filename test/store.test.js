@@ -45,7 +45,7 @@ test(`store: asynchronous`, assert => {
     hello: 'world',
   }, { asynchronous: false });
 
-  store.onChange(() => {
+  store.watch(() => {
     assert.ok(true, `should autoCommit changes synchronously`);
   });
 
@@ -66,7 +66,7 @@ test(`store: autoCommit`, assert => {
     hello: 'world',
   }, { autoCommit: false, asynchronous: false });
 
-  const disposer = store.onChange(() => {
+  const disposer = store.watch(() => {
     assert.fail(`should not autoCommit changes`);
   });
 
@@ -74,7 +74,7 @@ test(`store: autoCommit`, assert => {
 
   disposer();
 
-  store.onChange(() => {
+  store.watch(() => {
     assert.ok(true, `should be able to manually commit changes`);
   });
 

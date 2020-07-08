@@ -167,7 +167,7 @@ test('cursors: merge', assert => {
 
   const cursor = store.select('o');
 
-  store.onChange(() => {
+  store.watch(() => {
     assert.same(
       store.data.o,
       { hello: 'jarl' },
@@ -362,7 +362,7 @@ test('cursors: setter: upper reference resolution', assert => {
     hello: { color: 'blue' }
   });
 
-  const disposer = store.onChange(() => {
+  const disposer = store.watch(() => {
     assert.is(
       store.data.hello.color,
       'yellow',
@@ -374,7 +374,7 @@ test('cursors: setter: upper reference resolution', assert => {
 
   disposer();
 
-  store.onChange(() => {
+  store.watch(() => {
     assert.is(
       store.data.hello,
       'purple',
@@ -396,7 +396,7 @@ test('cursors: merge: empty to populated resolution', assert => {
 
   assert.is(cursor.get(), undefined, `cursor is empty`);
 
-  cursor.onChange(() => {
+  cursor.watch(() => {
     assert.is(
       cursor.data,
       'purple',
@@ -426,7 +426,7 @@ test('cursors: set: empty to populated resolution', assert => {
 
   assert.is(cursor.get(), undefined, `cursor is empty`);
 
-  cursor.onChange(() => {
+  cursor.watch(() => {
     assert.is(
       cursor.data,
       'purple',

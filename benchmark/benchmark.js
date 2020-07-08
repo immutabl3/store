@@ -1,5 +1,4 @@
 import Benchmark from 'benchmark';
-import noop from 'lodash/noop';
 import uniqueId from 'lodash/uniqueId';
 import Store from '../store';
 import { small as obj } from './fixtures';
@@ -51,8 +50,10 @@ const suite = new Benchmark.Suite()
 
 (function() {
   const store = Store(obj(), { asynchronous: false });
-  suite.add('onChange', () => {
-    const dispose = store.onChange(noop);
+  suite.add('change', () => {
+    // eslint-disable-next-line no-use-before-define
+    const onChange = () => dispose();
+    const dispose = store.watch(onChange);
     store.data.arr[3].foo = uniqueId();
     dispose();
   });
@@ -61,7 +62,9 @@ const suite = new Benchmark.Suite()
 (function() {
   const store = Store(obj(), { asynchronous: false });
   suite.add('watch', () => {
-    const dispose = store.watch(['arr', 3, 'foo'], noop);
+    // eslint-disable-next-line no-use-before-define
+    const onChange = () => dispose();
+    const dispose = store.watch(['arr', 3, 'foo'], onChange);
     store.data.arr[3].foo = uniqueId();
     dispose();
   });

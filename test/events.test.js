@@ -11,7 +11,7 @@ test('events: call order', async assert => {
     arr: [0, 1, 2],
   });
 
-  store.onChange(() => order.push(1));
+  store.watch(() => order.push(1));
 
   store.watch(['arr', 0], () => order.push(2));
 
@@ -34,7 +34,7 @@ test('events: change', async assert => {
     hello: 'world',
   });
 
-  store.onChange(e => {
+  store.watch(e => {
     assert.is(e.transactions.length, 1);
   });
 
@@ -337,7 +337,7 @@ test('events: transaction order', async assert => {
     },
   });
 
-  store.onChange(e => {
+  store.watch(e => {
     assert.same(
       e.transactions,
       [
@@ -375,7 +375,7 @@ test('events: transaction order', async assert => {
     );
   });
 
-  store.select(['foo', 'bar']).onChange(e => {
+  store.select(['foo', 'bar']).watch(e => {
     assert.same(
       e.transactions,
       [

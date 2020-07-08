@@ -42,7 +42,7 @@ test('change: fires a change event when a mutation is made', async assert => {
       nan: NaN,
     });
 
-    store.onChange(() => assert.fail(`detected a mutation`));
+    store.watch(() => assert.fail(`detected a mutation`));
 
     fn(store.data);
 
@@ -62,7 +62,7 @@ test('change: fires a change event when a mutation is made', async assert => {
     });
 
     // eslint-disable-next-line no-loop-func
-    store.onChange(e => {
+    store.watch(e => {
       assert.ok(!!e.transactions.length, `transaction made`);
       calls++;
     });
@@ -84,21 +84,21 @@ test('change: dispose', async assert => {
 
   let calls = 0;
 
-  const disposer = store.onChange(() => calls++);
+  const disposer = store.watch(() => calls++);
   assert.ok(!!disposer, `returned a disposer`);
 
   store.data.foo = 321;
 
   await delay();
 
-  assert.is(calls, 1, `onChange called`);
+  assert.is(calls, 1, `watch called`);
   assert.doesNotThrow(() => disposer(), `disposer called`);
 
   store.data.foo = 0;
 
   await delay();
 
-  assert.is(calls, 1, `onChange was not called after being disposed`);
+  assert.is(calls, 1, `watch was not called after being disposed`);
 
   assert.end();
 });

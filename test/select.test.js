@@ -33,7 +33,7 @@ test('select: basics', async assert => {
 
   const changes = Changes();
 
-  store.onChange(() => changes.push('main'));
+  store.watch(() => changes.push('main'));
   
   const selection = store.select(['bar', 'deep']);
   const bazChange = e => {
@@ -43,7 +43,7 @@ test('select: basics', async assert => {
         path: ['bar', 'deep', 'baz'],
         value: -1,
       }
-    ], `selection: onChange: transactions`);
+    ], `selection: watch: transactions`);
     changes.push('sub');
   };
   const bizChange = e => {
@@ -53,10 +53,10 @@ test('select: basics', async assert => {
         path: ['bar', 'deep', 'biz', 'deepest'],
         value: -1,
       }
-    ], `selection: onChange: transactions`);
+    ], `selection: watch: transactions`);
     changes.push('sub');
   };
-  const disposer = selection.onChange(bazChange);
+  const disposer = selection.watch(bazChange);
   selection.watch(['baz'], () => {
     changes.push('watch');
   });
@@ -83,7 +83,7 @@ test('select: basics', async assert => {
     'main',
     'sub',
     'watch',
-  ], `selector caught change with onChange and watch events`);
+  ], `selector caught change with watch event`);
 
   const postProjection = selection.project({ foo: 'baz' });
   assert.is(postProjection.foo, -1, `post mutation project`);
@@ -92,10 +92,10 @@ test('select: basics', async assert => {
   assert.is(postGet, -1, `post mutation get`);
 
   disposer();
-  selection.onChange(bizChange);
+  selection.watch(bizChange);
 
   const subSelection = selection.select(['biz']);
-  subSelection.onChange(() => {
+  subSelection.watch(() => {
     changes.push('subsub');
   });
 
@@ -107,7 +107,7 @@ test('select: basics', async assert => {
     'main',
     'sub',
     'subsub',
-  ], `sub selector caught change with onChange event`);
+  ], `sub selector caught change with watch event`);
 
   assert.end();
 });
@@ -127,7 +127,7 @@ test('select: dynamic paths', assert => {
 
   assert.same(cursor.get(), { bar: 2 }, `cursor contains object at dynamic path`);
 
-  cursor.onChange(() => {
+  cursor.watch(() => {
     assert.is(
       cursor.data.world,
       true,
