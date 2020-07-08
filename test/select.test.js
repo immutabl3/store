@@ -112,23 +112,32 @@ test('select: basics', async assert => {
   assert.end();
 });
 
-test('select: dynamic paths', async assert => {
-  assert.plan(2);
+test('select: dynamic paths', assert => {
+  assert.plan(3);
 
   const store = Store({
-    foo: [
-      { bar: 123 },
+    hello: [
+      { foo: 1 },
+      { bar: 2 },
+      { baz: 3 },
     ],
+  }, { asynchronous: false });
+
+  const cursor = store.select(['hello', { bar: 2 }]);
+
+  assert.same(cursor.get(), { bar: 2 }, `cursor contains object at dynamic path`);
+
+  cursor.onChange(() => {
+    assert.is(
+      cursor.data.world,
+      true,
+      `cursor should reflect the change`
+    );
   });
 
-  assert.throws(
-    () => store.select(['foo', () => {}]),
-    `cannot generate a selection with function in path`
-  );
-  assert.throws(
-    () => store.select(['foo', { bar: 123 }]),
-    `cannot generate a selection with object in path`
-  );
+  store.data.hello[1].world = true;
+
+  assert.same(cursor.get(), { bar: 2, world: true }, `cursor contains the change`);
 
   assert.end();
 });

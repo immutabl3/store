@@ -118,11 +118,6 @@ test('cursors: setters', assert => {
     `should throw an error when the provided path is incorrect`
   );
 
-  assert.throws(
-    () => store.select(['items', { id: 2 }]).set('id', 3),
-    `should fail consistently across possibilities when setting a nonexistent dynamic path`
-  );
-
   store.set('hello', '');
   assert.is(
     store.data.hello,
@@ -444,36 +439,6 @@ test('cursors: set: empty to populated resolution', assert => {
   });
 
   assert.is(cursor.get(), 'purple', `cursor contains the change`);
-
-  assert.end();
-});
-  
-test.only('cursors: dynamic select', assert => {
-  assert.plan(3);
-
-  const store = createStore({
-    hello: [
-      { foo: 1 },
-      { bar: 2 },
-      { baz: 3 },
-    ],
-  });
-
-  const cursor = store.select(['hello', { bar: 2 }]);
-
-  assert.same(cursor.get(), { bar: 2 }, `cursor contains object at dynamic path`);
-
-  cursor.onChange(() => {
-    assert.is(
-      cursor.data.world,
-      true,
-      `cursor should reflect the change`
-    );
-  });
-
-  store.data.hello[1].world = true;
-
-  assert.same(cursor.get(), { bar: 2, world: true }, `cursor contains the change`);
 
   assert.end();
 });
