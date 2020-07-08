@@ -1190,7 +1190,6 @@ test('proxyWatcher: event meta', async assert => {
     },
     clear() {
       const proxy = watch({ foo: new Map([['1', 1]]) }, (path, type, value, previousValue, args) => {
-        debugger;
         assert.same(path, ['foo'], `clear: path`);
         assert.is(type, 'clear', `clear: type`);
         assert.same(value.size, 0, `clear: value`);
