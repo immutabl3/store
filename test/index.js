@@ -3,7 +3,7 @@ import './proxyWatcher.test';
 import './cursors.test';
 import './change.test';
 import './watch.test';
-import './projection.test';
+import './project.test';
 import './events.test';
 import './debug.test';
 import './select.test';

@@ -91,7 +91,6 @@ export const isLooselyImmutableMethod = (target, method) => {
 export const isStore = store => (
   store &&
   'data' in store &&
-  isFunction(store.projection) &&
   isFunction(store.watch)
 );
 

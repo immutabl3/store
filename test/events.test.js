@@ -45,7 +45,7 @@ test('events: change', async assert => {
   assert.end();
 });
 
-test('events: projection', async assert => {
+test('events: project', async assert => {
   assert.plan(2);
 
   const store = Store({

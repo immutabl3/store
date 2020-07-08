@@ -2,7 +2,7 @@ import test from 'tape';
 import Store from '../src';
 import { delay } from './utils';
 
-test('projection: object selector', async assert => {
+test('project: object selector', async assert => {
   assert.plan(4);
 
   const store = Store({
@@ -12,7 +12,7 @@ test('projection: object selector', async assert => {
     },
   });
 
-  const pre = store.projection({
+  const pre = store.project({
     hello: 'foo',
     world: ['bar', 'deep', 0],
   });
@@ -25,7 +25,7 @@ test('projection: object selector', async assert => {
 
   await delay();
 
-  const post = store.projection({
+  const post = store.project({
     hello: 'foo',
     world: ['bar', 'deep', 0],
   });
@@ -35,7 +35,7 @@ test('projection: object selector', async assert => {
   assert.end();
 });
 
-test('projection: can project on an array', async assert => {
+test('project: can project on an array', async assert => {
   assert.plan(2);
 
   const store = Store({
@@ -45,7 +45,7 @@ test('projection: can project on an array', async assert => {
     },
   });
 
-  const pre = store.projection(['bar', 'deep', 0]);
+  const pre = store.project(['bar', 'deep', 0]);
   assert.is(pre, store.data.bar.deep[0], `initial data is retrieved`);
 
   store.data.baz = true;
@@ -54,18 +54,18 @@ test('projection: can project on an array', async assert => {
 
   await delay();
 
-  const post = store.projection(['bar', 'deep', 0]);
+  const post = store.project(['bar', 'deep', 0]);
   assert.is(post, store.data.bar.deep[0], `mutated data is retrieved`);
 
   assert.end();
 });
 
-test('projection: project on invalid paths', async assert => {
+test('project: project on invalid paths', async assert => {
   assert.plan(2);
 
   const store = Store({});
 
-  const result = store.projection({
+  const result = store.project({
     hello: 'foo',
     world: ['bar', 'deep', 0],
   });

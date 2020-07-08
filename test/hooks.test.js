@@ -72,7 +72,7 @@ test('useContext', assert => {
   assert.end();
 });
 
-test('useStore: selection and projection', async assert => {
+test('useStore: select and project', async assert => {
   dom();
 
   const apps = [

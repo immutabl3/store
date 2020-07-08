@@ -175,16 +175,16 @@ const watch = () => new Promise((resolve, reject) => {
     .run({ async: true });
 });
 
-const projection = () => new Promise((resolve, reject) => {
+const project = () => new Promise((resolve, reject) => {
   const store = Store(obj());
   const baobab = Baobab(obj());
   const mapping = {
     foo: ['arr', 3, 'foo'],
   };
 
-  suite('projection', resolve, reject)
+  suite('project', resolve, reject)
     .add('store', () => {
-      return store.projection(mapping);
+      return store.project(mapping);
     })
     .add('baobab', () => {
       return baobab.project(mapping);
@@ -226,7 +226,7 @@ const complexSelectors = () => new Promise((resolve, reject) => {
   // await setPath();
   // await change();
   // await watch();
-  // await projection();
+  // await project();
   await select();
   // await complexSelectors();
 

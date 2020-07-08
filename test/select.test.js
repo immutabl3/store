@@ -61,8 +61,8 @@ test('select: basics', async assert => {
     changes.push('watch');
   });
 
-  const preProjection = selection.projection({ foo: 'baz' });
-  assert.is(preProjection.foo, 1, `pre mutation projection`);
+  const preProjection = selection.project({ foo: 'baz' });
+  assert.is(preProjection.foo, 1, `pre mutation project`);
 
   const preGet = selection.get(['baz']);
   assert.is(preGet, 1, `pre mutation get`);
@@ -85,8 +85,8 @@ test('select: basics', async assert => {
     'watch',
   ], `selector caught change with onChange and watch events`);
 
-  const postProjection = selection.projection({ foo: 'baz' });
-  assert.is(postProjection.foo, -1, `post mutation projection`);
+  const postProjection = selection.project({ foo: 'baz' });
+  assert.is(postProjection.foo, -1, `post mutation project`);
 
   const postGet = selection.get(['baz']);
   assert.is(postGet, -1, `post mutation get`);

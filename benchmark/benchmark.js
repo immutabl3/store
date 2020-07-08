@@ -69,8 +69,8 @@ const suite = new Benchmark.Suite()
 
 (function() {
   const store = Store(obj(), { asynchronous: false });
-  suite.add('projection', () => {
-    store.projection({ foo: ['arr', 3, 'foo'] });
+  suite.add('project', () => {
+    store.project({ foo: ['arr', 3, 'foo'] });
   });
 }());
 

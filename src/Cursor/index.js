@@ -73,8 +73,8 @@ export default function Cursor(root, locker, emitter, basePath = []) {
       );
     },
 
-    projection: lockable(path => {
-      if (!isObjectLike(path)) throw new StoreError(`projection requires an object`, { value: path });
+    project: lockable(path => {
+      if (!isObjectLike(path)) throw new StoreError(`project requires an object`, { value: path });
       if (isArray(path)) return api.get(path);
       
       const result = Object.fromEntries(

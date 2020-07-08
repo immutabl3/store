@@ -57,7 +57,7 @@ Array.isArray(data.palette.colors);
   - [cursors](#cursors)
   - [onChange](#onChange)
   - [watch](#watch)
-  - [projection](#projection)
+  - [project](#project)
   - [gets](#gets)
     - [get](#get)
     - [exists](#exists)
@@ -292,9 +292,9 @@ store.data.counter = 3;
 
 
 
-### projection
+### project
 
-`projection` takes an object with paths and saturates the object with the current state of the store
+`project` takes an object with paths and saturates the object with the current state of the store
 
 ```js
 const store = Store({
@@ -305,7 +305,7 @@ const store = Store({
 });
 
 
-const result = store.projection({
+const result = store.project({
   person: ['user', 'name'],
   years: ['user', 'age'],
 });
@@ -967,7 +967,7 @@ sets: direct access x 159,482 ops/sec ±1.02% (91 runs sampled)
 sets: path x 102,501 ops/sec ±0.79% (91 runs sampled)
 onChange x 141,635 ops/sec ±0.96% (91 runs sampled)
 watch x 88,262 ops/sec ±0.79% (92 runs sampled)
-projection x 1,243,192 ops/sec ±0.50% (93 runs sampled)
+project x 1,243,192 ops/sec ±0.50% (93 runs sampled)
 select x 190,039 ops/sec ±0.40% (97 runs sampled)
 ```
 

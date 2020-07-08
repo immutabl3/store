@@ -40,7 +40,7 @@ export const useStore = function(cursor) {
   const { store } = context;
   const mapping = isFunction(cursor) ? cursor(store.data) : cursor;
 
-  const [state, setState] = useState(() => store.projection(mapping));
+  const [state, setState] = useState(() => store.project(mapping));
 
   const isDirty = !deepEqual(mapping, ref.current);
   if (isDirty) ref.current = mapping;
@@ -49,5 +49,5 @@ export const useStore = function(cursor) {
     return store.watch(mapping, ({ data }) => setState(data));
   }, [ref.current]);
 
-  return isDirty ? store.projection(mapping) : state;
+  return isDirty ? store.project(mapping) : state;
 };

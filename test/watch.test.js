@@ -339,7 +339,7 @@ test('watch: is getable', async assert => {
   assert.end();
 });
 
-test('watch: basic projection', async assert => {
+test('watch: basic project', async assert => {
   assert.plan(2);
 
   const store = Store({
@@ -366,7 +366,7 @@ test('watch: basic projection', async assert => {
   assert.end();
 });
 
-test(`watch: deep projection`, async assert => {
+test(`watch: deep project`, async assert => {
   assert.plan(10);
 
   const [store, fixture] = Data({

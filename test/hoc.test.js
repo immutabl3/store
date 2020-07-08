@@ -61,7 +61,7 @@ test('context', assert => {
   assert.end();
 });
 
-test('branch: projection', async assert => {
+test('branch: project', async assert => {
   dom();
 
   assert.plan(9);
