@@ -8,6 +8,7 @@ import indexOf from './indexOf';
 import indexOfCompare from './indexOfCompare';
 import permute from './permute';
 import exists from './exists';
+import mergeDeep from './mergeDeep';
 
 export {
   isEqual,
@@ -20,4 +21,5 @@ export {
   indexOfCompare,
   permute,
   exists,
+  mergeDeep,
 };
