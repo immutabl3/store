@@ -1,6 +1,5 @@
 import StoreError from '../StoreError';
 import makeMethod from './makeMethod';
-import getableDisposer from './getableDisposer';
 import methodDefinitions from './methodDefinitions';
 import {
   get,
@@ -67,10 +66,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
         expandProjection(listener, basePath) :
         [...basePath, ...coerce(listener)];
 
-      return getableDisposer(
-        api,
-        emitter.add(fn, selector, isProj)
-      );
+      return emitter.add(fn, selector, isProj);
     },
 
     project: lockable(path => {

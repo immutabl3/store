@@ -319,26 +319,6 @@ test('watch: is disposable', async assert => {
   assert.end();
 });
 
-test('watch: is getable', async assert => {
-  assert.plan(2);
-
-  const store = Store({
-    arr: [1, 2, '3', { foo: 'bar' }],
-  });
-  
-  const watcher = store.watch(['arr', 3, 'foo'], noop);
-
-  assert.ok(isFunction(watcher.get), `watch returned a getter`);
-
-  store.data.arr[3].foo = 0;
-
-  await delay();
-
-  assert.is(watcher.get(), 0, `getting data from watcher matches expected data`);
-
-  assert.end();
-});
-
 test('watch: basic project', async assert => {
   assert.plan(2);
 
