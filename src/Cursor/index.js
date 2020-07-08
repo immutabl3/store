@@ -4,18 +4,28 @@ import makeMethod from './makeMethod';
 import getableDisposer from './getableDisposer';
 import methodDefinitions from './methodDefinitions';
 import {
-  get,
   exists,
   clone,
 } from '../utils';
 import {
   isArray,
-  isFunction,
   isObjectLike,
+  isProjection,
 } from '../types';
 
+const expandProjection = (projection, basePath) => {
+  const target = Object.create(null);
+  for (const key in projection) {
+    // TODO: test speed w/ concat
+    target[key] = [
+      ...basePath,
+      ...query.coerce(projection[key])
+    ];
+  }
+  return target;
+};
+
 export default function Cursor(root, locker, emitter, basePath = []) {
-  const hash = query.hash(basePath);
   const isRoot = !basePath.length;
 
   const lockable = function(fn) {
@@ -36,25 +46,27 @@ export default function Cursor(root, locker, emitter, basePath = []) {
 
   const api = {
     get data() {
-      return get(root, basePath);
+      return query.get(root, basePath);
     },
 
     onChange(fn) {
-      return emitter.add(fn, hash);
+      return emitter.add(fn, basePath);
     },
 
     select(value) {
       const selector = query.coerce(value);
-      if (query.isDynamic(selector)) throw new StoreError(`select does not support dynamic paths`, { path: value });
       return Cursor(root, locker, emitter, [...basePath, ...selector]);
     },
 
     watch(listener, fn) {
-      const selector = isFunction(listener) ? listener : () => listener;
+      const isProj = isProjection(listener);
+      const selector = isProj ?
+        expandProjection(listener, basePath) :
+        [...basePath, ...query.coerce(listener)];
 
       return getableDisposer(
         api,
-        emitter.add(fn, hash, selector)
+        emitter.add(fn, selector, isProj)
       );
     },
 

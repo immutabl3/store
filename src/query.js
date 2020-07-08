@@ -12,15 +12,6 @@ import {
   isFunction,
   isObject,
 } from './types';
-import {
-  PATH_DELIMITER,
-} from './consts';
-
-// hashing the path similar to
-// https://github.com/Yomguithereal/baobab/blob/master/src/helpers.js#L474
-// however, we have a check to see if the path is dynamic 
-// (and to solve) before hashing, so it's simplified
-const hash = path => path.length ? path.join(PATH_DELIMITER) : '';
 
 const coerce = value => {
   if (isArray(value)) return value;
@@ -44,8 +35,7 @@ const solvePath = (object, path) => {
   let current = object;
 
   for (let idx = 0; idx < path.length; idx++) {
-    // eslint-disable-next-line eqeqeq
-    if (current == null) return solvedPath.concat(path.slice(idx));
+    if (current === null || current === undefined) return solvedPath.concat(path.slice(idx));
 
     const chunk = path[idx];
     const type = typeof chunk;
@@ -76,9 +66,7 @@ const solvePath = (object, path) => {
 };
 
 export default {
-  hash,
   coerce,
-  isDynamic,
   solve(proxy, value) {
     const selector = coerce(value);
     return isDynamic(selector) ? solvePath(proxy, selector) : selector;
@@ -86,8 +74,5 @@ export default {
   get(proxy, value) {
     const selector = coerce(value);
     return isDynamic(selector) ? dynamicGet(proxy, selector) : get(proxy, selector);
-  },
-  toString(root, selector) {
-    return root ? `${root}${PATH_DELIMITER}${hash(selector)}` : hash(selector);
   },
 };

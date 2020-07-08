@@ -8,8 +8,7 @@ export default function dynamicGet(object, path) {
   let current = object;
 
   for (let idx = 0; idx < path.length; idx++) {
-    // eslint-disable-next-line eqeqeq
-    if (current == null) return current;
+    if (current === null || current === undefined) return current;
     
     const chunk = path[idx];
     const type = typeof chunk;

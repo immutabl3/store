@@ -1,10 +1,14 @@
+import {
+  isArray,
+} from '../types';
+
 export default function equal(a, b) {
   if (a === b) return true;
 
   if (a && b && typeof a === 'object' && typeof b === 'object') {
     if (a.constructor !== b.constructor) return false;
 
-    if (Array.isArray(a)) {
+    if (isArray(a)) {
       const length = a.length;
       if (length !== b.length) return false;
       for (let i = length; i-- !== 0;) {

@@ -4,6 +4,8 @@ import noop from 'lodash/noop';
 import Store from '../src';
 import { delay } from './utils';
 
+// TODO: this is a recorder
+
 export const Data = function(object) {
   let changes = 0;
   let paths = [];
@@ -12,9 +14,9 @@ export const Data = function(object) {
 
   const fixture = {
     err(fn) {
-      store.watch(['noop'], () => {
-        fn(`watching an invalid value shouldn't trigger`);
-      });
+      // store.watch(['noop'], () => {
+      //   fn(`watching an invalid value shouldn't trigger`);
+      // });
       return this;
     },
     watch(path = []) {
@@ -96,7 +98,6 @@ test('watch: selector types', async assert => {
     .err(err => assert.fail(err))
     .watch('foo')
     .watch(['foo'])
-    .watch(() => ['foo'])
     .watch(['arr', 0])
     .ready();
 
@@ -105,9 +106,8 @@ test('watch: selector types', async assert => {
 
   await delay();
 
-  assert.is(fixture.changes, 4);
+  assert.is(fixture.changes, 3);
   assert.same(fixture.paths, [
-    ['foo'],
     ['foo'],
     ['foo'],
     ['arr', 0],
@@ -213,14 +213,14 @@ test('watch: complex selector', async assert => {
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [
     ['arr', 1, 'bar'],
-  ], `call made, selected object changed`);
+  ], `bar: call made, selected object changed`);
 
   store.data.arr[1].foo = 0;
 
   await delay();
 
   assert.is(fixture.changes, 1);
-  assert.same(fixture.paths, [], `no call made, selector changed`);
+  assert.same(fixture.paths, [], `foo: call made, not watching this object`);
 
   assert.end();
 });

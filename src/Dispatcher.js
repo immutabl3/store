@@ -1,21 +1,24 @@
 import event, { clearEvent } from './event';
-import { get } from './utils';
-import {
-  isProjection,
-} from './types';
+import { 
+  get,
+  partialCompare,
+} from './utils';
 import query from './query';
 
-export default function Dispatcher(root, emitter) {
-  const emitChange = (map, list, hash, fn) => {
-    const hasHash = !!hash;
-    
-    // no hash, emit all changes
-    if (!hasHash) return fn(event(list));
+const filterTransactions = (transactions, selector) => {
+  if (!selector.length) return [];
+  
+  const results = [];
+  for (const transaction of transactions) {
+    const found = partialCompare(selector, transaction.path);
+    if (found) results.push(transaction);
+  }
+  return results;
+};
 
-    // not a root, check for transactions
-    if (!map.has(hash)) return;
-    const transactions = map.get(hash);
-    fn(event(transactions));
+export default function Dispatcher(root, emitter) {
+  const emitChange = (list, fn) => {
+    return fn(event(list));
   };
 
   const getMapper = function([key, selector]) {
@@ -23,22 +26,23 @@ export default function Dispatcher(root, emitter) {
   };
   
   const projectionReducer = (memo, [key, value]) => {
-    const { hash, map, transactions, entries } = memo;
+    const { list, transactions, entries } = memo;
     const selector = query.solve(root, value);
-    const projectedHash = query.toString(hash, selector);
-    if (map.has(projectedHash)) transactions.push(...map.get(projectedHash));
+    const foundTransactions = filterTransactions(list, selector);
+    // TODO: test push vs concat perf
+    if (foundTransactions.length) transactions.push(...foundTransactions);
     entries.push([key, selector]);
     return memo;
   };
 
-  const emitProjection = (map, hash, value, fn) => {
+  const emitProjection = (list, value, fn) => {
+    // TODO: optimize
     const {
       transactions,
       entries,
     } = Object.entries(value)
       .reduce(projectionReducer, {
-        map,
-        hash,
+        list,
         transactions: [],
         entries: [],
       });
@@ -51,31 +55,27 @@ export default function Dispatcher(root, emitter) {
     ));
   };
 
-  const emitSelection = (map, hash, value, fn) => {
+  const emitSelection = (list, value, fn) => {
     const selector = query.solve(root, value);
-    const selectedHash = query.toString(hash, selector);
-    if (!map.has(selectedHash)) return;
+    const foundTransactions = filterTransactions(list, selector);
+    if (!foundTransactions.length) return;
 
     fn(event(
-      map.get(selectedHash),
+      foundTransactions,
       get(root, selector)
     ));
   };
 
   return transactions => {
-    const map = transactions.map();
     const list = transactions.list();
 
-    for (const { fn, hash, selector } of emitter.values()) {
-      if (!selector) {
-        emitChange(map, list, hash, fn);
+    for (const { fn, selector, projection } of emitter.values()) {
+      if (projection) {
+        emitProjection(list, selector, fn);
+      } else if (!selector.length) {
+        emitChange(list, fn);
       } else {
-        const value = selector();
-        if (isProjection(value)) {
-          emitProjection(map, hash, value, fn);
-        } else {
-          emitSelection(map, hash, value, fn);
-        }
+        emitSelection(list, selector, fn);
       }
     }
 

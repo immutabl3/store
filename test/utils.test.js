@@ -1,19 +1,13 @@
 import test from 'tape';
-import permute from '../src/utils/permute';
+import partialCompare from '../src/utils/partialCompare';
 
-test('permute', assert => {
+test('partialCompare', assert => {
   assert.plan(4);
 
-  assert.same(permute([]), [], `permuting nothing results in nothing`);
-  assert.same(permute([1]), [], `permuting 1 entry results in nothing`);
-  assert.same(permute([1, 2, 3]), [
-    [1],
-    [1, 2],
-  ], `permuting 3 entry results in the correct permutations`);
-
-  const arr = [1, 2, 3];
-  permute(arr);
-  assert.same(arr, [1, 2, 3], `permutating does not mutate`);
+  assert.is(partialCompare([1, 2, 3], [1, 2, 3]), true, `a matches b`);
+  assert.is(partialCompare([1], [1, 2, 3]), true, `a matches b if b is longer`);
+  assert.is(partialCompare([1, 2, 3], [1]), false, `a does not match b if a is longer`);
+  assert.is(partialCompare([1], ['1']), false, `differing values do not match`);
 
   assert.end();
 });

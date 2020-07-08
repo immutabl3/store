@@ -447,3 +447,33 @@ test('cursors: set: empty to populated resolution', assert => {
 
   assert.end();
 });
+  
+test.only('cursors: dynamic select', assert => {
+  assert.plan(3);
+
+  const store = createStore({
+    hello: [
+      { foo: 1 },
+      { bar: 2 },
+      { baz: 3 },
+    ],
+  });
+
+  const cursor = store.select(['hello', { bar: 2 }]);
+
+  assert.same(cursor.get(), { bar: 2 }, `cursor contains object at dynamic path`);
+
+  cursor.onChange(() => {
+    assert.is(
+      cursor.data.world,
+      true,
+      `cursor should reflect the change`
+    );
+  });
+
+  store.data.hello[1].world = true;
+
+  assert.same(cursor.get(), { bar: 2, world: true }, `cursor contains the change`);
+
+  assert.end();
+});

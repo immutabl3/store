@@ -97,5 +97,5 @@ export const isStore = store => (
 
 // assume a projection if it isn't a path (and won't be coerced to a path)
 export const isProjection = value => {
-  return !isArray(value) && !isString(value) && !isNumber(value);
+  return value && !isArray(value) && !isString(value) && !isNumber(value);
 };
