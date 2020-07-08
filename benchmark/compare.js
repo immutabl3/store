@@ -16,6 +16,11 @@ const Baobab = obj => new BaobabTree(obj, {
   immutable: false,
   // neither store nor fabio persist
   persistent: false,
+  // turn off async
+  asynchronous: false,
+  // we don't have these capabilities, turn off
+  lazyMonkeys: false,
+  monkeyBusiness: false,
 });
 
 const suite = (name, resolve, reject) => {
