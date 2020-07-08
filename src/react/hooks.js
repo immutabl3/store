@@ -1,8 +1,8 @@
 import StoreError from '../StoreError';
 import Context from './context';
-import { isEqual } from '../utils';
+import deepEqual from './fast-deep-equal';
 import React, {
-  useContext,
+  useContext as useReactContext,
   useState,
   useEffect,
   useRef,
@@ -13,7 +13,7 @@ import {
   isFunction,
 } from '../types';
 
-export const useRoot = function(store) {
+export const useContext = function(store) {
   if (!isStore(store)) throw new StoreError(`given object is not a store`, { store });
 
   const [state, setState] = useState(() => ({ store }));
@@ -23,54 +23,31 @@ export const useRoot = function(store) {
     setState({ store });
   }, [store]);
 
-  return function({ children }) {
+  return function StoreContext({ children }) {
     return React.createElement(Context.Provider, {
       value: { store: state.store }
     }, children);
   };
 };
 
-export const useBranch = function(value) {
-  if (!isObjectLike(value) && !isFunction(value)) throw new StoreError(`invalid mapping`, { mapping: value });
+export const useStore = function(cursor) {
+  if (!isObjectLike(cursor) && !isFunction(cursor)) throw new StoreError(`invalid mapping`, { mapping: cursor });
 
-  const context = useContext(Context);
-
+  const ref = useRef();
+  const context = useReactContext(Context);
   if (!context || !isStore(context.store)) throw new StoreError(`unable to locate store`, { context });
 
   const { store } = context;
+  const mapping = isFunction(cursor) ? cursor(store.data) : cursor;
 
-  // looking for value equality, saving the previous value
-  // so that a comparison can take place
-  // https://blog.logrocket.com/rethinking-hooks-memoization/
-  const ref = useRef(value);
+  const [state, setState] = useState(() => store.projection(mapping));
 
-  // we need to check if the stored values have changed
-  // and refresh the data accordingly
-  const isDirty = !isEqual(value, ref.current);
-  if (isDirty) ref.current = value;
-
-  const { current: cursors } = ref;
-
-  const [state, setState] = useState(() => {
-    const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
-    return store.projection(mapping);
-  });
+  const isDirty = !deepEqual(mapping, ref.current);
+  if (isDirty) ref.current = mapping;
 
   useEffect(() => {
-    const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
-    const dispose = store.watch(mapping, ({ data }) => {
-      setState(data);
-    });
+    return store.watch(mapping, ({ data }) => setState(data));
+  }, [ref.current]);
 
-    return dispose;
-  }, [
-    cursors,
-  ]);
-
-  if (isDirty) {
-    const mapping = isFunction(cursors) ? cursors(store.data) : cursors;
-    return store.projection(mapping);
-  }
-
-  return state;
+  return isDirty ? store.projection(mapping) : state;
 };
