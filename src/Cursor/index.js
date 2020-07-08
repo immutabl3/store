@@ -14,17 +14,17 @@ import {
   isObjectLike,
 } from '../types';
 
-export default function Cursor(root, proxy, locker, emitter, path = []) {
-  const hash = query.hash(path);
-  const isRoot = !path.length;
+export default function Cursor(root, locker, emitter, basePath = []) {
+  const hash = query.hash(basePath);
+  const isRoot = !basePath.length;
 
   const lockable = function(fn) {
-    return function(...args) {
+    return function(arg) {
       // start by locking
       locker.lock();
       try {
         // call the function in the try
-        return fn(...args);
+        return fn(arg);
         // no catch. if there's an err, let it bubble
       } finally {
         // will always unlock, even if there was an error
@@ -35,16 +35,18 @@ export default function Cursor(root, proxy, locker, emitter, path = []) {
   };
 
   const api = {
-    data: proxy,
+    get data() {
+      return get(root, basePath);
+    },
 
     onChange(fn) {
-      return emitter.add(fn, hash, api.data);
+      return emitter.add(fn, hash);
     },
 
     select(value) {
       const selector = query.coerce(value);
       if (query.isDynamic(selector)) throw new StoreError(`select does not support dynamic paths`, { path: value });
-      return Cursor(root, get(api.data, selector), locker, emitter, [...path, ...selector]);
+      return Cursor(root, locker, emitter, [...basePath, ...selector]);
     },
 
     watch(listener, fn) {
@@ -52,7 +54,7 @@ export default function Cursor(root, proxy, locker, emitter, path = []) {
 
       return getableDisposer(
         api,
-        emitter.add(fn, hash, api.data, selector)
+        emitter.add(fn, hash, selector)
       );
     },
 
@@ -92,7 +94,7 @@ export default function Cursor(root, proxy, locker, emitter, path = []) {
   };
 
   methodDefinitions.forEach(([name, arity, check]) => (
-    makeMethod(api, root, path, isRoot, name, arity, check)
+    makeMethod(api, root, basePath, isRoot, name, arity, check)
   ));
   
   return api;
