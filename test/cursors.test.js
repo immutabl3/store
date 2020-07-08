@@ -391,3 +391,59 @@ test('cursors: setter: upper reference resolution', assert => {
 
   assert.end();
 });
+  
+test('cursors: merge: empty to populated resolution', assert => {
+  assert.plan(3);
+
+  const store = createStore({});
+
+  const cursor = store.select(['hello', 'color']);
+
+  assert.is(cursor.get(), undefined, `cursor is empty`);
+
+  cursor.onChange(() => {
+    assert.is(
+      cursor.data,
+      'purple',
+      `cursor should reflect the change`
+    );
+  });
+
+  store.merge({
+    hello: {
+      color: 'purple',
+    },
+  });
+
+  assert.is(cursor.get(), 'purple', `cursor contains the change`);
+
+  assert.end();
+});
+  
+test('cursors: set: empty to populated resolution', assert => {
+  assert.plan(3);
+
+  const store = createStore({
+    hello: {},
+  });
+
+  const cursor = store.select(['hello', 'color']);
+
+  assert.is(cursor.get(), undefined, `cursor is empty`);
+
+  cursor.onChange(() => {
+    assert.is(
+      cursor.data,
+      'purple',
+      `cursor should reflect the change`
+    );
+  });
+
+  store.set('hello', {
+    color: 'purple',
+  });
+
+  assert.is(cursor.get(), 'purple', `cursor contains the change`);
+
+  assert.end();
+});
