@@ -17,7 +17,7 @@ const Changes = () => {
 };
 
 test('select: basics', async assert => {
-  assert.plan(13);
+  assert.plan(9);
 
   const store = Store({
     foo: 123,
@@ -37,7 +37,6 @@ test('select: basics', async assert => {
   
   const selection = store.select(['bar', 'deep']);
   const bazChange = e => {
-    assert.same(e.target, store.data.bar.deep, `selection: onChange: target`);
     assert.same(e.transactions, [
       {
         type: 'set',
@@ -48,7 +47,6 @@ test('select: basics', async assert => {
     changes.push('sub');
   };
   const bizChange = e => {
-    assert.same(e.target, store.data.bar.deep, `selection: onChange: target`);
     assert.same(e.transactions, [
       {
         type: 'set',
@@ -59,8 +57,7 @@ test('select: basics', async assert => {
     changes.push('sub');
   };
   const disposer = selection.onChange(bazChange);
-  selection.watch(['baz'], e => {
-    assert.same(e.target, store.data.bar.deep, `selection: watch: target`);
+  selection.watch(['baz'], () => {
     changes.push('watch');
   });
 
@@ -98,8 +95,7 @@ test('select: basics', async assert => {
   selection.onChange(bizChange);
 
   const subSelection = selection.select(['biz']);
-  subSelection.onChange(e => {
-    assert.same(e.target, store.data.bar.deep.biz, `sub selection change`);
+  subSelection.onChange(() => {
     changes.push('subsub');
   });
 

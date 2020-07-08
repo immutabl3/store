@@ -48,7 +48,7 @@ export const Data = function(object) {
 };
 
 test('watch: event data', async assert => {
-  assert.plan(6);
+  assert.plan(4);
 
   const store = Store({
     foo: 123,
@@ -58,7 +58,6 @@ test('watch: event data', async assert => {
   });
 
   store.watch(['foo'], e => {
-    assert.same(e.target, store.data, `foo: target passed`);
     assert.same(e.data, store.data.foo, `foo: data passed`);
     assert.same(e.transactions, [
       {
@@ -69,7 +68,6 @@ test('watch: event data', async assert => {
     ], `foo: transaction passed`);
   });
   store.watch(['bar'], e => {
-    assert.same(e.target, store.data, `bar: target passed`);
     assert.same(e.data, store.data.bar, `bar: data passed`);
     assert.same(e.transactions, [
       {
