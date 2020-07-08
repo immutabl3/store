@@ -14,7 +14,7 @@ export default function Store(obj, {
   debug,
 } = {}) {
   const emitter = Emitter();
-  const dispatcher = Dispatcher(emitter);
+  const dispatcher = Dispatcher(obj, emitter);
   const schedule = Schedule(dispatcher, asynchronous, autoCommit);
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
