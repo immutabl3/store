@@ -1,5 +1,7 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import { terser } from 'rollup-plugin-terser';
+import gzipPlugin from 'rollup-plugin-gzip';
 
 export default {
   input: {
@@ -24,5 +26,7 @@ export default {
   plugins: [
     resolve(),
     commonjs(),
+    terser(),
+    gzipPlugin(),
   ],
 };

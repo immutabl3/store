@@ -1,10 +1,10 @@
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import minify from 'rollup-plugin-babel-minify';
+import { terser } from 'rollup-plugin-terser';
 import gzipPlugin from 'rollup-plugin-gzip';
 
 export default {
-  input: './store.js',
+  input: './src/index.js',
   output: {
     file: 'dist/bundle.min.js',
     format: 'cjs',
@@ -12,9 +12,14 @@ export default {
   plugins: [
     resolve(),
     commonjs(),
-    minify({
-      comments: false,
-      sourceMap: false,
+    terser({
+      toplevel: true,
+      module: true,
+      mangle: {
+        toplevel: true,
+        properties: true,
+      },
+      nameCache: {},
     }),
     gzipPlugin(),
   ],
