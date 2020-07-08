@@ -1,10 +1,10 @@
 # @immutabl3/store
 
-Store is a modern, [Proxy-based](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) JavaScript data tree supporting cursors and enabling developers to easily navigate and monitor nested data though events
+Store is a modern, [Proxy-based](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) JavaScript data store supporting cursors and enabling developers to easily navigate and monitor nested data though events
 
 It's a combination and evolution of the work done in [fabiospampinato/store](https://github.com/fabiospampinato/store) and [Yomguithereal/baobab](https://github.com/Yomguithereal/baobab) with a focus on performance (especially pertaining to data changes) and size with a loosely coupled API
 
-It aims at providing a centralized model holding an application's state and can be paired with [**React**](#react) easily through [hooks](#react-hooks) and [higher order components](#react-hoc)
+It aims at providing a centralized model to hold an application's state and can be paired with [**React**](#react) easily through [hooks](#react-hooks) and [higher order components](#react-hoc)
 
 
 
@@ -14,7 +14,7 @@ It aims at providing a centralized model holding an application's state and can 
 npm install @immutabl3/store
 ```
 
-`store` is ~`5.8`kb minified and gzipped 
+`store` is ~`5.1`kb minified and gzipped 
 
 
 
@@ -118,7 +118,7 @@ An `options` object can be passed as a second parameter to the store to change b
 
 ### cursors
 
-You can create cursors to easily access nested data in your tree and listen to changes concerning the part of the tree selected
+You can create cursors to easily access nested data in your store and listen to changes concerning the part of the store selected
 
 ```js
 // considering the following store
@@ -130,17 +130,17 @@ const store = Store({
 });
 
 // creating a cursor on the palette
-var paletteCursor = tree.select(['palette']);
+var paletteCursor = store.select(['palette']);
 paletteCursor.get();
 > {name: 'fancy', colors: ['blue', 'yellow', 'green']}
 
 // creating a cursor on the palette's colors
-var colorsCursor = tree.select(['palette', 'colors']);
+var colorsCursor = store.select(['palette', 'colors']);
 colorsCursor.get();
 > ['blue', 'yellow', 'green']
 
 // creating a cursor on the palette's third color
-var thirdColorCursor = tree.select(['palette', 'colors', 2]);
+var thirdColorCursor = store.select(['palette', 'colors', 2]);
 thirdColorCursor.get();
 > 'green'
 
@@ -225,7 +225,7 @@ store.data.counter = 3;
 
 
 
-###watch
+### watch
 
 `watch` is similar to `onChange`, but allows you to watch one or more values
 
@@ -292,7 +292,7 @@ store.data.counter = 3;
 
 
 
-###projection
+### projection
 
 `projection` takes an object with paths and saturates the object with the current state of the store
 
@@ -319,32 +319,6 @@ console.log(`${result.person} is ${result.years} years old`);
 ### events
 
 Every listener is passed an event object. The event contains:
-
-#### target
-
-The proxy target for the event
-
-```js
-const store = Store({ foo: { bar: 'baz' } });
-
-store.onChange(e => {
-	e.target === store.data
-  > true
-});
-
-store.watch(['foo'], e => {
-  e.target === store.data.foo
-  > true
-});
-
-const cursor = store.select(['foo']);
-cursor.onChange(e => {
-	e.target === cursor.data
-  > true
-});
-
-store.data.foo.bar = 'buz';
-```
 
 
 
@@ -407,7 +381,7 @@ Using a [cursor](#cursor) or [watching](#watch) values will only report transact
 
 Store comes with convenient pure functions for accessing nested data from the store.
 
-####get
+#### get
 
 Gets the value from the store
 
@@ -453,7 +427,7 @@ store.exists(['hello', 'message']);
 
 
 
-####clone
+#### clone
 
 Shallow clone the cursor's data. The method takes an optional nested path.
 
@@ -482,7 +456,7 @@ Store comes with a set of convenient pure functions for updating data. These upd
 
 
 
-####set
+#### set
 
 Replaces value at the given path. Will also work if you want to replace a list's item.
 
@@ -499,7 +473,7 @@ const value = cursor.set(newValue);
 
 
 
-####unset
+#### unset
 
 Unsets the given key. Will also work if you want to delete a list's item.
 
@@ -516,7 +490,7 @@ cursor.unset();
 
 
 
-####push
+#### push
 
 Pushes a value into the selected list. Will fail if the selected node is not a list.
 
@@ -533,7 +507,7 @@ const list = cursor.push(newValue);
 
 
 
-####unshift
+#### unshift
 
 Unshifts a value into the selected list. Will fail if the selected node is not a list.
 
@@ -550,7 +524,7 @@ const list = cursor.unshift(newValue);
 
 
 
-####concat
+#### concat
 
 Concatenates a list into the selected list. Will fail if the selected node is not a list.
 
@@ -567,7 +541,7 @@ const list = cursor.concat(list);
 
 
 
-####pop
+#### pop
 
 Removes the last item of the selected list. Will fail if the selected node is not a list.
 
@@ -584,7 +558,7 @@ const value = cursor.pop();
 
 
 
-####shift
+#### shift
 
 Removes the first item of the selected list. Will fail if the selected node is not a list.
 
@@ -601,7 +575,7 @@ const value = cursor.shift();
 
 
 
-####splice
+#### splice
 
 Splices the selected list. Will fail if the selected node is not a list.
 
@@ -630,7 +604,7 @@ const list = cursor.select('one').splice('two', [1, 1]);
 
 
 
-####merge
+#### merge
 
 Shallow merges the selected object with another one. This will fail if the selected node is not an object.
 
@@ -642,8 +616,8 @@ const newList = cursor.merge({ name: 'John' });
 const newList = cursor.merge('key', { name: 'John' });
 
 // Merging at path
-const newList = cursor.merge(['one', 'two'], {name: 'John'});
-const newList = cursor.select('one').merge('two', {name: 'John'});
+const newList = cursor.merge(['one', 'two'], { name: 'John' });
+const newList = cursor.select('one').merge('two', { name: 'John' });
 ```
 
 
@@ -688,18 +662,18 @@ export default Store({
 });
 ```
 
-####Rooting the store
+#### Exposing the store
 
-Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
+Now that the store is created, we should bind our React app to it by using a context.
 
-Under the hood, this component will simply propagate the store to its descendants using React's context so that "branched" components may subscribe to updates of parts of the store afterwards.
+Under the hood, this component will simply propagate the store to its descendants using React's context so that components may get data and subscribe to updates.
 
 *main.jsx*
 
 ```jsx
 import React from 'react';
 import { render } from 'react-dom';
-import { useRoot } from '@immutabl3/store/react';
+import { useContext } from '@immutabl3/store/react';
 import store from './state';
 
 // we will write this component later
@@ -707,12 +681,12 @@ import List from './list.jsx';
 
 // creating our top-level component
 const App = function({ store }) {
-  // useRoot takes the store and provides a component bound to the store
-  const Root = useRoot(store);
+  // useContext takes the store and provides a component bound to the store
+  const Context = useContext(store);
   return (
-    <Root>
+    <Context>
       <List />
-    </Root>
+    </Context>
   );
 };
 
@@ -720,24 +694,24 @@ const App = function({ store }) {
 render(<App store={ store } />, document.querySelector('#mount'));
 ```
 
-####Branch a component
+#### Accessing data
 
-Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
+Now that we have access to the top-level store, let's create the component displaying our colors.
 
 *list.jsx*
 
 ```jsx
 import React from 'react';
-import { useBranch } from '@immutabl3/store/react';
+import { useStore } from '@immutabl3/store/react';
 
 const List = function() {
   // branch by mapping the desired data to cursors
-  let { colors } = useBranch({
+  let { colors } = useStore({
     colors: ['colors'],
   });
   
   // or get a speific value using a single cursor
-	colors = useBranch(['colors']);
+	colors = useStore(['colors']);
 
   const renderItem = color=> <li key={color}>{color}</li>;
 
@@ -781,9 +755,9 @@ And the list component will automatically update and to render the following:
 
 
 
-###HOC
+### HOC
 
-####Creating the app's state
+#### Creating the app's state
 
 Let's create a **store** for our colors:
 
@@ -797,11 +771,9 @@ export default Store({
 });
 ```
 
-####Rooting the store
+#### Exposing the store
 
-Now that the tree is created, we should bind our React app to it by "rooting" our top-level component.
-
-Under the hood, this component will simply propagate the store to its descendants using React's context so that "branched" components may subscribe to updates of parts of the store afterwards.
+Now that the store is created, we should bind our React app to it. Under the hood, this component will simply propagate the store to its descendants using React's context.
 
 *main.jsx*
 
@@ -824,7 +796,7 @@ const RootedApp = root(store, App);
 render(<RootedApp />, document.querySelector('#mount'));
 ```
 
-####Branch a component
+#### Accessing the data
 
 Now that we have "rooted" our top-level `App` component, let's create the component displaying our colors  and branch it from the root data.
 
@@ -879,7 +851,7 @@ And the list component will automatically update and to render the following:
 </div>
 ```
 
-####Dynamically set the list's path using props
+#### Dynamically set the list's path using props
 
 Sometimes, you might find yourself needing cursors paths changing along with your component's props.
 
@@ -1029,7 +1001,7 @@ There are three benchmark scripts:
 
 
 
-##Contribution
+## Contribution
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
 
