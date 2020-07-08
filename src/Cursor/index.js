@@ -1,8 +1,11 @@
 import StoreError from '../StoreError';
-import query from '../query';
 import makeMethod from './makeMethod';
 import getableDisposer from './getableDisposer';
 import methodDefinitions from './methodDefinitions';
+import {
+  get,
+  coerce,
+} from '../query';
 import {
   exists,
   clone,
@@ -19,7 +22,7 @@ const expandProjection = (projection, basePath) => {
     // TODO: test speed w/ concat
     target[key] = [
       ...basePath,
-      ...query.coerce(projection[key])
+      ...coerce(projection[key])
     ];
   }
   return target;
@@ -46,7 +49,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
 
   const api = {
     get data() {
-      return query.get(root, basePath);
+      return get(root, basePath);
     },
 
     onChange(fn) {
@@ -54,7 +57,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
     },
 
     select(value) {
-      const selector = query.coerce(value);
+      const selector = coerce(value);
       return Cursor(root, locker, emitter, [...basePath, ...selector]);
     },
 
@@ -62,7 +65,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
       const isProj = isProjection(listener);
       const selector = isProj ?
         expandProjection(listener, basePath) :
-        [...basePath, ...query.coerce(listener)];
+        [...basePath, ...coerce(listener)];
 
       return getableDisposer(
         api,
@@ -77,7 +80,7 @@ export default function Cursor(root, locker, emitter, basePath = []) {
       const result = Object.fromEntries(
         Object.entries(path)
           .map(([key, value]) => {
-            return [key, query.get(api.data, value)];
+            return [key, get(api.data, value)];
           })
       );
 
@@ -86,13 +89,13 @@ export default function Cursor(root, locker, emitter, basePath = []) {
 
     get: lockable(path => {
       if (!path) return api.data;
-      const result = query.get(api.data, path);
+      const result = get(api.data, path);
       return result;
     }),
 
     exists(path) {
       if (path === undefined) return api.data !== undefined;
-      return exists(api.data, query.coerce(path));
+      return exists(api.data, coerce(path));
     },
 
     clone(path) {

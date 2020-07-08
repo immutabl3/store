@@ -1,6 +1,9 @@
 import StoreError from '../StoreError';
-import query from '../query';
 import update from './update';
+import {
+  coerce,
+  solve,
+} from '../query';
 
 const resolvePathAndValue = function(arity, fn) {
   return function(first, second) {
@@ -19,7 +22,7 @@ const resolvePathAndValue = function(arity, fn) {
     }
 
     // coerce path
-    path = path === undefined ? [] : query.coerce(path);
+    path = path === undefined ? [] : coerce(path);
     
     return fn(path, value);
   };
@@ -29,7 +32,7 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
   api[name] = resolvePathAndValue(arity, function(path, value) {
     if (!check(value)) throw new StoreError(`${name}: invalid value`, { path, value });
 
-    const solvedPath = path.length ? query.solve(api.data, path) : path;
+    const solvedPath = path.length ? solve(api.data, path) : path;
     if (path.length !== solvedPath.length) throw new StoreError(`${name}: invalid path`, { path, value });
 
     if (name === 'unset') {

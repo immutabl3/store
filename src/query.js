@@ -1,6 +1,6 @@
 import StoreError from './StoreError';
 import {
-  get,
+  get as baseGet,
   dynamicGet,
   indexOf,
   indexOfCompare,
@@ -13,7 +13,7 @@ import {
   isObject,
 } from './types';
 
-const coerce = value => {
+export const coerce = value => {
   if (isArray(value)) return value;
 
   const selector = isString(value) || isNumber(value) ? [value] : value;
@@ -65,14 +65,12 @@ const solvePath = (object, path) => {
   return solvedPath;
 };
 
-export default {
-  coerce,
-  solve(proxy, value) {
-    const selector = coerce(value);
-    return isDynamic(selector) ? solvePath(proxy, selector) : selector;
-  },
-  get(proxy, value) {
-    const selector = coerce(value);
-    return isDynamic(selector) ? dynamicGet(proxy, selector) : get(proxy, selector);
-  },
+export const solve = (proxy, value) => {
+  const selector = coerce(value);
+  return isDynamic(selector) ? solvePath(proxy, selector) : selector;
+};
+
+export const get = (proxy, value) => {
+  const selector = coerce(value);
+  return isDynamic(selector) ? dynamicGet(proxy, selector) : baseGet(proxy, selector);
 };

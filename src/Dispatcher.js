@@ -3,7 +3,7 @@ import {
   get,
   partialCompare,
 } from './utils';
-import query from './query';
+import { solve } from './query';
 
 const filterTransactions = (transactions, selector) => {
   if (!selector.length) return [];
@@ -27,7 +27,7 @@ export default function Dispatcher(root, emitter) {
   
   const projectionReducer = (memo, [key, value]) => {
     const { list, transactions, entries } = memo;
-    const selector = query.solve(root, value);
+    const selector = solve(root, value);
     const foundTransactions = filterTransactions(list, selector);
     // TODO: test push vs concat perf
     if (foundTransactions.length) transactions.push(...foundTransactions);
@@ -56,8 +56,9 @@ export default function Dispatcher(root, emitter) {
   };
 
   const emitSelection = (list, value, fn) => {
-    const selector = query.solve(root, value);
+    const selector = solve(root, value);
     const foundTransactions = filterTransactions(list, selector);
+
     if (!foundTransactions.length) return;
 
     fn(event(
