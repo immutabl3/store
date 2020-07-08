@@ -41,22 +41,22 @@ const AppWithDynamicProjection = branch(function({ index }) {
   });
 });
 
-test('root', assert => {
+test('context', assert => {
   dom();
 
   assert.plan(2);
 
   assert.throws(() => {
     const store = {};
-    const Rooted = root(store, Root);
-    mount(React.createElement(Rooted));
-  }, `root should throw if the passed argument is not a store`);
+    const Context = root(store, Root);
+    mount(React.createElement(Context));
+  }, `Context should throw if the passed argument is not a store`);
   
   assert.doesNotThrow(() => {
     const { store } = API();
-    const Rooted = root(store, Root);
-    mount(React.createElement(Rooted));
-  }, `root does not throw if the passed argument is a store`);
+    const Context = root(store, Root);
+    mount(React.createElement(Context));
+  }, `Context does not throw if the passed argument is a store`);
 
   assert.end();
 });

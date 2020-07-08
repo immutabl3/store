@@ -3,11 +3,11 @@ import React from 'react';
 import { mount } from 'enzyme';
 import { delay } from './utils';
 import { API, dom, Component } from './fixtures';
-import { useRoot, useBranch } from '../src/react/hooks';
+import { useContext, useStore } from '../src/react/hooks';
 
-const Root = function({ store, children }) {
-  const Root = useRoot(store);
-  return React.createElement(Root, null, children);
+const Context = function({ store, children }) {
+  const Context = useContext(store);
+  return React.createElement(Context, null, children);
 };
 
 const AppWithSelector = ({
@@ -16,7 +16,7 @@ const AppWithSelector = ({
   onDecrement,
 }) => {
   onRender();
-  const value = useBranch(['value']);
+  const value = useStore(['value']);
   return React.createElement(Component, {
     value,
     onIncrement,
@@ -30,7 +30,7 @@ const AppWithProjection = ({
   onDecrement,
 }) => {
   onRender();
-  const { val: value } = useBranch({
+  const { val: value } = useStore({
     val: 'value',
   });
   return React.createElement(Component, {
@@ -46,8 +46,8 @@ const AppWithDynamicSelector = ({
   onDecrement,
 }) => {
   onRender();
-  const index = useBranch(['value']);
-  const value = useBranch(['arr', index]);
+  const index = useStore(['value']);
+  const value = useStore(['arr', index]);
   return React.createElement(Component, {
     value,
     onIncrement,
@@ -55,24 +55,24 @@ const AppWithDynamicSelector = ({
   });
 };
 
-test('useRoot', assert => {
+test('useContext', assert => {
   dom();
 
   assert.plan(2);
 
   assert.throws(() => {
-    mount(React.createElement(Root));
-  }, `root should throw if the passed argument is not a store`);
+    mount(React.createElement(Context));
+  }, `Context should throw if the passed argument is not a store`);
   
   assert.doesNotThrow(() => {
     const api = API();
-    mount(React.createElement(Root, { store: api.store }));
-  }, `root does not throw if the passed argument is a store`);
+    mount(React.createElement(Context, { store: api.store }));
+  }, `Context does not throw if the passed argument is a store`);
 
   assert.end();
 });
 
-test('useBranch: selection and projection', async assert => {
+test('useStore: selection and projection', async assert => {
   dom();
 
   const apps = [
@@ -86,7 +86,7 @@ test('useBranch: selection and projection', async assert => {
     const api = API();
 
     const app = mount(
-      React.createElement(Root, { store: api.store },
+      React.createElement(Context, { store: api.store },
         React.createElement(
           App,
           api.actions
@@ -124,7 +124,7 @@ test('useBranch: selection and projection', async assert => {
   assert.end();
 });
 
-test('useBranch: dynamic', async assert => {
+test('useStore: dynamic', async assert => {
   dom();
 
   assert.plan(12);
@@ -133,7 +133,7 @@ test('useBranch: dynamic', async assert => {
   const api = API();
 
   const app = mount(
-    React.createElement(Root, { store: api.store },
+    React.createElement(Context, { store: api.store },
       React.createElement(
         App,
         api.actions
