@@ -82,7 +82,6 @@ const makeTraps = function(onChange, cache) {
       return makeProxy(value, cache, traps);
     },
     set(target, property, val, rec) {
-
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
