@@ -1,15 +1,25 @@
-// transactions: [ { type, path, value } ]
 // data?: data
-const event = {};
+let dataFn;
+// [ { type, path, value } ]
+let transactionsList;
 
-export default function(transactions, data) {
-  event.data = data;
-  event.transactions = transactions;
+const event = {
+  get data() {
+    return dataFn ? dataFn() : undefined;
+  },
+  get transactions() {
+    return transactionsList;
+  },
+};
+
+export default function(transactions, dataGetter) {
+  transactionsList = transactions;
+  dataFn = dataGetter;
 
   return event;
 };
 
 export const clearEvent = () => {
-  event.data = undefined;
-  event.transactions = undefined;
+  transactionsList = undefined;
+  dataFn = undefined;
 };

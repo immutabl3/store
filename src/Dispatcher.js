@@ -51,7 +51,7 @@ export default function Dispatcher(root, emitter) {
 
     fn(event(
       transactions,
-      Object.fromEntries(entries.map(getMapper, root))
+      () => Object.fromEntries(entries.map(getMapper, root))
     ));
   };
 
@@ -62,7 +62,7 @@ export default function Dispatcher(root, emitter) {
 
     fn(event(
       foundTransactions,
-      get(root, selector)
+      () => get(root, selector)
     ));
   };
 
