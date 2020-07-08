@@ -1,12 +1,19 @@
 import StoreError from '../StoreError';
 import {
+  clone,
+  mergeDeep,
+} from '../utils';
+import {
   isArray,
   isObject,
   isPrimitive,
 } from '../types';
 
 const operations = new Map([
-  ['set', (target, key, value) => (target[key] = value)],
+  ['set', (target, key, value) => {
+    if (isObject(value)) return mergeDeep(target, { [key]: clone(value) });
+    return (target[key] = value);
+  }],
 
   ['push', (target, key, value, path) => {
     if (!isArray(target[key])) throw new StoreError(`push`, { path });
@@ -45,7 +52,7 @@ const operations = new Map([
 
   ['merge', (target, key, value, path) => {
     if (!isObject(target[key])) throw new StoreError(`merge`, { path });
-    return (target[key] = Object.assign(target[key], value));
+    return mergeDeep(target[key], clone(value));
   }],
 ]);
 
