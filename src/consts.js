@@ -3,9 +3,6 @@ export const $TARGET = Symbol('proxy->target');
 export const $PAUSE = Symbol('pause');
 export const $RESUME = Symbol('resume');
 
-// used to hash paths
-export const PATH_DELIMITER = 'λ';
-
 // used to compose bitmasks for comparisons
 export const UNORDERED_COMPARE_FLAG = 1;
 export const PARTIAL_COMPARE_FLAG = 2;
