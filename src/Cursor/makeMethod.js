@@ -36,12 +36,13 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
       // unsetting the cursor
       if (!solvedPath.length) {
         if (isRoot) throw new StoreError(`cannot unset store`);
-        return (api.data = update(
+        update(
           root,
           basePath,
           name,
           value
-        ));
+        );
+        return api.data;
       }
 
       // don't unset irrelevant paths
@@ -51,12 +52,13 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
     if (name === 'set' && !solvedPath.length) {
       if (isRoot) throw new StoreError(`cannot set store`);
       // setting the cursor
-      return (api.data = update(
+      update(
         root,
         basePath,
         name,
         value
-      ));
+      );
+      return api.data;
     }
 
     // applying the update
