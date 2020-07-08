@@ -81,10 +81,10 @@ const setPath = () => new Promise((resolve, reject) => {
 
   suite('set: path', resolve, reject)
     .add('store', () => {
-      store.set(['arr', 3, 'foo'], 'bar');
+      store.set(['arr', 3, 'foo'], uniqueId());
     })
     .add('baobab', () => {
-      baobab.set(['arr', 3, 'foo'], 'bar');
+      baobab.set(['arr', 3, 'foo'], uniqueId());
     })
     .run({ async: true });
 });
@@ -132,46 +132,31 @@ const change = () => new Promise((resolve, reject) => {
 });
 
 const watch = () => new Promise((resolve, reject) => {
-  const store = Store(obj());
+  const store = Store(obj(), { asynchronous: false });
   const baobab = Baobab(obj());
+  const cursor = baobab.select(['arr', 3, 'foo']);
   const fab = fabio(obj());
 
   suite('watch', resolve, reject)
-    .add('store', async deferred => {
-      let called = false;
-      const callback = () => {
-        if (called) return;
-        called = true;
-        deferred.resolve();
-      };
-      store.watch(['arr', 3, 'foo'], callback);
-      await delay();
+    .add('store', () => {
+      // eslint-disable-next-line no-use-before-define
+      const callback = () => dispose();
+      const dispose = store.watch(['arr', 3, 'foo'], callback);
       store.data.arr[3].foo = uniqueId();
-    }, { defer: true })
-    .add('baobab', async deferred => {
-      let called = false;
-      const callback = () => {
-        if (called) return;
-        called = true;
-        deferred.resolve();
-      };
-      baobab.select(['arr', 3, 'foo']).on('update', callback);
-      await delay();
+    })
+    .add('baobab', () => {
+      const callback = () => cursor.off('update', callback);
+      cursor.on('update', callback);
       baobab.set(['arr', 3, 'foo'], uniqueId());
-    }, { defer: true })
-    .add('fabio', async deferred => {
-      let called = false;
-      const callback = () => {
-        if (called) return;
-        called = true;
-        deferred.resolve();
-      };
-      fabioOnChange(fab, () => {
+    })
+    .add('fabio', () => {
+      // eslint-disable-next-line no-use-before-define
+      const callback = () => dispose();
+      const dispose = fabioOnChange(fab, () => {
         return fab.arr[3].foo;
       }, callback);
-      await delay();
       fab.arr[3].foo = uniqueId();
-    }, { defer: true })
+    })
     .run({ async: true });
 });
 
