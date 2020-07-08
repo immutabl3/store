@@ -25,27 +25,24 @@ export default function Dispatcher(root, emitter) {
     return [key, get(this, selector)];
   };
   
-  const projectionReducer = (memo, [key, value]) => {
-    const { list, transactions, entries } = memo;
-    const selector = solve(root, value);
-    const foundTransactions = filterTransactions(list, selector);
-    // TODO: test push vs concat perf
-    if (foundTransactions.length) transactions.push(...foundTransactions);
-    entries.push([key, selector]);
-    return memo;
+  const reduceProjection = (list, projection) => {
+    const transactions = [];
+    const entries = [];
+    for (const [key, value] of Object.entries(projection)) {
+      const selector = solve(root, value);
+      const foundTransactions = filterTransactions(list, selector);
+      if (foundTransactions.length) transactions.push(...foundTransactions);
+      entries.push([key, selector]);
+    }
+
+    return { transactions, entries };
   };
 
   const emitProjection = (list, value, fn) => {
-    // TODO: optimize
     const {
       transactions,
       entries,
-    } = Object.entries(value)
-      .reduce(projectionReducer, {
-        list,
-        transactions: [],
-        entries: [],
-      });
+    } = reduceProjection(list, value);
     
     if (!transactions.length) return;
 
