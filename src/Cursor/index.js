@@ -58,16 +58,15 @@ export default class Cursor {
     // start by locking
     this.locker.lock();
     try {
+      // perform work
       if (!isObjectLike(path)) throw new StoreError(`project requires an object`, { value: path });
       if (isArray(path)) return this.get(path);
       
-      // TODO: optimize
       const result = Object.fromEntries(
         Object.entries(path)
-          .map(([key, value]) => {
-            // TODO: get from root using basePath?
-            return [key, get(this.data, value)];
-          })
+          .map(([key, value]) => (
+            [key, get(this.root, this.basePath.concat(value))]
+          ))
       );
 
       // this will be the returned result, even
