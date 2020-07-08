@@ -10,7 +10,8 @@
     "bench:mark": "node -r esm benchmark/benchmark",
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",
-    "build": "rollup -c",
+    "build": "npm run dist && npm run bundle",
+    "dist": "rollup -c",
     "bundle": "rollup -c rollup.bundle.js"
   },
   "engines": {
