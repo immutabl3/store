@@ -11,7 +11,7 @@ export default function locker(proxy) {
       locks++;
     },
     unlock() {
-      locks--;
+      locks = locks === 0 ? 0 : locks - 1;
       if (locks === 0) proxy[$RESUME];
     },
   };
