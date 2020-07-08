@@ -1,10 +1,8 @@
-// target: proxy
+// transactions: [ { type, path, value } ]
 // data?: data
-// transactions: [ { type, path, value }]
 const event = {};
 
-export default function(target, data, transactions) {
-  event.target = target;
+export default function(transactions, data) {
   event.data = data;
   event.transactions = transactions;
 
@@ -12,7 +10,6 @@ export default function(target, data, transactions) {
 };
 
 export const clearEvent = () => {
-  event.target = undefined;
   event.data = undefined;
   event.transactions = undefined;
 };
