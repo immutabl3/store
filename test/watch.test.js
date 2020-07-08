@@ -21,7 +21,7 @@ export const Data = function(object) {
         changes++;
         paths = [
           ...paths,
-          ...transactions.map(({ path }) => path)
+          ...transactions.map(({ path }) => path.slice())
         ];
       });
       return this;
