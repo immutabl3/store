@@ -8,7 +8,7 @@ import Emitter from './Emitter';
 export default function Store(obj, {
   // should the transactions be handled asynchronously?
   asynchronous = true,
-  // should the tree handle its transactions on its own?
+  // should the store handle its transactions on its own?
   autoCommit = true,
   // if the debugger is passed, we'll initialize it
   debug,
