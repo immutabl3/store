@@ -82,6 +82,7 @@ const makeTraps = function(onChange, cache) {
       return makeProxy(value, cache, traps);
     },
     set(target, property, val, rec) {
+
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];
@@ -94,7 +95,7 @@ const makeTraps = function(onChange, cache) {
       const changed = result && ((isValueUndefined && !didPropertyExist) || !isEqual(prev, value));
       if (!changed) return result;
       
-      !locked && onChange(getChildPath(target, property), 'set', value, prev);
+      !locked && onChange(getChildPath(target, property), 'set', value);
 
       return result;
     },
@@ -113,19 +114,18 @@ const makeTraps = function(onChange, cache) {
       };
       if (isEqual(prev, next)) return true;
       
-      !locked && onChange(getChildPath(target, property), 'define', descriptor, prev);
+      !locked && onChange(getChildPath(target, property), 'define', descriptor);
 
       return changed;
     },
     deleteProperty(target, property) {
       if (!Reflect.has(target, property)) return true;
-
-      const prev = Reflect.get(target, property);     
+  
       const changed = Reflect.deleteProperty(target, property);
       if (isSymbol(property)) return changed;
       if (!changed) return changed;
       
-      !locked && onChange(getChildPath(target, property), 'delete', undefined, prev);
+      !locked && onChange(getChildPath(target, property), 'delete', undefined);
 
       return changed;
     },
@@ -155,7 +155,6 @@ const makeTraps = function(onChange, cache) {
         path,
         target.name,
         val,
-        clonedArg,
         args
       );
 

@@ -35,8 +35,8 @@ export default function Schedule(dispatcher, asynchronous, autoCommit) {
       debug = bug;
     },
 
-    add(path, type, current, previous, args) {
-      transactions.add(path, type, current, previous, args);
+    add(path, type, current, args) {
+      transactions.add(path, type, current, args);
       autoCommit && commit();
     },   
   };

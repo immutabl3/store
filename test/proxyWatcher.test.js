@@ -1033,34 +1033,31 @@ test('proxyWatcher: structures: cyclical', assert => {
 test('proxyWatcher: event meta', async assert => {
   const tests = {
     set() {
-      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+      const proxy = watch({ foo: 'bar' }, (path, type, value) => {
         assert.same(path, ['foo'], `set: path`);
         assert.is(type, 'set', `set: type`);
         assert.is(value, 'baz', `set: value`);
-        assert.is(previousValue, 'bar', `set: previousValue`);
       });
 
       proxy.foo = 'baz';
     },
     delete() {
-      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+      const proxy = watch({ foo: 'bar' }, (path, type, value) => {
         assert.same(path, ['foo'], `delete: path`);
         assert.is(type, 'delete', `delete: type`);
         assert.is(value, undefined, `delete: value`);
-        assert.is(previousValue, 'bar', `delete: previousValue`);
       });
 
       delete proxy.foo;
     },
     defineNew() {
-      const proxy = watch({}, (path, type, value, previousValue) => {
+      const proxy = watch({}, (path, type, value) => {
         assert.same(path, ['foo'], `defineNew: path`);
         assert.is(type, 'define', `defineNew: type`);
         assert.same(value, {
           configurable: true,
           value: true,
         }, `defineNew: value`);
-        assert.is(previousValue, undefined, `defineNew: previousValue`);
       });
 
       Object.defineProperty(proxy, 'foo', {
@@ -1069,19 +1066,13 @@ test('proxyWatcher: event meta', async assert => {
       });
     },
     defineExisting() {
-      const proxy = watch({ foo: 'bar' }, (path, type, value, previousValue) => {
+      const proxy = watch({ foo: 'bar' }, (path, type, value) => {
         assert.same(path, ['foo'], `defineExisting: path`);
         assert.is(type, 'define', `defineExisting: type`);
         assert.same(value, {
           configurable: true,
           value: 'baz',
         }, `defineExisting: value`);
-        assert.same(previousValue, {
-          configurable: true,
-          enumerable: true,
-          value: 'bar',
-          writable: true,
-        }, `defineExisting: previousValue`);
       });
 
       Object.defineProperty(proxy, 'foo', {
@@ -1090,110 +1081,100 @@ test('proxyWatcher: event meta', async assert => {
       });
     },
     pop() {
-      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `pop: path`);
         assert.is(type, 'pop', `pop: type`);
         assert.same(value, [], `pop: value`);
-        assert.same(previousValue, [1], `pop: previousValue`);
         assert.same(args, [], `pop: arguments`);
       });
 
       proxy.foo.pop();
     },
     shift() {
-      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `shift: path`);
         assert.is(type, 'shift', `shift: type`);
         assert.same(value, [], `shift: value`);
-        assert.same(previousValue, [1], `shift: previousValue`);
         assert.same(args, [], `shift: arguments`);
       });
 
       proxy.foo.shift();
     },
     sort() {
-      const proxy = watch({ foo: [3, 5, 1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [3, 5, 1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `sort: path`);
         assert.is(type, 'sort', `sort: type`);
         assert.same(value, [1, 3, 5], `sort: value`);
-        assert.same(previousValue, [3, 5, 1], `sort: previousValue`);
         assert.same(args, [], `sort: arguments`);
       });
 
       proxy.foo.sort();
     },
     reverse() {
-      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `reverse: path`);
         assert.is(type, 'reverse', `reverse: type`);
         assert.same(value, [3, 2, 1], `reverse: value`);
-        assert.same(previousValue, [1, 2, 3], `reverse: previousValue`);
         assert.same(args, [], `reverse: arguments`);
       });
 
       proxy.foo.reverse();
     },
     splice() {
-      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1, 2, 3] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `splice: path`);
         assert.is(type, 'splice', `splice: type`);
         assert.same(value, [2, 2, 3], `splice: value`);
-        assert.same(previousValue, [1, 2, 3], `splice: previousValue`);
         assert.same(args, [0, 1, 2], `splice: arguments`);
       });
 
       proxy.foo.splice(0, 1, 2);
     },
     unshift() {
-      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `unshift: path`);
         assert.is(type, 'unshift', `unshift: type`);
         assert.same(value, [5, 1], `unshift: value`);
-        assert.same(previousValue, [1], `unshift: previousValue`);
         assert.same(args, [5], `unshift: arguments`);
       });
 
       proxy.foo.unshift(5);
     },
     pushSingle() {
-      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `pushSingle: path`);
         assert.is(type, 'push', `pushSingle: type`);
         assert.same(value, [1, 5], `pushSingle: value`);
-        assert.same(previousValue, [1], `pushSingle: previousValue`);
         assert.same(args, [5], `pushSingle: arguments`);
       });
 
       proxy.foo.push(5);
     },
     pushMultiple() {
-      const proxy = watch({ foo: [1] }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: [1] }, (path, type, value, args) => {
         assert.same(path, ['foo'], `pushMultiple: path`);
         assert.is(type, 'push', `pushMultiple: type`);
         assert.same(value, [1, -1, -2, -3], `pushMultiple: value`);
-        assert.same(previousValue, [1], `pushMultiple: previousValue`);
         assert.same(args, [-1, -2, -3], `pushMultiple: arguments`);
       });
 
       proxy.foo.push(-1, -2, -3);
     },
     add() {
-      const proxy = watch({ foo: new Set([1]) }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: new Set([1]) }, (path, type, value, args) => {
         assert.same(path, ['foo'], `add: path`);
         assert.is(type, 'add', `add: type`);
         assert.same(value.size, 2, `add: value`);
-        assert.same(previousValue.size, 1, `add: previousValue`);
         assert.same(args, [2], `add: arguments`);
       });
 
       proxy.foo.add(2);
     },
     clear() {
-      const proxy = watch({ foo: new Map([['1', 1]]) }, (path, type, value, previousValue, args) => {
+      const proxy = watch({ foo: new Map([['1', 1]]) }, (path, type, value, args) => {
         assert.same(path, ['foo'], `clear: path`);
         assert.is(type, 'clear', `clear: type`);
         assert.same(value.size, 0, `clear: value`);
-        assert.same(previousValue.size, 1, `clear: previousValue`);
         assert.same(args, [], `clear: arguments`);
       });
 

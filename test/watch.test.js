@@ -3,8 +3,6 @@ import isFunction from 'lodash/isFunction';
 import Store from '../src';
 import { delay } from './utils';
 
-// TODO: this is a recorder
-
 export const Data = function(object) {
   let changes = 0;
   let paths = [];

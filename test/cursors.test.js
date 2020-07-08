@@ -366,7 +366,7 @@ test('cursors: setter: upper reference resolution', assert => {
     assert.is(
       store.data.hello.color,
       'yellow',
-      `should reflect the change`
+      `yellow: should reflect the change`
     );
   });
 
@@ -378,7 +378,7 @@ test('cursors: setter: upper reference resolution', assert => {
     assert.is(
       store.data.hello,
       'purple',
-      `should reflect the change`
+      `purple: should reflect the change`
     );
   });
 
