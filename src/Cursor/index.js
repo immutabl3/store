@@ -18,11 +18,7 @@ import {
 const expandProjection = (projection, basePath) => {
   const target = Object.create(null);
   for (const key in projection) {
-    // TODO: test speed w/ concat
-    target[key] = [
-      ...basePath,
-      ...coerce(projection[key])
-    ];
+    target[key] = basePath.concat(coerce(projection[key]));
   }
   return target;
 };
