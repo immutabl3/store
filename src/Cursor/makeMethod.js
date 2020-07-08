@@ -7,16 +7,11 @@ import {
 
 const resolvePathAndValue = function(arity, fn) {
   return function(first, second) {
-    const length = arguments.length;
-
     let path = first;
     let value = second;
 
-    // we should warn the user if he applies to many arguments to the function
-    if (length > arity) throw new StoreError(`${name}: too many arguments`);
-
     // handling arities
-    if (arity === 2 && length === 1) {
+    if (arity === 2 && second === undefined) {
       value = path;
       path = [];
     }
@@ -32,8 +27,19 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
   api[name] = resolvePathAndValue(arity, function(path, value) {
     if (!check(value)) throw new StoreError(`${name}: invalid value`, { path, value });
 
-    const solvedPath = path.length ? solve(api.data, path) : path;
-    if (path.length !== solvedPath.length) throw new StoreError(`${name}: invalid path`, { path, value });
+    const solvedPath = path.length ? solve(root, path) : path;
+
+    if (name === 'set' && !solvedPath.length) {
+      if (isRoot) throw new StoreError(`cannot set store`);
+      // setting the cursor
+      update(
+        root,
+        basePath,
+        name,
+        value
+      );
+      return;
+    }
 
     if (name === 'unset') {
       // unsetting the cursor
@@ -45,26 +51,14 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
           name,
           value
         );
-        return api.data;
+        return;
       }
 
       // don't unset irrelevant paths
       if (!api.exists(solvedPath)) return;
     }
-    
-    if (name === 'set' && !solvedPath.length) {
-      if (isRoot) throw new StoreError(`cannot set store`);
-      // setting the cursor
-      update(
-        root,
-        basePath,
-        name,
-        value
-      );
-      return api.data;
-    }
 
     // applying the update
-    return update(api.data, solvedPath, name, value);
+    update(root, basePath.concat(solvedPath), name, value);
   });
 };
