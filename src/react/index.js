@@ -1,6 +1,6 @@
 import {
-  useRoot,
-  useBranch,
+  useContext,
+  useStore,
 } from './hooks';
 import {
   root,
@@ -8,8 +8,8 @@ import {
 } from './hoc';
 
 export {
-  useRoot,
-  useBranch,
+  useContext,
+  useStore,
   root,
   branch,
 };

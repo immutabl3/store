@@ -6,8 +6,8 @@ import {
   isObjectLike,
 } from '../types';
 import {
-  useRoot,
-  useBranch,
+  useContext,
+  useStore,
 } from './hooks';
 
 const displayName = Component => {
@@ -30,7 +30,7 @@ const root = function(store, Component) {
   const name = displayName(Component);
 
   const Root = function(props) {
-    const Root = useRoot(store);
+    const Root = useContext(store);
     return (
       React.createElement(Root, null,
         React.createElement(Component, props)
@@ -52,7 +52,7 @@ const branch = function(cursors, Component) {
   if (!isObjectLike(cursors) && !functionalCursor) throw new StoreError(`invalid mapping`, { mapping: cursors });
 
   const Branch = function(props) {
-    const state = useBranch(functionalCursor ? cursors(props) : cursors);
+    const state = useStore(functionalCursor ? cursors(props) : cursors);
     return React.createElement(Component,
       {
         ...props,
