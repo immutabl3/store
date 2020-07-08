@@ -82,8 +82,7 @@ test('events: watch', async assert => {
     async set() {
       const store = Store({ foo: 'bar' });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `set: target`);
+      store.watch(['foo'], ({ data, transactions }) => {
         assert.is(data, store.data.foo, `set: data`);
         assert.same(transactions, [
           {
@@ -100,8 +99,7 @@ test('events: watch', async assert => {
     async delete() {
       const store = Store({ foo: 'bar' });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `delete: target`);
+      store.watch(['foo'], ({ data, transactions }) => {
         assert.is(data, store.data.foo, `delete: data`);
         assert.same(transactions, [
           {
@@ -118,8 +116,7 @@ test('events: watch', async assert => {
     async defineNew() {
       const store = Store({});
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `defineNew: target`);
+      store.watch(['foo'], ({ data, transactions }) => {
         assert.is(data, store.data.foo, `defineNew: data`);
         assert.same(transactions, [
           {
@@ -141,8 +138,7 @@ test('events: watch', async assert => {
     async defineExisting() {
       const store = Store({ foo: 'bar' });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `defineExisting: target`);
+      store.watch(['foo'], ({ data, transactions }) => {
         assert.is(data, store.data.foo, `defineExisting: data`);
         assert.same(transactions, [
           {
@@ -164,9 +160,7 @@ test('events: watch', async assert => {
     async pop() {
       const store = Store({ foo: [1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `pop: target`);
-        assert.is(data, store.data.foo, `pop: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'pop',
@@ -182,9 +176,7 @@ test('events: watch', async assert => {
     async shift() {
       const store = Store({ foo: [1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `shift: target`);
-        assert.is(data, store.data.foo, `shift: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'shift',
@@ -200,9 +192,7 @@ test('events: watch', async assert => {
     async sort() {
       const store = Store({ foo: [3, 5, 1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `sort: target`);
-        assert.is(data, store.data.foo, `sort: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'sort',
@@ -218,9 +208,7 @@ test('events: watch', async assert => {
     async reverse() {
       const store = Store({ foo: [1, 2, 3] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `reverse: target`);
-        assert.is(data, store.data.foo, `reverse: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'reverse',
@@ -236,9 +224,7 @@ test('events: watch', async assert => {
     async splice() {
       const store = Store({ foo: [1, 2, 3] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `splice: target`);
-        assert.is(data, store.data.foo, `splice: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'splice',
@@ -254,9 +240,7 @@ test('events: watch', async assert => {
     async unshift() {
       const store = Store({ foo: [1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `unshift: target`);
-        assert.is(data, store.data.foo, `unshift: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'unshift',
@@ -272,9 +256,7 @@ test('events: watch', async assert => {
     async pushSingle() {
       const store = Store({ foo: [1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `pushSingle: target`);
-        assert.is(data, store.data.foo, `pushSingle: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'push',
@@ -290,9 +272,7 @@ test('events: watch', async assert => {
     async pushMultiple() {
       const store = Store({ foo: [1] });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `pushMultiple: target`);
-        assert.is(data, store.data.foo, `pushMultiple: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'push',
@@ -308,9 +288,7 @@ test('events: watch', async assert => {
     async add() {
       const store = Store({ foo: new Set([1]) });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `add: target`);
-        assert.is(data, store.data.foo, `add: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'add',
@@ -326,9 +304,7 @@ test('events: watch', async assert => {
     async clear() {
       const store = Store({ foo: new Map([['1', 1]]) });
       
-      store.watch(['foo'], ({ target, data, transactions }) => {
-        assert.is(target, store.data, `clear: target`);
-        assert.is(data, store.data.foo, `clear: data`);
+      store.watch(['foo'], ({ transactions }) => {
         assert.same(transactions, [
           {
             type: 'clear',
@@ -344,67 +320,6 @@ test('events: watch', async assert => {
   };
 
   for (const fn of Object.values(tests)) await fn();
-
-  assert.end();
-});
-
-test('events: targeting', async assert => {
-  assert.plan(6);
-
-  const store = Store({
-    foo: { bar: { baz: true } },
-  });
-
-  store.onChange(e => {
-    assert.same(
-      e.target,
-      store.data,
-      `store: onChange`
-    );
-  });
-  store.watch({
-    hello: ['foo', 'bar'],
-  }, e => {
-    assert.same(
-      e.target, 
-      store.data,
-      `store: projection`  
-    );
-  });
-  store.watch(['foo', 'bar'], e => {
-    assert.same(
-      e.target, 
-      store.data,
-      `store: watch`  
-    );
-  });
-
-  const selection = store.select(['foo', 'bar']);
-  selection.onChange(e => {
-    assert.same(
-      e.target,
-      store.data.foo.bar,
-      `selection: onChange`
-    );
-  });
-  selection.watch({ hello: ['baz'] }, e => {
-    assert.same(
-      e.target,
-      store.data.foo.bar,
-      `selection: projection`
-    );
-  });
-  selection.watch(['baz'], e => {
-    assert.same(
-      e.target,
-      store.data.foo.bar,
-      `selection: watch`
-    );
-  });
-
-  store.data.foo.bar.baz = false;
-
-  await delay();
 
   assert.end();
 });
