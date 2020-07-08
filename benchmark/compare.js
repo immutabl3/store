@@ -205,15 +205,15 @@ const complexSelectors = () => new Promise((resolve, reject) => {
 });
 
 (async function() {
-  // await getAccess();
-  // await getPath();
-  // await setAccess();
-  // await setPath();
-  // await change();
-  // await watch();
-  // await project();
+  await getAccess();
+  await getPath();
+  await setAccess();
+  await setPath();
+  await change();
+  await watch();
+  await project();
   await select();
-  // await complexSelectors();
+  await complexSelectors();
 
   console.log('done');
 }());
