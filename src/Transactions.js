@@ -1,9 +1,7 @@
 export default function Transactions() {
   const transactions = [];
-  const map = new Map();
 
   return {
-    // TODO: just expose
     list() {
       return transactions;
     },
@@ -12,9 +10,8 @@ export default function Transactions() {
     },
     clear() {
       transactions.length = 0;
-      map.clear();
     },
-    add(path, type, current, previous, args) {
+    add(path, type, current, args) {
       transactions.push({
         type,
         path,
