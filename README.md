@@ -14,7 +14,7 @@ It aims at providing a centralized model to hold an application's state and can 
 npm install @immutabl3/store
 ```
 
-`store` is ~`5.1`kb minified and gzipped 
+`store` is ~`4.47`kb minified and gzipped 
 
 
 
@@ -956,18 +956,68 @@ To run tests:
 
 ## Benchmark
 
+speed test
 ```sh
-creation x 647,719 ops/sec ±0.73% (92 runs sampled)
-gets: direct access x 257,818 ops/sec ±0.36% (97 runs sampled)
-gets: path x 4,860,006 ops/sec ±0.35% (95 runs sampled)
-sets: direct access x 159,482 ops/sec ±1.02% (91 runs sampled)
-sets: path x 102,501 ops/sec ±0.79% (91 runs sampled)
-watch x 88,262 ops/sec ±0.79% (92 runs sampled)
-project x 1,243,192 ops/sec ±0.50% (93 runs sampled)
-select x 190,039 ops/sec ±0.40% (97 runs sampled)
+creation x 1,210,361 ops/sec ±0.73% (89 runs sampled)
+gets: direct access x 248,558 ops/sec ±1.53% (90 runs sampled)
+gets: path x 4,200,374 ops/sec ±0.95% (90 runs sampled)
+sets: direct access x 211,038 ops/sec ±0.81% (89 runs sampled)
+sets: path x 119,794 ops/sec ±1.05% (91 runs sampled)
+change x 192,827 ops/sec ±0.97% (93 runs sampled)
+watch x 180,701 ops/sec ±1.18% (90 runs sampled)
+project x 1,070,100 ops/sec ±0.69% (93 runs sampled)
+select x 20,046,136 ops/sec ±0.82% (92 runs sampled)
 ```
 
+comparison test
+```sh
+get: access
+store x 251,561 ops/sec ±0.63% (90 runs sampled)
+fabio x 843,553 ops/sec ±1.19% (87 runs sampled)
+fastest: fabio
 
+get: path
+store x 3,840,752 ops/sec ±1.01% (87 runs sampled)
+baobab x 667,272 ops/sec ±0.86% (84 runs sampled)
+fastest: store
+
+set: access
+store x 227,234 ops/sec ±1.13% (88 runs sampled)
+fabio x 669,072 ops/sec ±2.56% (82 runs sampled)
+fastest: fabio
+
+set: path
+store x 117,117 ops/sec ±1.04% (90 runs sampled)
+baobab x 266,220 ops/sec ±0.45% (92 runs sampled)
+fastest: baobab
+
+change
+store x 347,147 ops/sec ±8.21% (22 runs sampled)
+baobab x 590 ops/sec ±0.90% (79 runs sampled)
+fabio x 295 ops/sec ±0.82% (75 runs sampled)
+fastest: store
+
+watch
+store x 171,076 ops/sec ±2.29% (88 runs sampled)
+baobab x 138,247 ops/sec ±0.39% (89 runs sampled)
+fabio x 97,613 ops/sec ±1.22% (80 runs sampled)
+fastest: store
+
+project
+store x 1,030,856 ops/sec ±0.49% (90 runs sampled)
+baobab x 700,897 ops/sec ±0.46% (88 runs sampled)
+fastest: store
+
+select
+store x 17,189,521 ops/sec ±1.38% (89 runs sampled)
+baobab x 594,877 ops/sec ±1.84% (83 runs sampled)
+fastest: store
+
+complex selectors
+store x 1,768,293 ops/sec ±1.32% (85 runs sampled)
+baobab x 575,746 ops/sec ±0.44% (92 runs sampled)
+fastest: store
+```
 
 To setup for the benchmarks:
 
