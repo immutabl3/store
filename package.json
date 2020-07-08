@@ -29,6 +29,13 @@
     "type": "git",
     "url": "https://github.com/immutabl3/store.git"
   },
+  "files": [
+    "store.js",
+    "react.js",
+    "src",
+    "debug",
+    "dist"
+  ],
   "keywords": [
     "state",
     "store",
