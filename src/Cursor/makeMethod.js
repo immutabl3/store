@@ -5,7 +5,7 @@ import {
   solve,
 } from '../query';
 
-const resolvePathAndValue = function(arity, fn) {
+const resolvePathAndValue = function(arity) {
   return function(first, second) {
     let path = first;
     let value = second;
@@ -19,12 +19,17 @@ const resolvePathAndValue = function(arity, fn) {
     // coerce path
     path = path === undefined ? [] : coerce(path);
     
-    return fn(path, value);
+    return { path, value };
   };
 };
 
-export default function makeMethod(api, root, basePath, isRoot, name, arity, check) {
-  api[name] = resolvePathAndValue(arity, function(path, value) {
+export default function makeMethod(prototype, name, arity, check) {
+  const pathAndValue = resolvePathAndValue(arity);
+  prototype[name] = function(first, second) {
+    const { path, value } = pathAndValue(first, second);
+
+    const { root, basePath, isRoot } = this;
+
     if (!check(value)) throw new StoreError(`${name}: invalid value`, { path, value });
 
     const solvedPath = path.length ? solve(root, path) : path;
@@ -55,10 +60,10 @@ export default function makeMethod(api, root, basePath, isRoot, name, arity, che
       }
 
       // don't unset irrelevant paths
-      if (!api.exists(solvedPath)) return;
+      if (!this.exists(solvedPath)) return;
     }
 
     // applying the update
     update(root, basePath.concat(solvedPath), name, value);
-  });
+  };
 };

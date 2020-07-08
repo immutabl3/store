@@ -24,85 +24,95 @@ const expandProjection = (projection, basePath) => {
   return target;
 };
 
-export default function Cursor(root, locker, emitter, basePath = []) {
-  const isRoot = !basePath.length;
+export default class Cursor {
+  constructor(root, locker, emitter, basePath = []) {
+    this.root = root;
+    this.locker = locker;
+    this.emitter = emitter;
+    this.basePath = basePath;
+    this.isRoot = !basePath.length;
+  }
 
-  const lockable = function(fn) {
-    return function(arg) {
-      // start by locking
-      locker.lock();
-      try {
-        // call the function in the try
-        return fn(arg);
-        // no catch. if there's an err, let it bubble
-      } finally {
-        // will always unlock, even if there was an error
-        // and even though we're returning above
-        locker.unlock();
-      }
-    };
-  };
+  get data() {
+    return get(this.root, this.basePath);
+  }
 
-  const api = {
-    get data() {
-      return get(root, basePath);
-    },
+  select(value) {
+    const selector = coerce(value);
+    return new Cursor(this.root, this.locker, this.emitter, [...this.basePath, ...selector]);
+  }
 
-    select(value) {
-      const selector = coerce(value);
-      return Cursor(root, locker, emitter, [...basePath, ...selector]);
-    },
+  watch(listener, fn) {
+    const { emitter, basePath } = this;
+    if (isFunction(listener)) return this.emitter.add(listener, basePath);
 
-    watch(listener, fn) {
-      if (isFunction(listener)) return emitter.add(listener, basePath);
+    const isProj = isProjection(listener);
+    const selector = isProj ?
+      expandProjection(listener, basePath) :
+      [...basePath, ...coerce(listener)];
 
-      const isProj = isProjection(listener);
-      const selector = isProj ?
-        expandProjection(listener, basePath) :
-        [...basePath, ...coerce(listener)];
+    return emitter.add(fn, selector, isProj);
+  }
 
-      return emitter.add(fn, selector, isProj);
-    },
-
-    project: lockable(path => {
+  project(path) {
+    // start by locking
+    this.locker.lock();
+    try {
       if (!isObjectLike(path)) throw new StoreError(`project requires an object`, { value: path });
-      if (isArray(path)) return api.get(path);
+      if (isArray(path)) return this.get(path);
       
       // TODO: optimize
       const result = Object.fromEntries(
         Object.entries(path)
           .map(([key, value]) => {
-            return [key, get(api.data, value)];
+            // TODO: get from root using basePath?
+            return [key, get(this.data, value)];
           })
       );
 
+      // this will be the returned result, even
+      // though we are in a try and have a finally
       return result;
-    }),
 
-    get: lockable(path => {
-      if (!path) return api.data;
-      const result = get(api.data, path);
+      // don't catch, let the error bubble
+    } finally {
+      // will always unlock, even if there was an error
+      // and even though we're returning above
+      this.locker.unlock();
+    }
+  }
+
+  get(path) {
+    this.locker.lock();
+    try {
+      if (!path) return this.data;
+      const result = get(this.data, path);
       return result;
-    }),
+    } finally {
+      this.locker.unlock();
+    }
+  }
 
-    exists(path) {
-      if (path === undefined) return api.data !== undefined;
-      return exists(api.data, coerce(path));
-    },
+  exists(path) {
+    if (path === undefined) return this.data !== undefined;
+    return exists(this.data, coerce(path));
+  }
 
-    clone(path) {
-      if (path === undefined) return clone(api.data);
-      return clone(api.get(path));
-    },
+  clone(path) {
+    if (path === undefined) return clone(this.data);
+    return clone(this.get(path));
+  }
 
-    toJSON: lockable(() => {
-      return JSON.stringify(api.data);
-    }),
-  };
-
-  methodDefinitions.forEach(([name, arity, check]) => (
-    makeMethod(api, root, basePath, isRoot, name, arity, check)
-  ));
-  
-  return api;
+  toJSON() {
+    this.locker.lock();
+    try {
+      return JSON.stringify(this.data);
+    } finally {
+      this.locker.unlock();
+    }
+  }
 };
+
+methodDefinitions.forEach(([name, arity, check]) => (
+  makeMethod(Cursor.prototype, name, arity, check)
+));
