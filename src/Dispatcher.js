@@ -1,9 +1,15 @@
 import event, { clearEvent } from './event';
 import { 
   get,
+  clone,
   partialCompare,
 } from './utils';
 import { solve } from './query';
+
+const cloner = data => {
+  if (data === null || data === undefined) return data;
+  return clone(data);
+};
 
 const filterTransactions = (transactions, selector) => {
   if (!selector.length) return [];
@@ -48,7 +54,7 @@ export default function Dispatcher(root, emitter) {
 
     fn(event(
       transactions,
-      () => Object.fromEntries(entries.map(getMapper, root))
+      () => cloner(Object.fromEntries(entries.map(getMapper, root)))
     ));
   };
 
@@ -60,7 +66,7 @@ export default function Dispatcher(root, emitter) {
 
     fn(event(
       foundTransactions,
-      () => get(root, selector)
+      () => cloner(get(root, selector))
     ));
   };
 
