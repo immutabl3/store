@@ -10,3 +10,4 @@ import './select.test';
 import './store.test';
 import './hooks.test';
 import './hoc.test';
+import './merge.test';

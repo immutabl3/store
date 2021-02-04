@@ -1,5 +1,6 @@
 import StoreError from '../StoreError';
 import {
+  dynamicGet,
   clone,
   mergeDeep,
 } from '../utils';
@@ -57,8 +58,9 @@ const operations = {
   },
 
   merge(target, key, value, path) {
-    if (!isObject(target[key])) throw new StoreError(`merge`, { path });
-    mergeDeep(target[key], clone(value));
+    const obj = isArray(target) ? dynamicGet(target, [key]) : target[key];
+    if (!isObject(obj)) throw new StoreError(`merge`, { path });
+    mergeDeep(obj, clone(value));
   },
 };
 
