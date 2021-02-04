@@ -14,10 +14,6 @@
     "dist": "rollup -c",
     "bundle": "rollup -c rollup.bundle.js"
   },
-  "engines": {
-    "node": "^14.4.0",
-    "npm": "^6.14.5"
-  },
   "bugs": {
     "url": "https://github.com/immutabl3/store/issues"
   },
