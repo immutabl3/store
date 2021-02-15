@@ -31,6 +31,15 @@ export const isObject = target => (
   !(target instanceof Set)
 );
 
+export const isMapLike = target => (
+  isObjectLike(target) && (
+    target instanceof Map ||
+    target instanceof Set ||
+    target instanceof WeakMap || 
+    target instanceof WeakSet
+  )
+);
+
 export const isTypedArray = value => {
   return isObjectLike(value) && 
     (

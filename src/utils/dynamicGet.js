@@ -1,5 +1,6 @@
 import {
   isArray,
+  isMapLike,
 } from '../types';
 import indexOf from './indexOf';
 import indexOfCompare from './indexOfCompare';
@@ -26,7 +27,7 @@ export default function dynamicGet(object, path) {
       const index = indexOfCompare(current, chunk);
       if (!~index) return;
 
-      current = current[index];
+      current = isMapLike(current) ? current.get(index) : current[index];
     } else {
       current = current[chunk];
     }

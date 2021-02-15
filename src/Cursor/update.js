@@ -8,12 +8,17 @@ import {
   isArray,
   isObject,
   isPrimitive,
+  isMapLike,
 } from '../types';
 
 const operations = {
   set(target, key, value) {
     if (isObject(value)) {
       mergeDeep(target, { [key]: clone(value) });
+      return;
+    }
+    if (isMapLike(target)) {
+      target.set(key, value);
       return;
     }
     target[key] = value;
@@ -88,6 +93,11 @@ export default function update(data, path, type, value) {
     // if we reached a leaf, we override by setting an empty object
     if (isPrimitive(current[key])) {
       current[key] = {};
+    }
+
+    if (isMapLike(current)) {
+      current = current.get(key);
+      return;
     }
     
     current = current[key];
