@@ -16,7 +16,7 @@ const filterTransactions = (transactions, selector) => {
   
   const results = [];
   for (const transaction of transactions) {
-    const found = partialCompare(selector, transaction.path);
+    const found = partialCompare(selector, transaction.path, transaction.value);
     if (found) results.push(transaction);
   }
   return results;
