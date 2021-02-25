@@ -14,7 +14,9 @@ export default function dynamicGet(object, path) {
     const chunk = path[idx];
     const type = typeof chunk;
 
-    if (type === 'function') {
+    if (isMapLike(current)) {
+      current = current.get(chunk);
+    } else if (type === 'function') {
       if (!isArray(current)) return;
 
       const index = indexOf(current, chunk);
@@ -27,7 +29,7 @@ export default function dynamicGet(object, path) {
       const index = indexOfCompare(current, chunk);
       if (!~index) return;
 
-      current = isMapLike(current) ? current.get(index) : current[index];
+      current = current[index];
     } else {
       current = current[chunk];
     }

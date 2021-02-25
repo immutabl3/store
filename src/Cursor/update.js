@@ -10,15 +10,23 @@ import {
   isPrimitive,
   isMapLike,
 } from '../types';
+import {
+  $MAPMUTATE,
+  $MAPDELETE,
+} from '../consts';
 
 const operations = {
   set(target, key, value) {
-    if (isObject(value)) {
-      mergeDeep(target, { [key]: clone(value) });
+    if (isMapLike(target)) {
+      const val = isObject(value) 
+        ? mergeDeep(target.get(key) || {}, clone(value))
+        : value;
+      target[$MAPMUTATE] = [key, val];
+      target.set(key, val);
       return;
     }
-    if (isMapLike(target)) {
-      target.set(key, value);
+    if (isObject(value)) {
+      mergeDeep(target, { [key]: clone(value) });
       return;
     }
     target[key] = value;
@@ -60,6 +68,7 @@ const operations = {
       return;
     }
     if (isMapLike(target)) {
+      target[$MAPDELETE] = [key];
       target.delete(key);
       return;
     }
@@ -67,11 +76,17 @@ const operations = {
   },
 
   merge(target, key, value, path) {
-    const obj = isArray(target) 
-      ? dynamicGet(target, [key]) 
-      : isMapLike(target)
-        ? target.get(key)
-        : target[key];
+    if (isMapLike(target)) {
+      const obj = target.get(key);
+      if (!isObject(obj)) throw new StoreError(`merge`, { path });
+      
+      const object = mergeDeep(obj, clone(value));
+      target[$MAPMUTATE] = [key, object];
+      target.set(key, object);
+      return;
+    }
+    
+    const obj = isArray(target) ? dynamicGet(target, [key]) : target[key];
     if (!isObject(obj)) throw new StoreError(`merge`, { path });
     mergeDeep(obj, clone(value));
   },
@@ -105,7 +120,7 @@ export default function update(data, path, type, value) {
 
     if (isMapLike(current)) {
       current = current.get(key);
-      return;
+      continue;
     }
     
     current = current[key];

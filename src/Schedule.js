@@ -38,6 +38,6 @@ export default function Schedule(dispatcher, asynchronous, autoCommit) {
     add(path, type, current, args) {
       transactions.add(path, type, current, args);
       autoCommit && commit();
-    },   
+    },
   };
 };

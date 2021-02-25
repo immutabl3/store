@@ -16,6 +16,8 @@ import {
   $TARGET,
   $PAUSE,
   $RESUME,
+  $MAPMUTATE,
+  $MAPDELETE,
 } from './consts';
 
 const makeTraps = function(onChange, cache) {  
@@ -55,6 +57,8 @@ const makeTraps = function(onChange, cache) {
     get(target, property, rec) {
       // target access
       if (property === $TARGET) return target;
+
+      if (property === 'constructor') return target.constructor;
       
       // when paused, short circuit the gets - this provides
       // a meaningful speed boost when accessing data e.g.
@@ -82,6 +86,22 @@ const makeTraps = function(onChange, cache) {
       return makeProxy(value, cache, traps);
     },
     set(target, property, val, rec) {
+      // occurs when we dynamically access objects
+      // inside Maps/Sets - need to be able to track
+      // the access. this means we're not actually
+      // doing anything in this operation besides
+      // caching a child path
+      if (property === $MAPMUTATE) {
+        const [key, value] = val;
+        !locked && onChange(getChildPath(target, key), 'set', value);
+        return {};
+      }
+      if (property === $MAPDELETE) {
+        const [key] = val;
+        !locked && onChange(getChildPath(target, key), 'delete');
+        return {};
+      }
+
       let value = val;
       let receiver = rec;
       if (value && value[$TARGET]) value = value[$TARGET];

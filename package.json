@@ -6,7 +6,7 @@
   "module": "src/",
   "scripts": {
     "test": "node -r esm test | tap-spec",
-    "debug": "node -r esm --inspect-brk=1234 test",
+    "debug": "node -r esm test",
     "bench:mark": "node -r esm benchmark/benchmark",
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",

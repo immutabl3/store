@@ -78,7 +78,7 @@ test('change: fires a change event when a mutation is made', async assert => {
 });
 
 test('change: fires a change event when Map & Set updates', async assert => {
-  assert.plan(24);
+  assert.plan(41);
 
   let calls = 0;
 
@@ -86,6 +86,7 @@ test('change: fires a change event when Map & Set updates', async assert => {
     foo: new Map([[1, '1'], [2, '2']]),
     bar: new Set([1, 2]),
     baz: new Map([[1, '1']]),
+    biz: new Map([[1, { hello: 'world' }]]),
   });
 
   // eslint-disable-next-line no-loop-func
@@ -94,6 +95,10 @@ test('change: fires a change event when Map & Set updates', async assert => {
     calls++;
   });
   store.select(['baz', 1]).watch(e => {
+    assert.ok(!!e.transactions.length, `transaction made`);
+    calls++;
+  });
+  store.select(['biz', 1]).watch(e => {
     assert.ok(!!e.transactions.length, `transaction made`);
     calls++;
   });
@@ -132,6 +137,32 @@ test('change: fires a change event when Map & Set updates', async assert => {
   assert.is(calls, 6, `Map: mutation made`);
   assert.is(store.get(['baz']).size, 1, `Map: size unchanged`);
   assert.is(Array.from(store.data.baz.values()).length, 1, `Map: values() exposes data`);
+  
+  // make sure merge works with Map properly
+  store.merge(['biz', 1], { hello: 'goodbye' });
+  await delay();
+  assert.is(calls, 8, `Map: mutation made`);
+  assert.is(store.get(['biz']).size, 1, `Map: size unchanged`);
+  assert.is(Array.from(store.data.biz.values()).length, 1, `Map: values() exposes data`);
+  assert.is(store.get(['biz', 1, 'hello']), 'goodbye', `value updated`);
+
+  // add a new object to the Map and see if we can
+  // watch it for changes
+  store.set(['biz', 2], { foo: 'bar' });
+  store.merge(['biz', 2], { foo: 'foo' });
+  await delay();
+  assert.is(calls, 9, `Map: mutation made`);
+  assert.is(store.get(['biz']).size, 2, `Map: size updated`);
+  assert.is(Array.from(store.data.biz.values()).length, 2, `Map: values() exposes data`);
+  assert.is(store.get(['biz', 2, 'foo']), 'foo', `value updated`);
+
+  // make sure we can unset a Map
+  store.unset(['biz', 1]);
+  await delay();
+  assert.is(calls, 11, `Map: mutation made`);
+  assert.is(store.get(['biz']).size, 1, `Map: size update`);
+  assert.is(Array.from(store.data.biz.values()).length, 1, `Map: values() exposes data`);
+  assert.is(store.get(['biz', 1]), undefined, `value updated`);
 
   assert.end();
 });
