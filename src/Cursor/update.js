@@ -59,11 +59,19 @@ const operations = {
       target.splice(key, 1);
       return;
     }
+    if (isMapLike(target)) {
+      target.delete(key);
+      return;
+    }
     delete target[key];
   },
 
   merge(target, key, value, path) {
-    const obj = isArray(target) ? dynamicGet(target, [key]) : target[key];
+    const obj = isArray(target) 
+      ? dynamicGet(target, [key]) 
+      : isMapLike(target)
+        ? target.get(key)
+        : target[key];
     if (!isObject(obj)) throw new StoreError(`merge`, { path });
     mergeDeep(obj, clone(value));
   },
