@@ -13,7 +13,7 @@ import {
   isFunction,
 } from '../types';
 
-export const useContext = function(store) {
+export const useContext = function(store, ctx = Context) {
   if (!isStore(store)) throw new StoreError(`given object is not a store`, { store });
 
   const [state, setState] = useState(() => ({ store }));
@@ -24,17 +24,17 @@ export const useContext = function(store) {
   }, [store]);
 
   return function StoreContext({ children }) {
-    return React.createElement(Context.Provider, {
+    return React.createElement(ctx.Provider, {
       value: { store: state.store }
     }, children);
   };
 };
 
-export const useStore = function(cursor) {
+export const useStore = function(cursor, ctx = Context) {
   if (!isObjectLike(cursor) && !isFunction(cursor)) throw new StoreError(`invalid mapping`, { mapping: cursor });
 
   const ref = useRef();
-  const context = useReactContext(Context);
+  const context = useReactContext(ctx);
   if (!context || !isStore(context.store)) throw new StoreError(`unable to locate store`, { context });
 
   const { store } = context;
