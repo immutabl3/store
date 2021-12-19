@@ -35,19 +35,17 @@ export const useStore = function(cursor, ctx = Context) {
 
   const ref = useRef();
   const context = useReactContext(ctx);
+  const [state, setState] = useState(0);
+  ref.current = state;
+
   if (!context || !isStore(context.store)) throw new StoreError(`unable to locate store`, { context });
 
   const { store } = context;
   const mapping = isFunction(cursor) ? cursor(store.data) : cursor;
 
-  const [state, setState] = useState(() => store.project(mapping));
-
-  const isDirty = !deepEqual(mapping, ref.current);
-  if (isDirty) ref.current = mapping;
-
   useEffect(() => {
-    return store.watch(mapping, ({ data }) => setState(data));
-  }, [ref.current]);
-
-  return isDirty ? store.project(mapping) : state;
+    return store.watch(mapping, () => setState(ref.current++));
+  }, mapping);
+    
+  return store.project(mapping);
 };
