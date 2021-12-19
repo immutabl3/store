@@ -50,6 +50,9 @@
   },
   "devDependencies": {
     "@fabiospampinato/store": "^1.1.1",
+    "@jest/globals": "^27.4.4",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^13.0.0-alpha.5",
     "babel-eslint": "^10.0.3",
     "baobab": "^2.6.0",
     "benchmark": "^2.1.4",
