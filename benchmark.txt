@@ -1,0 +1,56 @@
+creation x 2,619,973 ops/sec ±0.51% (89 runs sampled)
+gets: direct access x 442,766 ops/sec ±0.08% (99 runs sampled)
+gets: path x 3,164,091 ops/sec ±0.11% (101 runs sampled)
+sets: direct access x 414,841 ops/sec ±0.26% (99 runs sampled)
+sets: path x 215,801 ops/sec ±0.20% (103 runs sampled)
+change x 380,044 ops/sec ±0.70% (100 runs sampled)
+watch x 370,672 ops/sec ±0.57% (101 runs sampled)
+project x 2,193,638 ops/sec ±0.17% (98 runs sampled)
+select x 40,335,403 ops/sec ±0.37% (96 runs sampled)
+
+get: access
+store x 442,319 ops/sec ±0.23% (98 runs sampled)
+fabio x 2,119,039 ops/sec ±0.27% (97 runs sampled)
+fastest: fabio
+
+get: path
+store x 3,286,264 ops/sec ±0.14% (95 runs sampled)
+baobab x 2,874,703 ops/sec ±0.24% (93 runs sampled)
+fastest: store
+
+set: access
+store x 436,276 ops/sec ±0.13% (96 runs sampled)
+fabio x 1,898,482 ops/sec ±0.13% (90 runs sampled)
+fastest: fabio
+
+set: path
+store x 221,873 ops/sec ±0.14% (99 runs sampled)
+baobab x 771,889 ops/sec ±0.29% (94 runs sampled)
+fastest: baobab
+
+change
+store x 905,827 ops/sec ±10.45% (22 runs sampled)
+baobab x 777 ops/sec ±1.61% (81 runs sampled)
+fabio x 613 ops/sec ±7.08% (59 runs sampled)
+fastest: store
+
+watch
+store x 386,069 ops/sec ±0.17% (94 runs sampled)
+baobab x 325,052 ops/sec ±22.42% (79 runs sampled)
+fabio x 198,745 ops/sec ±0.54% (74 runs sampled)
+fastest: store
+
+project
+store x 1,915,866 ops/sec ±12.75% (85 runs sampled)
+baobab x 1,019,193 ops/sec ±91.60% (80 runs sampled)
+fastest: store
+
+select
+store x 31,085,040 ops/sec ±1.04% (95 runs sampled)
+baobab x 2,333,347 ops/sec ±0.15% (97 runs sampled)
+fastest: store
+
+complex selectors
+store x 2,157,614 ops/sec ±5.99% (89 runs sampled)
+baobab x 1,723,753 ops/sec ±0.19% (95 runs sampled)
+fastest: store
