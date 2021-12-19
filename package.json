@@ -1,7 +1,7 @@
 {
   "name": "@immutabl3/store",
   "description": "a simple, modern state management library",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "type": "module",
   "sideEffects": false,
   "main": "src/index.js",
