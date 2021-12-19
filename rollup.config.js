@@ -4,29 +4,19 @@ import { terser } from 'rollup-plugin-terser';
 import gzipPlugin from 'rollup-plugin-gzip';
 
 export default {
-  input: {
-    store: './src/index.js',
-    debug: 'src/debug/index.js',
-    react: 'src/react/index.js',
-    StoreError: './src/StoreError.js',
-    consts: './src/consts.js',
-    types: './src/types.js',
-    utils: './src/utils/index.js',
-  },
+  input: './src/index.js',
   output: {
-    chunkFileNames: '[name].js',
-    entryFileNames: '[name].js',
-    dir: 'dist',
+    file: 'dist/bundle.min.cjs',
     format: 'cjs',
-    sourcemap: true,
   },
-  external: [
-    'react',
-  ],
   plugins: [
     resolve(),
     commonjs(),
-    terser(),
+    terser({
+      toplevel: true,
+      module: true,
+      nameCache: {},
+    }),
     gzipPlugin(),
   ],
 };
