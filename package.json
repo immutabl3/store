@@ -28,10 +28,9 @@
     "url": "https://github.com/immutabl3/store.git"
   },
   "files": [
-    "store.js",
     "react.js",
+    "debug.js",
     "src",
-    "debug",
     "dist"
   ],
   "keywords": [
