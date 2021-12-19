@@ -1,9 +1,11 @@
 import StoreError from '../StoreError.js';
 import Context from './context.js';
+import deepEqual from './fast-deep-equal.js';
 import React, {
   useContext as useReactContext,
   useState,
   useEffect,
+  useRef,
 } from 'react';
 import {
   isStore,
@@ -29,19 +31,24 @@ export const useContext = function(store, ctx = Context) {
 };
 
 export const useStore = function(cursor, ctx = Context) {
-  if (!isObjectLike(cursor) && !isFunction(cursor)) throw new StoreError(`invalid mapping`, { mapping: cursor });
-
+  const ref = useRef();
   const context = useReactContext(ctx);
+
+  if (!isObjectLike(cursor) && !isFunction(cursor)) throw new StoreError(`invalid mapping`, { mapping: cursor });
+  
   if (!context || !isStore(context.store)) throw new StoreError(`unable to locate store`, { context });
 
   const { store } = context;
   const mapping = isFunction(cursor) ? cursor(store.data) : cursor;
 
+  const isDirty = !deepEqual(mapping, ref.current);
+  if (isDirty) ref.current = mapping;
+
   const [, setState] = useState(() => store.project(mapping));
 
   useEffect(() => {
     return store.watch(mapping, ({ data }) => setState(data));
-  }, mapping);
+  }, [ref.current]);
 
   return store.project(mapping);
 };
