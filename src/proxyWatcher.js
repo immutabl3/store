@@ -18,6 +18,7 @@ import {
   $RESUME,
   $MAPMUTATE,
   $MAPDELETE,
+  OBJECT_STUB,
 } from './consts.js';
 
 const makeTraps = function(onChange, cache) {  
@@ -28,10 +29,8 @@ const makeTraps = function(onChange, cache) {
   // single application of values
   let locked = false;
 
-  const paths = new WeakMap();
+  const paths = new Map();
   
-  const getParentPath = parent => paths.get(parent);
-
   // arrays can have numeric (index) accessors
   const fragmentToPath = (parent, path) => {
     if (!isArray(parent)) return path;
@@ -42,10 +41,12 @@ const makeTraps = function(onChange, cache) {
 
   const getChildPath = function(parent, fragment) {
     const path = fragmentToPath(parent, fragment);
-    const childPath = paths.has(parent) ? 
-      [...paths.get(parent), path] : 
-      [path];
-    return childPath;
+    if (paths.has(parent)) {
+      const childPath = paths.get(parent).slice();
+      childPath.push(path);
+      return childPath;
+    }
+    return [path];
   };
 
   const setChildPath = function(parent, child, fragment) {
@@ -54,7 +55,7 @@ const makeTraps = function(onChange, cache) {
   };
 
   const traps = {
-    get(target, property, rec) {
+    get(target, property, receiver) {
       // target access
       if (property === $TARGET) return target;
 
@@ -69,7 +70,7 @@ const makeTraps = function(onChange, cache) {
       if (property === $PAUSE) return (paused = true);
       if (property === $RESUME) return (paused = false);
 
-      let receiver = rec;
+      // eslint-disable-next-line no-param-reassign
       if (hasMutableMethods(receiver)) receiver = receiver[$TARGET];
       const value = Reflect.get(target, property, receiver);
       if (isWithoutMutableMethods(value) || property === 'constructor') return value;
@@ -85,26 +86,24 @@ const makeTraps = function(onChange, cache) {
       // eslint-disable-next-line no-use-before-define
       return makeProxy(value, cache, traps);
     },
-    set(target, property, val, rec) {
+    set(target, property, value, receiver) {
       // occurs when we dynamically access objects
       // inside Maps/Sets - need to be able to track
       // the access. this means we're not actually
       // doing anything in this operation besides
       // caching a child path
       if (property === $MAPMUTATE) {
-        const [key, value] = val;
-        !locked && onChange(getChildPath(target, key), 'set', value);
-        return {};
+        !locked && onChange(getChildPath(target, value[0]), 'set', value[1]);
+        return OBJECT_STUB;
       }
       if (property === $MAPDELETE) {
-        const [key] = val;
-        !locked && onChange(getChildPath(target, key), 'delete');
-        return {};
+        !locked && onChange(getChildPath(target, value[0]), 'delete');
+        return OBJECT_STUB;
       }
 
-      let value = val;
-      let receiver = rec;
+      // eslint-disable-next-line no-param-reassign
       if (value && value[$TARGET]) value = value[$TARGET];
+      // eslint-disable-next-line no-param-reassign
       if (hasMutableMethods(receiver)) receiver = receiver[$TARGET];
       if (isSymbol(property)) return Reflect.set(target, property, value);
       const isValueUndefined = value === undefined;
@@ -159,17 +158,15 @@ const makeTraps = function(onChange, cache) {
       let result;
       try {
         result = Reflect.apply(target, arg, args);
-      } catch (err) {
+      } finally {
         locked = false;
-        throw err;
       }
-      locked = false;
 
       const changed = !isEqual(clonedArg, arg);
       if (!changed) return result;
 
-      const val = arg[$TARGET] || arg;
-      const path = getParentPath(val);
+      const val = arg[$TARGET] ?? arg;
+      const path = paths.get(val); // getParentPath
       onChange(
         path,
         target.name,

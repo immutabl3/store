@@ -93,20 +93,21 @@ const operations = {
 };
 
 export default function update(data, path, type, value) {
-  // dummy root, so we can shift and alter the root
-  const dummy = { root: data };
-  const dummyPath = ['root', ...path];
+  const length = path.length;
+
+  // altering the root
+  if (!length) {
+    return operations[type]({ root: data }, 'root', value, ['root']);
+  }
 
   // walking the path
-  let current = dummy;
-  let key;
+  let current = data;
 
-  const { length } = dummyPath;
   for (let idx = 0; idx < length; idx++) {
     // Current item's reference is therefore p[s]
     // The reason why we don't create a variable here for convenience
     // is because we actually need to mutate the reference.
-    key = dummyPath[idx];
+    const key = path[idx];
 
     // if we reached the end of the path, we apply the operation
     if (idx === length - 1) {
@@ -115,7 +116,8 @@ export default function update(data, path, type, value) {
     
     // if we reached a leaf, we override by setting an empty object
     if (isPrimitive(current[key])) {
-      current[key] = {};
+      current = current[key] = {};
+      continue;
     }
 
     if (isMapLike(current)) {

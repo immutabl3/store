@@ -9,6 +9,8 @@ export const $MAPDELETE = Symbol('map->delete');
 export const UNORDERED_COMPARE_FLAG = 1;
 export const PARTIAL_COMPARE_FLAG = 2;
 
+export const OBJECT_STUB = {};
+
 // we are assuming the following immutable methods don't get 
 // messed with, and custom methods with the same name that 
 // are mutating are not defined
