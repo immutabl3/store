@@ -1,4 +1,4 @@
-import { defer } from './utils';
+import { defer } from '@immutabl3/utils';
 import Transactions from './Transactions.js';
 
 export default function Schedule(dispatcher, asynchronous, autoCommit) {

@@ -1,7 +1,7 @@
 import test from 'tape';
 import Store from '../src/index.js';
 import debug from '../src/debug/index.js';
-import { delay } from './utils';
+import { wait } from '@immutabl3/utils';
 
 test('debug: logs details', async assert => {
   assert.plan(3);
@@ -28,7 +28,7 @@ test('debug: logs details', async assert => {
 
   store.data.foo = 'baz';
 
-  await delay();
+  await wait();
 
   assert.same(messages, [
     ['updated', { foo: 'baz' }]

@@ -1,15 +1,12 @@
 import Benchmark from 'benchmark';
 import Store from '../store';
 import BaobabTree from 'baobab';
-import { delay as baseDelay } from '../test/utils';
+import { wait, uniqueId } from '@immutabl3/utils';
 import { large as obj } from './fixtures.js';
-import { large as obj } from './fixtures';
 import {
   store as fabio,
   onChange as fabioOnChange,
 } from '@fabiospampinato/store';
-
-const delay = () => baseDelay(0);
 
 const Baobab = obj => new BaobabTree(obj, {
   // compare baobab without immutability e.g. production mode
@@ -103,7 +100,7 @@ const change = () => new Promise((resolve, reject) => {
         deferred.resolve();
       };
       store.watch(callback);
-      await delay();
+      await wait();
       store.data.arr[3].foo = uniqueId();
     }, { defer: true })
     .add('baobab', async deferred => {
@@ -114,7 +111,7 @@ const change = () => new Promise((resolve, reject) => {
         deferred.resolve();
       };
       baobab.on('update', callback);
-      await delay();
+      await wait();
       baobab.set(['arr', 3, 'foo'], uniqueId());
     }, { defer: true })
     .add('fabio', async deferred => {
@@ -125,7 +122,7 @@ const change = () => new Promise((resolve, reject) => {
         deferred.resolve();
       };
       fabioOnChange(fab, callback);
-      await delay();
+      await wait();
       fab.arr[3].foo = uniqueId();
     }, { defer: true })
     .run({ async: true });

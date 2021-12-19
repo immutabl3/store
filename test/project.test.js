@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src/index.js';
-import { delay } from './utils';
+import { wait } from '@immutabl3/utils';
 
 test('project: object selector', async assert => {
   assert.plan(4);
@@ -23,7 +23,7 @@ test('project: object selector', async assert => {
   store.data.foo = 1234;
   store.data.bar.deep[0] = 0;
 
-  await delay();
+  await wait();
 
   const post = store.project({
     hello: 'foo',
@@ -52,7 +52,7 @@ test('project: can project on an array', async assert => {
   store.data.foo = 1234;
   store.data.bar.deep[0] = 0;
 
-  await delay();
+  await wait();
 
   const post = store.project(['bar', 'deep', 0]);
   assert.is(post, store.data.bar.deep[0], `mutated data is retrieved`);

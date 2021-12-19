@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src/index.js';
-import { delay } from './utils';
+import { wait } from '@immutabl3/utils';
 
 const Changes = () => {
   let arr = [];
@@ -69,7 +69,7 @@ test('select: basics', async assert => {
 
   store.data.foo = 1234;
 
-  await delay();
+  await wait();
 
   assert.same(changes.paths, [
     'main'
@@ -77,7 +77,7 @@ test('select: basics', async assert => {
 
   store.data.bar.deep.baz = -1;
 
-  await delay();
+  await wait();
   
   assert.same(changes.paths, [
     'main',
@@ -101,7 +101,7 @@ test('select: basics', async assert => {
 
   store.data.bar.deep.biz.deepest = -1;
 
-  await delay();
+  await wait();
 
   assert.same(changes.paths, [
     'main',

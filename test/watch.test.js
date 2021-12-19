@@ -1,7 +1,6 @@
 import test from 'tape';
-import isFunction from 'lodash/isFunction';
+import { wait, isFunction } from '@immutabl3/utils';
 import Store from '../src/index.js';
-import { delay } from './utils';
 
 export const Data = function(object) {
   let changes = 0;
@@ -80,7 +79,7 @@ test('watch: event data', async assert => {
   store.data.foo = 1234;
   store.data.bar.foo = true;
 
-  await delay();
+  await wait();
 
   assert.end();
 });
@@ -101,7 +100,7 @@ test('watch: selector types', async assert => {
   store.data.foo = 1234;
   store.data.arr[0] = 1;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 3);
   assert.same(fixture.paths, [
@@ -140,7 +139,7 @@ test('watch: static selector', async assert => {
   store.data.foo = 1234;
   store.data.bar.foo = true;
 
-  await delay();
+  await wait();
 
   assert.same(calls, [1, 2]);
 
@@ -157,11 +156,11 @@ test('watch: deep static selector', async assert => {
     .watch(['arr', 3, 'foo'])
     .ready();
 
-  await delay();
+  await wait();
 
   store.data.arr[3].foo = 0;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [
@@ -170,7 +169,7 @@ test('watch: deep static selector', async assert => {
   
   store.data.arr[3].foo = 1;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 2);
   assert.same(fixture.paths, [
@@ -179,7 +178,7 @@ test('watch: deep static selector', async assert => {
 
   store.data.arr[3].foo = 2;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 3);
   assert.same(fixture.paths, [
@@ -205,7 +204,7 @@ test('watch: complex selector', async assert => {
 
   store.data.arr[1].bar = 'baz';
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [
@@ -214,7 +213,7 @@ test('watch: complex selector', async assert => {
 
   store.data.arr[1].foo = 0;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [], `foo: call made, not watching this object`);
@@ -242,14 +241,14 @@ test(`watch: same data assignments don't emit changes`, async assert => {
   store.data.bar = { deep: [1, 2, 3] };
   store.data.bar.deep[0] = 1;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 0);
   assert.same(fixture.paths, []);
 
   store.data.foo = 1234;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [
@@ -258,7 +257,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   store.data.bar.foo = true;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 2);
   assert.same(fixture.paths, [
@@ -267,7 +266,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   store.data.bar.deep.push(4);
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 3);
   assert.same(fixture.paths, [
@@ -276,7 +275,7 @@ test(`watch: same data assignments don't emit changes`, async assert => {
 
   store.data.bar.deep[0] = 2;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 5, `2 watchers counts 2 changes`);
   assert.same(fixture.paths, [
@@ -302,7 +301,7 @@ test('watch: is disposable', async assert => {
 
   store.data.arr[3].foo = 0;
 
-  await delay();
+  await wait();
 
   assert.same(calls, [1], `made a call on data change`);
 
@@ -338,7 +337,7 @@ test('watch: basic project', async assert => {
   store.data.foo = 1234;
   store.data.bar.deep[0] = 0;
 
-  await delay();
+  await wait();
 
   assert.end();
 });
@@ -363,14 +362,14 @@ test(`watch: deep project`, async assert => {
   store.data.bar = { deep: [1, 2, 3] };
   store.data.bar.deep[0] = 1;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 0);
   assert.same(fixture.paths, []);
 
   store.data.foo = 1234;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 1);
   assert.same(fixture.paths, [
@@ -379,7 +378,7 @@ test(`watch: deep project`, async assert => {
 
   store.data.bar.foo = true;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 2);
   assert.same(fixture.paths, [
@@ -388,7 +387,7 @@ test(`watch: deep project`, async assert => {
 
   store.data.bar.deep.push(4);
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 3);
   assert.same(fixture.paths, [
@@ -397,7 +396,7 @@ test(`watch: deep project`, async assert => {
 
   store.data.bar.deep[0] = 2;
 
-  await delay();
+  await wait();
 
   assert.is(fixture.changes, 5);
   assert.same(fixture.paths, [
@@ -419,7 +418,7 @@ test('watch: project on invalid paths', async assert => {
 
   store.data.biz = true;
 
-  await delay();
+  await wait();
 
   assert.pass(`no change event fired`);
 
@@ -437,7 +436,7 @@ test('watch: passive values', async assert => {
 
   store.data.arr.push(2);
 
-  await delay();
+  await wait();
   
   assert.pass(`a passive value does not trigger a change event`);
 

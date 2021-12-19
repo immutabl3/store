@@ -1,7 +1,7 @@
 import test from 'tape';
 import Store from '../src/index.js';
 import debug from '../src/debug/index.js';
-import { delay } from './utils';
+import { wait } from '@immutabl3/utils';
 
 test('store: initialization', async assert => {
   assert.plan(3);
@@ -26,7 +26,7 @@ test('store: initialization', async assert => {
   store.data.bar.push(3);
   store.data.bar[2].qux = 'str';
 
-  await delay();
+  await wait();
 
   assert.same(dataFinal, store.data);
 

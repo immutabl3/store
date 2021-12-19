@@ -1,6 +1,6 @@
 import test from 'tape';
 import Store from '../src/index.js';
-import { delay } from './utils';
+import { wait } from '@immutabl3/utils';
 
 test('events: call order', async assert => {
   assert.plan(1);
@@ -19,7 +19,7 @@ test('events: call order', async assert => {
 
   store.data.arr[0] = 1;
 
-  await delay();
+  await wait();
 
   assert.same(order, [1, 2, 3], `events are called in subscription order`);
 
@@ -40,7 +40,7 @@ test('events: change', async assert => {
 
   store.data.foo = 1;
 
-  await delay();
+  await wait();
 
   assert.end();
 });
@@ -72,7 +72,7 @@ test('events: project', async assert => {
 
   store.data.foo = 1;
 
-  await delay();
+  await wait();
 
   assert.end();
 });
@@ -94,7 +94,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo = 'baz';
-      await delay();
+      await wait();
     },
     async delete() {
       const store = Store({ foo: 'bar' });
@@ -111,7 +111,7 @@ test('events: watch', async assert => {
       });
 
       delete store.data.foo;
-      await delay();
+      await wait();
     },
     async defineNew() {
       const store = Store({});
@@ -171,7 +171,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.pop();
-      await delay();
+      await wait();
     },
     async shift() {
       const store = Store({ foo: [1] });
@@ -187,7 +187,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.shift();
-      await delay();
+      await wait();
     },
     async sort() {
       const store = Store({ foo: [3, 5, 1] });
@@ -203,7 +203,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.sort();
-      await delay();
+      await wait();
     },
     async reverse() {
       const store = Store({ foo: [1, 2, 3] });
@@ -219,7 +219,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.reverse();
-      await delay();
+      await wait();
     },
     async splice() {
       const store = Store({ foo: [1, 2, 3] });
@@ -235,7 +235,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.splice(0, 1, 2);
-      await delay();
+      await wait();
     },
     async unshift() {
       const store = Store({ foo: [1] });
@@ -251,7 +251,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.unshift(5);
-      await delay();
+      await wait();
     },
     async pushSingle() {
       const store = Store({ foo: [1] });
@@ -267,7 +267,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.push(5);
-      await delay();
+      await wait();
     },
     async pushMultiple() {
       const store = Store({ foo: [1] });
@@ -283,7 +283,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.push(-1, -2, -3);
-      await delay();
+      await wait();
     },
     async add() {
       const store = Store({ foo: new Set([1]) });
@@ -299,7 +299,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.add(2);
-      await delay();
+      await wait();
     },
     async clear() {
       const store = Store({ foo: new Map([['1', 1]]) });
@@ -315,7 +315,7 @@ test('events: watch', async assert => {
       });
 
       store.data.foo.clear();
-      await delay();
+      await wait();
     },
   };
 
@@ -393,7 +393,7 @@ test('events: transaction order', async assert => {
   store.data.foo.two = [2];
   store.data.foo.bar.three = [3];
 
-  await delay();
+  await wait();
 
   assert.end();
 });

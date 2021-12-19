@@ -1,6 +1,6 @@
 import Benchmark from 'benchmark';
 import uniqueId from 'lodash/uniqueId';
-import Store from '../store';
+import { uniqueId } from '@immutabl3/utils';
 import { small as obj } from './fixtures.js';
 
 const suite = new Benchmark.Suite()
