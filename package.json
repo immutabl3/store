@@ -10,9 +10,9 @@
     "test:tape": "node test | tap-spec",
     "test:jest": "NODE_OPTIONS=--experimental-vm-modules jest test/react.test.js",
     "debug": "node test",
-    "bench": "node benchmark/benchmark",
-    "bench:compare": "node benchmark/compare",
-    "bench:micro": "node benchmark/micro",
+    "bench": "node benchmark/benchmark.js",
+    "bench:compare": "node benchmark/compare.js",
+    "bench:micro": "node benchmark/micro.js",
     "build": "rollup -c"
   },
   "bugs": {

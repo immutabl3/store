@@ -1,1 +1,1 @@
-export * from './src/react';
+export * from './src/react.js';
