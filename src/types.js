@@ -18,61 +18,61 @@ export const isObjectLike = value => value && typeof value === 'object';
 export const isObject = target => (
   isObjectLike(target) &&
   !isArray(target) &&
-  !(target instanceof Date) &&
-  !(target instanceof RegExp) &&
-  !(target instanceof Map) &&
-  !(target instanceof Set)
+  !(target.constructor === Date) &&
+  !(target.constructor === RegExp) &&
+  !(target.constructor === Map) &&
+  !(target.constructor === Set)
 );
 
 export const isMapLike = target => (
   isObjectLike(target) && (
-    target instanceof Map ||
-    target instanceof Set ||
-    target instanceof WeakMap || 
-    target instanceof WeakSet
+    target.constructor === Map ||
+    target.constructor === Set ||
+    target.constructor === WeakMap || 
+    target.constructor === WeakSet
   )
 );
 
 export const isTypedArray = value => {
   return isObjectLike(value) && 
     (
-      value instanceof Int8Array || 
-      value instanceof Uint8Array || 
-      value instanceof Uint8ClampedArray || 
-      value instanceof Int16Array || 
-      value instanceof Uint16Array || 
-      value instanceof Int32Array || 
-      value instanceof Uint32Array || 
-      value instanceof Float32Array || 
-      value instanceof Float64Array || 
-      value instanceof BigInt64Array ||
-      value instanceof BigUint64Array
+      value.constructor === Int8Array || 
+      value.constructor === Uint8Array || 
+      value.constructor === Uint8ClampedArray || 
+      value.constructor === Int16Array || 
+      value.constructor === Uint16Array || 
+      value.constructor === Int32Array || 
+      value.constructor === Uint32Array || 
+      value.constructor === Float32Array || 
+      value.constructor === Float64Array || 
+      value.constructor === BigInt64Array ||
+      value.constructor === BigUint64Array
     );
 };
 
 export const isUnsupported = x => {
   return x && (
-    x instanceof Promise || 
-    x instanceof WeakMap || 
-    x instanceof WeakSet
+    x.constructor === Promise || 
+    x.constructor === WeakMap || 
+    x.constructor === WeakSet
   );
 };
 
 export const isWithoutMutableMethods = x => {
   return !x ||
     isPrimitive(x) || 
-    x instanceof RegExp || 
-    x instanceof ArrayBuffer || 
-    x instanceof Number || 
-    x instanceof Boolean || 
-    x instanceof String;
+    x.constructor === RegExp || 
+    x.constructor === ArrayBuffer || 
+    x.constructor === Number || 
+    x.constructor === Boolean || 
+    x.constructor === String;
 };
 
 export const hasMutableMethods = x => {
   return x && !isPrimitive(x) && (
-    x instanceof Date || 
-    x instanceof Map || 
-    x instanceof Set || 
+    x.constructor === Date || 
+    x.constructor === Map || 
+    x.constructor === Set || 
     isTypedArray(x)
   );
 };

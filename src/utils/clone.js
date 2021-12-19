@@ -40,8 +40,8 @@ export default function clone(item) {
   if (
     !item ||
     typeof item !== 'object' ||
-    item instanceof Error ||
-    item instanceof ArrayBuffer
+    item.constructor === Error ||
+    item.constructor === ArrayBuffer
   ) {
     return item;
   }
@@ -50,16 +50,16 @@ export default function clone(item) {
   if (isArray(item) || isTypedArray(item)) return item.slice();
 
   // Date
-  if (item instanceof Date) return new Date(item.getTime());
+  if (item.constructor === Date) return new Date(item.getTime());
 
   // RegExp
-  if (item instanceof RegExp) return cloneRegexp(item);
+  if (item.constructor === RegExp) return cloneRegexp(item);
 
   // Set
-  if (item instanceof Set) return cloneSet(item);
+  if (item.constructor === Set) return cloneSet(item);
 
   // Map
-  if (item instanceof Map) return cloneMap(item);
+  if (item.constructor === Map) return cloneMap(item);
 
   // Object
   if (isObject(item)) {
