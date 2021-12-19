@@ -1,5 +1,5 @@
 import Benchmark from 'benchmark';
-import Store from '../store';
+import Store from '../dist/bundle.min.cjs';
 import BaobabTree from 'baobab';
 import { wait, uniqueId } from '@immutabl3/utils';
 import { large as obj } from './fixtures.js';

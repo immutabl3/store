@@ -12,8 +12,8 @@
     "bench:compare": "node -r esm benchmark/compare",
     "bench:micro": "node -r esm benchmark/micro",
     "build": "npm run dist && npm run bundle",
-    "dist": "rollup -c",
-    "bundle": "rollup -c rollup.bundle.js"
+    "bench:micro": "node benchmark/micro",
+    "build": "rollup -c"
   },
   "bugs": {
     "url": "https://github.com/immutabl3/store/issues"

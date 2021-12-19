@@ -1,5 +1,5 @@
 import Benchmark from 'benchmark';
-import uniqueId from 'lodash/uniqueId';
+import Store from '../dist/bundle.min.cjs';
 import { uniqueId } from '@immutabl3/utils';
 import { small as obj } from './fixtures.js';
 
