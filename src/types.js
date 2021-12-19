@@ -13,6 +13,8 @@ import {
 
 export const isArray = value => value && Array.isArray(value);
 
+export const isArrayLike = value => value && value.length >= 0;
+
 export const isObjectLike = value => value && typeof value === 'object';
 
 export const isObject = target => (
@@ -34,7 +36,7 @@ export const isMapLike = target => (
 );
 
 export const isTypedArray = value => {
-  return isObjectLike(value) && 
+  return isArrayLike(value) && 
     (
       value.constructor === Int8Array || 
       value.constructor === Uint8Array || 

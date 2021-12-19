@@ -18,6 +18,8 @@ import {
   $RESUME,
   $MAPMUTATE,
   $MAPDELETE,
+  $LENGTH,
+  $CONSTRUCTOR,
   OBJECT_STUB,
 } from './consts.js';
 
@@ -59,7 +61,8 @@ const makeTraps = function(onChange, cache) {
       // target access
       if (property === $TARGET) return target;
 
-      if (property === 'constructor') return target.constructor;
+      if (property === $LENGTH) return target.length;
+      if (property === $CONSTRUCTOR) return target.constructor;
       
       // when paused, short circuit the gets - this provides
       // a meaningful speed boost when accessing data e.g.
@@ -73,7 +76,7 @@ const makeTraps = function(onChange, cache) {
       // eslint-disable-next-line no-param-reassign
       if (hasMutableMethods(receiver)) receiver = receiver[$TARGET];
       const value = Reflect.get(target, property, receiver);
-      if (isWithoutMutableMethods(value) || property === 'constructor') return value;
+      if (isWithoutMutableMethods(value) || property === $CONSTRUCTOR) return value;
       const descriptor = Reflect.getOwnPropertyDescriptor(target, property);
       // preserving invariants
       if (descriptor && !descriptor.configurable && !descriptor.writable) return value;

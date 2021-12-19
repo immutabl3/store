@@ -4,6 +4,8 @@ export const $PAUSE = Symbol('pause');
 export const $RESUME = Symbol('resume');
 export const $MAPMUTATE = Symbol('map->mutate');
 export const $MAPDELETE = Symbol('map->delete');
+export const $LENGTH = 'length';
+export const $CONSTRUCTOR = 'constructor';
 
 // used to compose bitmasks for comparisons
 export const UNORDERED_COMPARE_FLAG = 1;
