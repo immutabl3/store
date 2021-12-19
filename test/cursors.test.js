@@ -80,9 +80,9 @@ test('cursors: setters', assert => {
     replacement: { hello: 'world' },
   });
 
-  store.set(['list', { id: 10 }, 'one', 'two'], 'monde');
+  store.set(['list', { id: 10 }, 'one', 'two', 'three'], 'monde');
   assert.deepLooseEqual(
-    store.data.list[0].one.two,
+    store.data.list[0].one.two.three,
     'monde',
     `should be able to set`
   );
