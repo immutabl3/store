@@ -45,7 +45,6 @@
     "clean",
     "proxy"
   ],
-  "dependencies": {},
   "peerDependencies": {
     "react": ">=16.13.0"
   },
