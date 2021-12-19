@@ -63,7 +63,7 @@
     "jest": "^27.4.5",
     "lodash": "^4.17.21",
     "lodash.clonedeepwith": "^4.5.0",
-    "microtime": "^3.0.0",
+    "react": "^18.0.0-rc.0",
     "react": "^16.13.0",
     "rollup": "^2.61.1",
     "rollup-plugin-babel-minify": "^10.0.0",
