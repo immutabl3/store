@@ -1,16 +1,16 @@
 import Benchmark from 'benchmark';
-import baseClone from './perf/clone';
-import baseIsEqual from './perf/isEqual';
-import baseCloneMap from './perf/cloneMap';
-import baseCloneSet from './perf/cloneSet';
+import baseClone from './perf/clone.js';
+import baseIsEqual from './perf/isEqual.js';
+import baseCloneMap from './perf/cloneMap.js';
+import baseCloneSet from './perf/cloneSet.js';
 import {
   isEqual as storeIsEqual,
   clone as storeClone ,
-} from '../src/utils';
+} from '../src/utils.js';
 import {
   small as obj,
   large as OBJ,
-} from './fixtures';
+} from './fixtures.js';
 
 const suite = (name, resolve, reject) => {
   return new Benchmark.Suite()

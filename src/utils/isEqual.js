@@ -20,11 +20,11 @@ import {
   isArray,
   isTypedArray,
   isPrimitive,
-} from '../types';
+} from '../types.js';
 import {
   UNORDERED_COMPARE_FLAG,
   PARTIAL_COMPARE_FLAG,
-} from '../consts';
+} from '../consts.js';
 
 // `Object#toString` result references
 const argsTag = '[object Arguments]';

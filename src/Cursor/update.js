@@ -1,19 +1,19 @@
-import StoreError from '../StoreError';
+import StoreError from '../StoreError.js';
 import {
   dynamicGet,
   clone,
   mergeDeep,
-} from '../utils';
+} from '../utils/index.js';
 import {
   isArray,
   isObject,
   isPrimitive,
   isMapLike,
-} from '../types';
+} from '../types.js';
 import {
   $MAPMUTATE,
   $MAPDELETE,
-} from '../consts';
+} from '../consts.js';
 
 const operations = {
   set(target, key, value) {

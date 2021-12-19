@@ -1,6 +1,6 @@
 import {
   isArray,
-} from '../types';
+} from '../types.js';
 
 export default function partialCompare(arr1, arr2, arr3) {
   const isArrayValue = isArray(arr3);

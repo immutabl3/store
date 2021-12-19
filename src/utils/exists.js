@@ -1,9 +1,9 @@
 import {
   isArray,
   isMapLike,
-} from '../types';
-import indexOf from './indexOf';
-import indexOfCompare from './indexOfCompare';
+} from '../types.js';
+import indexOf from './indexOf.js';
+import indexOfCompare from './indexOfCompare.js';
 
 export default function exists(object, path) {
   let current = object;

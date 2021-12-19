@@ -1,7 +1,7 @@
 import {
   clone,
   isEqual,
-} from './utils';
+} from './utils/index.js';
 import {
   isArray,
   isSymbol,
@@ -11,14 +11,14 @@ import {
   isUnsupported,
   isStrictlyImmutableMethod,
   hasMutableMethods,
-} from './types';
+} from './types.js';
 import {
   $TARGET,
   $PAUSE,
   $RESUME,
   $MAPMUTATE,
   $MAPDELETE,
-} from './consts';
+} from './consts.js';
 
 const makeTraps = function(onChange, cache) {  
   // paused comed from the outside to optimize gets

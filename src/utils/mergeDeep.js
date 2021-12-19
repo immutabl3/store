@@ -1,4 +1,4 @@
-import { isObject } from '../types';
+import { isObject } from '../types.js';
 
 export default function mergeDeep(obj, target) {
   for (const key in target) {

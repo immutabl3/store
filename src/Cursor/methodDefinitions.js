@@ -3,7 +3,7 @@ import {
   isFunction,
   isNumber,
   isObject,
-} from '../types';
+} from '../types.js';
 
 const valid = () => true;
 

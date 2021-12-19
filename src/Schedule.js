@@ -1,5 +1,5 @@
 import { defer } from './utils';
-import Transactions from './Transactions';
+import Transactions from './Transactions.js';
 
 export default function Schedule(dispatcher, asynchronous, autoCommit) {
   let debug;

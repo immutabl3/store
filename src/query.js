@@ -1,17 +1,17 @@
-import StoreError from './StoreError';
+import StoreError from './StoreError.js';
 import {
   get as baseGet,
   dynamicGet,
   indexOf,
   indexOfCompare,
-} from './utils';
+} from './utils/index.js';
 import {
   isArray,
   isString,
   isNumber,
   isFunction,
   isObject,
-} from './types';
+} from './types.js';
 
 export const coerce = value => {
   if (isArray(value)) return value;

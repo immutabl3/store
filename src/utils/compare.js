@@ -1,7 +1,7 @@
 import {
   isArray,
   isObject,
-} from '../types';
+} from '../types.js';
 
 export default function compare(object, description) {
   // If we reached here via a recursive call, object may be undefined because

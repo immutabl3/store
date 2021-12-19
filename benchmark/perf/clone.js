@@ -1,11 +1,11 @@
 import {
   isPrimitive,
   isTypedArray,
-} from '../../src/types';
-import cloneWith from 'lodash/cloneWith';
+} from '../../src/types.js';
+import cloneWith from 'lodash/cloneWith.js';
 import {
   $TARGET,
-} from '../../src/consts';
+} from '../../src/consts.js';
 
 export default function clone(obj) {
   return cloneWith(obj, value => {

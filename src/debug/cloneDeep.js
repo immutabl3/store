@@ -2,10 +2,10 @@ import cloneDeepWith from 'lodash.clonedeepwith';
 import {
   isPrimitive,
   isTypedArray,
-} from '../types';
+} from '../types.js';
 import {
   $TARGET,
-} from '../consts';
+} from '../consts.js';
 
 export default function(obj) {
   return cloneDeepWith(obj, value => {

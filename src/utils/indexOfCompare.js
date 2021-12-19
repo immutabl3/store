@@ -1,4 +1,4 @@
-import compare from './compare';
+import compare from './compare.js';
 
 export default (arr, item) => {
   let idx = 0;

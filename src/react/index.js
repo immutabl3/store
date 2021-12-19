@@ -1,11 +1,11 @@
 import {
   useContext,
   useStore,
-} from './hooks';
+} from './hooks.js';
 import {
   root,
   branch,
-} from './hoc';
+} from './hoc.js';
 
 export {
   useContext,

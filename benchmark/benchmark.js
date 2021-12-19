@@ -1,7 +1,7 @@
 import Benchmark from 'benchmark';
 import uniqueId from 'lodash/uniqueId';
 import Store from '../store';
-import { small as obj } from './fixtures';
+import { small as obj } from './fixtures.js';
 
 const suite = new Benchmark.Suite()
   .on('cycle', e => console.log(`${e.target}`))

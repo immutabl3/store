@@ -1,6 +1,6 @@
 import test from 'tape';
-import Store from '../src';
-import debug from '../src/debug';
+import Store from '../src/index.js';
+import debug from '../src/debug/index.js';
 import { delay } from './utils';
 
 test('debug: logs details', async assert => {

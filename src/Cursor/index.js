@@ -1,20 +1,20 @@
-import StoreError from '../StoreError';
-import makeMethod from './makeMethod';
-import methodDefinitions from './methodDefinitions';
+import StoreError from '../StoreError.js';
+import makeMethod from './makeMethod.js';
+import methodDefinitions from './methodDefinitions.js';
 import {
   get,
   coerce,
-} from '../query';
+} from '../query.js';
 import {
   exists,
   clone,
-} from '../utils';
+} from '../utils/index.js';
 import {
   isArray,
   isFunction,
   isObjectLike,
   isProjection,
-} from '../types';
+} from '../types.js';
 
 const expandProjection = (projection, basePath) => {
   const target = Object.create(null);

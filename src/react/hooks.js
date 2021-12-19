@@ -1,5 +1,5 @@
-import StoreError from '../StoreError';
-import Context from './context';
+import StoreError from '../StoreError.js';
+import Context from './context.js';
 import deepEqual from './fast-deep-equal';
 import React, {
   useContext as useReactContext,
@@ -11,7 +11,7 @@ import {
   isStore,
   isObjectLike,
   isFunction,
-} from '../types';
+} from '../types.js';
 
 export const useContext = function(store, ctx = Context) {
   if (!isStore(store)) throw new StoreError(`given object is not a store`, { store });

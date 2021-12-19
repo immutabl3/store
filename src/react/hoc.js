@@ -1,14 +1,14 @@
 import React from 'react';
-import StoreError from '../StoreError';
+import StoreError from '../StoreError.js';
 import {
   isStore,
   isFunction,
   isObjectLike,
-} from '../types';
+} from '../types.js';
 import {
   useContext,
   useStore,
-} from './hooks';
+} from './hooks.js';
 
 const displayName = Component => {
   return Component.name || Component.displayName || 'Component';

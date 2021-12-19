@@ -2,7 +2,7 @@ import {
   isArray,
   isObject,
   isTypedArray,
-} from '../types';
+} from '../types.js';
 
 const cloneRegexp = re => {
   const pattern = re.source;

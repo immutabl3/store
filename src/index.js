@@ -1,9 +1,9 @@
-import proxyWatcher from './proxyWatcher';
-import Schedule from './Schedule';
-import Dispatcher from './Dispatcher';
-import locker from './locker';
-import Cursor from './Cursor';
-import Emitter from './Emitter';
+import proxyWatcher from './proxyWatcher.js';
+import Schedule from './Schedule.js';
+import Dispatcher from './Dispatcher.js';
+import locker from './locker.js';
+import Cursor from './Cursor/index.js';
+import Emitter from './Emitter.js';
 
 export default function Store(obj, {
   // should the transactions be handled asynchronously?

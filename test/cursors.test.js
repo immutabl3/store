@@ -1,5 +1,5 @@
 import test from 'tape';
-import Store from '../src';
+import Store from '../src/index.js';
 
 // NOTE: the store itself is a cursor instance
 

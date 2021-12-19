@@ -1,5 +1,5 @@
 import test from 'tape';
-import Store from '../src';
+import Store from '../src/index.js';
 import { delay } from './utils';
 
 test('change: fires a change event when a mutation is made', async assert => {

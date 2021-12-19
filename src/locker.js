@@ -1,7 +1,7 @@
 import {
   $PAUSE,
   $RESUME,
-} from './consts';
+} from './consts.js';
 
 export default function locker(proxy) {
   let locks = 0;

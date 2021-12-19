@@ -1,6 +1,6 @@
 import test from 'tape';
 import isFunction from 'lodash/isFunction';
-import Store from '../src';
+import Store from '../src/index.js';
 import { delay } from './utils';
 
 export const Data = function(object) {

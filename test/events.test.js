@@ -1,5 +1,5 @@
 import test from 'tape';
-import Store from '../src';
+import Store from '../src/index.js';
 import { delay } from './utils';
 
 test('events: call order', async assert => {

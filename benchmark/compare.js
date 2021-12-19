@@ -2,7 +2,7 @@ import Benchmark from 'benchmark';
 import Store from '../store';
 import BaobabTree from 'baobab';
 import { delay as baseDelay } from '../test/utils';
-import uniqueId from 'lodash/uniqueId';
+import { large as obj } from './fixtures.js';
 import { large as obj } from './fixtures';
 import {
   store as fabio,

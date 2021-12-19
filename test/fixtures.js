@@ -1,5 +1,5 @@
 import React from 'react';
-import { JSDOM } from 'jsdom';
+import Store from '../src/index.js';
 import once from 'lodash/once';
 import { configure } from 'enzyme';
 import ReactAdapter from 'enzyme-adapter-react-16';

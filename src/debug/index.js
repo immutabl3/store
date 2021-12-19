@@ -1,5 +1,5 @@
-import cloneDeep from './cloneDeep';
-import isEmpty from './isEmpty';
+import cloneDeep from './cloneDeep.js';
+import isEmpty from './isEmpty.js';
 import * as deepObjectDiff from 'deep-object-diff';
 
 const { detailedDiff } = deepObjectDiff;

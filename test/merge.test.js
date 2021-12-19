@@ -1,5 +1,5 @@
 import test from 'tape';
-import Store from '../src';
+import Store from '../src/index.js';
 
 test('merge: array-edge-case', async assert => {
   assert.plan(2);

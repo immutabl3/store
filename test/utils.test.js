@@ -1,5 +1,5 @@
 import test from 'tape';
-import partialCompare from '../src/utils/partialCompare';
+import partialCompare from '../src/utils/partialCompare.js';
 
 test('partialCompare', assert => {
   assert.plan(6);

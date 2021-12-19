@@ -1,4 +1,4 @@
-import { isMapLike } from '../types';
+import { isMapLike } from '../types.js';
 
 export default function get(object, path) {
   let current = object;

@@ -1,9 +1,9 @@
-import StoreError from '../StoreError';
-import update from './update';
+import StoreError from '../StoreError.js';
+import update from './update.js';
 import {
   coerce,
   solve,
-} from '../query';
+} from '../query.js';
 
 const resolvePathAndValue = function(arity) {
   return function(first, second) {

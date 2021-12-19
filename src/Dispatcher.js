@@ -1,10 +1,10 @@
-import event, { clearEvent } from './event';
+import event, { clearEvent } from './event.js';
 import { 
   get,
   clone,
   partialCompare,
-} from './utils';
-import { solve } from './query';
+} from './utils/index.js';
+import { solve } from './query.js';
 
 const cloner = data => {
   if (data === null || data === undefined) return data;
