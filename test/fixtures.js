@@ -33,9 +33,9 @@ export const Component = ({
 }) => {
   return (
     React.createElement('div', null,
-      React.createElement('div', { id: 'value', }, value),
-      React.createElement('div', { id: 'increment', onClick: onIncrement }, 'Increment'),
-      React.createElement('div', { id: 'decrement', onClick: onDecrement }, 'Decrement')
+      React.createElement('div', { 'aria-label': 'value', }, value),
+      React.createElement('div', { 'aria-label': 'increment', onClick: onIncrement }, 'Increment'),
+      React.createElement('div', { 'aria-label': 'decrement', onClick: onDecrement }, 'Decrement')
     )
   );
 };
