@@ -1,11 +1,11 @@
 import React from 'react';
 import Store from '../src/index.js';
-import Store from '../src';
 
 export const API = () => {
   const store = Store({
     value: 0,
     arr: ['foo', 'bar', 'baz'],
+    obj: {},
   });
   const obj = {
     store,
@@ -24,7 +24,6 @@ export const API = () => {
   };
   return obj;
 };
-
 
 export const Component = ({
   value,
