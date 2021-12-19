@@ -6,12 +6,12 @@
   "sideEffects": false,
   "main": "src/index.js",
   "scripts": {
-    "test": "node -r esm test | tap-spec",
-    "debug": "node -r esm test",
-    "bench:mark": "node -r esm benchmark/benchmark",
-    "bench:compare": "node -r esm benchmark/compare",
-    "bench:micro": "node -r esm benchmark/micro",
-    "build": "npm run dist && npm run bundle",
+    "test": "npm run test:tape && npm run test:jest",
+    "test:tape": "node test | tap-spec",
+    "test:jest": "NODE_OPTIONS=--experimental-vm-modules jest test/react.test.js",
+    "debug": "node test",
+    "bench": "node benchmark/benchmark",
+    "bench:compare": "node benchmark/compare",
     "bench:micro": "node benchmark/micro",
     "build": "rollup -c"
   },
