@@ -2,8 +2,9 @@
   "name": "@immutabl3/store",
   "description": "a simple, modern state management library",
   "version": "1.1.1",
-  "main": "store.js",
-  "module": "src/",
+  "type": "module",
+  "sideEffects": false,
+  "main": "src/index.js",
   "scripts": {
     "test": "node -r esm test | tap-spec",
     "debug": "node -r esm test",
