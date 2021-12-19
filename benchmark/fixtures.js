@@ -1,5 +1,8 @@
 // https://jsonplaceholder.typicode.com/todos
-import todos from './jsonplaceholder.json';
+import fs from 'fs';
+import path from 'path';
+
+const todos = JSON.parse(fs.readFileSync(path.resolve(process.cwd(), './benchmark/jsonplaceholder.json')).toString());
 
 const todoString = JSON.stringify(todos);
 
