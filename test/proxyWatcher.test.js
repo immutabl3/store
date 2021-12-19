@@ -1,4 +1,3 @@
-import merge from 'lodash/merge';
 import test from 'tape';
 import merge from 'lodash/merge.js';
 import watch from '../src/proxyWatcher.js';
