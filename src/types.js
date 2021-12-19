@@ -2,7 +2,6 @@ import {
   isNumber,
   isString,
   isFunction,
-  isPrimitive,
   isSymbol,
 } from '@immutabl3/utils';
 
@@ -10,6 +9,16 @@ import {
   STRICTLY_IMMUTABLE_METHODS,
   LOOSELY_IMMUTABLE_ARRAY_METHODS,
 } from './consts.js';
+
+// https://github.com/jonschlinkert/is-primitive
+export const isPrimitive = function(val) {
+  if (val === undefined) return true;
+  
+  const type = typeof val;
+  if (type === 'object') return val === null;
+  
+  return type !== 'function';
+};
 
 export const isArray = value => value && Array.isArray(value);
 
@@ -105,7 +114,6 @@ export const isProjection = value => {
 
 export {
   isSymbol,
-  isPrimitive,
   isFunction,
   isString,
   isNumber,
