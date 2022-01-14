@@ -1,7 +1,9 @@
-import { defer } from '@immutabl3/utils';
+import { defer as timeoutDefer } from '@immutabl3/utils';
 import Transactions from './Transactions.js';
 
-export default function Schedule(dispatcher, asynchronous, autoCommit) {
+const defer = globalThis.setImmediate ?? timeoutDefer;
+
+export default function Schedule(dispatcher, asynchronous, autoCommit, fast) {
   let debug;
   let processing;
   
@@ -16,13 +18,19 @@ export default function Schedule(dispatcher, asynchronous, autoCommit) {
     processing = false;
     debug && debug();
   };
+  
+  const asyncProcess = async function(fn) {
+    fn();
+  };
+
+  const dispatchProcess = fast ? asyncProcess : defer;
 
   const commit = () => {
     if (asynchronous && processing) return;
     
     if (asynchronous) {
       processing = true;
-      return defer(process);
+      return dispatchProcess(process);
     }
 
     process();

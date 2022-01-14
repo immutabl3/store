@@ -10,12 +10,14 @@ export default function Store(obj, {
   asynchronous = true,
   // should the store handle its transactions on its own?
   autoCommit = true,
+  // should the autoCommit emit quickly or slowly?
+  fast = false,
   // if the debugger is passed, we'll initialize it
   debug,
 } = {}) {
   const emitter = Emitter();
   const dispatcher = Dispatcher(obj, emitter);
-  const schedule = Schedule(dispatcher, asynchronous, autoCommit);
+  const schedule = Schedule(dispatcher, asynchronous, autoCommit, fast);
   // creates a proxy and fires every time the proxy changes
   // with the changed paths
   const proxy = proxyWatcher(obj, schedule.add);
