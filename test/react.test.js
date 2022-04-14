@@ -4,8 +4,10 @@ import '@testing-library/jest-dom';
 import React from 'react';
 import { wait } from '@immutabl3/utils';
 import { API, Component } from './fixtures.js';
+import { observe } from '../src/index.js';
 import { root, branch } from '../src/react/hoc.js';
 import { useContext, useStore } from '../src/react/hooks.js';
+import observer from '../src/react/observer.js';
 import { render, fireEvent, screen, waitFor } from '@testing-library/react';
 import { describe, expect, test } from '@jest/globals';
 
@@ -363,4 +365,66 @@ test('branch: dynamic', async function() {
 
   expect(api.store.data.value).toBe(2);
   expect(api.renders).toBe(4);
+});
+
+test('observable', async function() {
+  let renders = 0;
+  
+  class Ticker {
+    constructor() {
+      this.value = 0;
+      this.arr = ['foo', 'bar', 'baz'];
+      this.obj = {};
+    }
+    increment() {
+      this.value++;
+    }
+    decrement() {
+      this.value--;
+    }
+    onIncrement() {}
+    onDecrement() {}
+  }
+
+  const ticker = observe(new Ticker());
+  
+  const TickerView = observer(({ ticker }) => {
+    renders++;
+    return React.createElement(Component, {
+      value: ticker.arr[ticker.value],
+      onIncrement: ticker.onIncrement,
+      onDecrement: ticker.onDecrement,
+    });
+  });
+
+  render(
+    React.createElement(TickerView, { ticker }, null)
+  );
+
+  await waitFor(() => expect(getValue()).toHaveTextContent('foo'));
+
+  expect(ticker.value).toBe(0);
+  expect(renders).toBe(1);
+
+  ticker.increment();
+  ticker.increment();
+
+  await waitFor(() => expect(getValue()).toHaveTextContent('baz'));
+
+  expect(ticker.value).toBe(2);
+  expect(renders).toBe(2);
+
+  ticker.decrement();
+
+  await waitFor(() => expect(getValue()).toHaveTextContent('bar'));
+
+  expect(ticker.value).toBe(1);
+  expect(renders).toBe(3);
+
+  ticker.value = 2;
+
+  await waitFor(() => expect(getValue()).toHaveTextContent('baz'));
+
+  expect(ticker.value).toBe(2);
+  expect(renders).toBe(4);
 });

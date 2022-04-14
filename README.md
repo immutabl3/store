@@ -889,6 +889,34 @@ export default branch(props => {
 }, List);
 ```
 
+#### MobX style observers
+
+Store supports [MobX](https://mobx.js.org/react-integration.html) style observers with both classes and pojos with support for deeply nested values
+
+```jsx
+class Ticker {
+  constructor() {
+    this.value = 0;
+
+    setInterval(() => {
+      this.next();
+    }, 1000);
+  }
+  next() {
+    this.value++;
+  }
+}
+
+const ticker = observe(new Ticker());
+
+const TickerView = observer(({ ticker }) => {
+  <span>Value: { ticker.value }</span>
+});
+
+const root = ReactDOM.createRoot(document.body);
+root.render(<TickerView ticker={ ticker } />);
+```
+
 ## Features
 
 - **Simple**: there's barely anything to learn and no boilerplate code required. Thanks to the usage of [`Proxys`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy) you just have to wrap your state with [`store`](#instantiation), mutate it and retrieve values from it just like if it was a regular object, and listen to changes via [`watch`](#watch) 
@@ -917,6 +945,10 @@ Functional gets and sets are provided for easy and consistent access to the data
 
 No reason. Pick whatever library suites your tastes. We try to keep store as [fast](#benchmarks) and [battle-tested](#tests) as possible.
 
+**MobX style observables**
+
+Stay object oriented by wrapping objects with `observable` [MobX-style](https://mobx.js.org/react-integration.html) before adding to the store to get change events from your pojos and classes.
+
 **Why not using Store?**
 
 If you're targeting older browsers, if Proxy isn't available or you don't want to polyfill your environment.
@@ -927,8 +959,8 @@ If you're targeting older browsers, if Proxy isn't available or you don't want t
 
 There are two scenarios that store cannot currently handle:
 
-- Circular References: the objects references mutate, however, the watchers may not fire and transactions will likely have incorrect pathing. If you know a way of solving this issue, please send a pull request!
-- Array Length: watching an array's length won't trigger updates when the array changes. This may be fixed in a future version
+- Circular References: the objects' references mutate, however, the watchers may not fire and transactions will likely have incorrect pathing. If you know a way of solving this issue, please send a pull request!
+- Array Length: watching an array's length won't trigger updates when the array changes. Instead, watch the array directly. This may be fixed in a future version
 
 
 

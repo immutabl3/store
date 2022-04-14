@@ -3,9 +3,11 @@ import {
   isString,
   isFunction,
   isSymbol,
+  isDate,
 } from '@immutabl3/utils';
 
 import {
+  $PROXY,
   STRICTLY_IMMUTABLE_METHODS,
   LOOSELY_IMMUTABLE_ARRAY_METHODS,
 } from './consts.js';
@@ -107,14 +109,61 @@ export const isStore = store => (
   isFunction(store.watch)
 );
 
+export const isProxy = value => value && value[$PROXY] !== undefined;
+
 // assume a projection if it isn't a path (and won't be coerced to a path)
 export const isProjection = value => {
   return value && !isArray(value) && !isString(value) && !isNumber(value);
 };
+
+const nativeArgs = new Set([
+  // Array
+  'pop',
+  'shift',
+  'sort',
+  'reverse',
+  'splice',
+  'unshift',
+  'push',
+  'forEach',
+  'map',
+
+  // Typed Array
+  'copyWithin',
+  'fill',
+
+  // Map / Set
+  'get',
+  'add',
+  'set',
+  'delete',
+  'values',
+  'entries',
+  'clear',
+  
+  // Date
+  'setDate',
+  'setFullYear',
+  'setHours',
+  'setMilliseconds',
+  'setMinutes',
+  'setMonth',
+  'setSeconds',
+  'setTime',
+  'setUTCDate',
+  'setUTCFullYear',
+  'setUTCHours',
+  'setUTCMilliseconds',
+  'setUTCMinutes',
+  'setUTCMonth',
+  'setUTCSeconds',
+]);
+export const isNativeArg = value => nativeArgs.has(value);
 
 export {
   isSymbol,
   isFunction,
   isString,
   isNumber,
+  isDate,
 };

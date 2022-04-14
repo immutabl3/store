@@ -28,7 +28,7 @@ export default function makeMethod(prototype, name, arity, check) {
   prototype[name] = function(first, second) {
     const { path, value } = pathAndValue(first, second);
 
-    const { root, basePath, isRoot } = this;
+    const { root, basePath, isRoot, capture } = this;
 
     if (!check(value)) throw new StoreError(`${name}: invalid value`, { path, value });
 
@@ -41,7 +41,8 @@ export default function makeMethod(prototype, name, arity, check) {
         root,
         basePath,
         name,
-        value
+        value,
+        capture,
       );
       return;
     }
@@ -54,7 +55,8 @@ export default function makeMethod(prototype, name, arity, check) {
           root,
           basePath,
           name,
-          value
+          value,
+          capture,
         );
         return;
       }
@@ -64,6 +66,6 @@ export default function makeMethod(prototype, name, arity, check) {
     }
 
     // applying the update
-    update(root, basePath.concat(solvedPath), name, value);
+    update(root, basePath.concat(solvedPath), name, value, capture);
   };
 };

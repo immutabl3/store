@@ -1,5 +1,5 @@
 {
-  "parser": "babel-eslint",
+  "parser": "@babel/eslint-parser",
   "env": {
     "browser": true,
     "node": true,
@@ -9,8 +9,9 @@
     "babel"
   ],
   "parserOptions": {
+    "requireConfigFile": false,
     "allowAwaitOutsideFunction": true,
-    "ecmaVersion": 2019,
+    "ecmaVersion": 2020,
     "sourceType": "module"
   },
   "rules": {

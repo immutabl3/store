@@ -1,6 +1,6 @@
 import test from 'tape';
 import merge from 'lodash/merge.js';
-import watch from '../src/proxyWatcher.js';
+import watch from '../src/proxyWatcher/index.js';
 
 const Watcher = function(object) {
   let changes = 0;

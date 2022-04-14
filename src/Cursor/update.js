@@ -6,23 +6,29 @@ import {
 } from '../utils/index.js';
 import {
   isArray,
+  isProxy,
   isObject,
   isPrimitive,
   isMapLike,
 } from '../types.js';
 import {
+  $PROXY,
   $MAPMUTATE,
   $MAPDELETE,
 } from '../consts.js';
 
 const operations = {
-  set(target, key, value) {
+  set(target, key, value, path, capture) {
     if (isMapLike(target)) {
       const val = isObject(value) 
         ? mergeDeep(target.get(key) || {}, clone(value))
         : value;
       target[$MAPMUTATE] = [key, val];
       target.set(key, val);
+      return;
+    }
+    if (isProxy(value)) {
+      target[key] = value[$PROXY](capture);
       return;
     }
     if (isObject(value)) {
@@ -32,9 +38,11 @@ const operations = {
     target[key] = value;
   },
 
-  push(target, key, value, path) {
+  push(target, key, value, path, capture) {
     if (!isArray(target[key])) throw new StoreError(`push`, { path });
-    target[key].push(value);
+    target[key].push(
+      isProxy(value) ? value[$PROXY](capture) : value
+    );
   },
 
   unshift(target, key, value, path) {
@@ -42,9 +50,11 @@ const operations = {
     target[key].unshift(value);
   },
 
-  concat(target, key, value, path) {
+  concat(target, key, value, path, capture) {
     if (!isArray(target[key])) throw new StoreError(`concat`, { path });
-    target[key].push(...value);
+    target[key].push(...(
+      value.map(val => isProxy(val) ? val[$PROXY](capture) : val)
+    ));
   },
 
   splice(target, key, value, path) {
@@ -76,6 +86,8 @@ const operations = {
   },
 
   merge(target, key, value, path) {
+    if (isProxy(value)) throw new StoreError(`merge: cannot merge observable objects`, { path });
+
     if (isMapLike(target)) {
       const obj = target.get(key);
       if (!isObject(obj)) throw new StoreError(`merge`, { path });
@@ -92,12 +104,12 @@ const operations = {
   },
 };
 
-export default function update(data, path, type, value) {
+export default function update(data, path, type, value, capture) {
   const length = path.length;
 
   // altering the root
   if (!length) {
-    return operations[type]({ root: data }, 'root', value, ['root']);
+    return operations[type]({ root: data }, 'root', value, ['root'], capture);
   }
 
   // walking the path
@@ -111,7 +123,7 @@ export default function update(data, path, type, value) {
 
     // if we reached the end of the path, we apply the operation
     if (idx === length - 1) {
-      return operations[type](current, key, value, path);
+      return operations[type](current, key, value, path, capture);
     }
     
     // if we reached a leaf, we override by setting an empty object

@@ -9,3 +9,4 @@ import './debug.test.js';
 import './select.test.js';
 import './store.test.js';
 import './merge.test.js';
+import './observe.test.js';

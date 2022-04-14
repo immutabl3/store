@@ -4,6 +4,7 @@ export const $PAUSE = Symbol('pause');
 export const $RESUME = Symbol('resume');
 export const $MAPMUTATE = Symbol('map->mutate');
 export const $MAPDELETE = Symbol('map->delete');
+export const $PROXY = Symbol('proxy');
 export const $LENGTH = 'length';
 export const $CONSTRUCTOR = 'constructor';
 

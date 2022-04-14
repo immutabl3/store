@@ -25,11 +25,12 @@ const expandProjection = (projection, basePath) => {
 };
 
 export default class Cursor {
-  constructor(root, locker, emitter, basePath = []) {
+  constructor(root, locker, emitter, basePath, capture) {
     this.root = root;
     this.locker = locker;
     this.emitter = emitter;
     this.basePath = basePath;
+    this.capture = capture;
     this.isRoot = !basePath.length;
   }
 
@@ -39,7 +40,7 @@ export default class Cursor {
 
   select(value) {
     const selector = coerce(value);
-    return new Cursor(this.root, this.locker, this.emitter, [...this.basePath, ...selector]);
+    return new Cursor(this.root, this.locker, this.emitter, [...this.basePath, ...selector], this.capture);
   }
 
   watch(listener, fn) {

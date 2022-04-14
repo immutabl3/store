@@ -301,7 +301,7 @@ test('watch: is disposable', async assert => {
 
   store.data.arr[3].foo = 0;
 
-  await wait();
+  await wait(16);
 
   assert.same(calls, [1], `made a call on data change`);
 
